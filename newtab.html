@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreshTab</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 背景装饰 -->
+        <div class="background-gradient"></div>
+        
+        <!-- 主要内容区域 -->
+        <main class="main-content">
+            <!-- 时间显示 -->
+            <div class="time-section">
+                <div class="time-display">
+                    <span class="time" id="current-time">12:00</span>
+                    <span class="period" id="time-period">PM</span>
+                </div>
+                <div class="date-display">
+                    <span class="date" id="current-date">星期三, 6月13日</span>
+                </div>
+                <div class="greeting" id="greeting">下午好！</div>
+            </div>
+
+            <!-- 搜索框 -->
+            <div class="search-section">
+                <div class="search-container">
+                    <div class="search-input-wrapper">
+                        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.35-4.35"></path>
+                        </svg>
+                        <input type="text" class="search-input" id="search-input" placeholder="搜索 Google 或输入网址">
+                    </div>
+                    <div class="search-engines">
+                        <button class="engine-btn active" data-engine="google">Google</button>
+                        <button class="engine-btn" data-engine="bing">Bing</button>
+                        <button class="engine-btn" data-engine="baidu">百度</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 快捷书签 -->
+            <div class="bookmarks-section">
+                <h3 class="section-title">快速访问</h3>
+                <div class="bookmarks-grid" id="bookmarks-grid">
+                    <!-- 书签将通过JavaScript动态加载 -->
+                </div>
+                <button class="add-bookmark-btn" id="add-bookmark-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    添加书签
+                </button>
+            </div>
+
+            <!-- 天气信息 -->
+            <div class="weather-section">
+                <div class="weather-info" id="weather-info">
+                    <div class="weather-loading">获取天气信息中...</div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 设置按钮 -->
+        <div class="settings-container">
+            <button class="settings-btn" id="settings-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- 添加书签模态框 -->
+    <div class="modal" id="bookmark-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>添加书签</h3>
+                <button class="close-btn" id="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label for="bookmark-name">名称</label>
+                    <input type="text" id="bookmark-name" placeholder="输入书签名称">
+                </div>
+                <div class="input-group">
+                    <label for="bookmark-url">网址</label>
+                    <input type="url" id="bookmark-url" placeholder="输入网址">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" id="cancel-bookmark">取消</button>
+                <button class="btn-save" id="save-bookmark">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="newtab.js"></script>
+</body>
+</html>
