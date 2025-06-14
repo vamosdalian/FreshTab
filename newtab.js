@@ -8,6 +8,10 @@ class FreshTab {
         };
         this.currentEngine = 'google';
         this.bookmarks = [];
+        this.settings = {
+            columnsPerRow: 6,
+            bookmarkSize: 'medium'
+        };
         
         this.init();
     }
@@ -16,9 +20,10 @@ class FreshTab {
         this.updateTime();
         this.setupSearchEngine();
         this.setupSearch();
+        this.loadSettings();
         this.loadBookmarks();
         this.setupBookmarkModal();
-        this.setupSettings();
+        this.setupSettingsModal();
         this.updateGreeting();
         
         // 每秒更新时间
@@ -137,6 +142,46 @@ class FreshTab {
         }
     }
 
+    // 加载设置
+    async loadSettings() {
+        try {
+            const result = await chrome.storage.sync.get(['settings']);
+            this.settings = { ...this.settings, ...(result.settings || {}) };
+        } catch (error) {
+            console.log('使用默认设置');
+            const savedSettings = localStorage.getItem('freshtab-settings');
+            if (savedSettings) {
+                this.settings = { ...this.settings, ...JSON.parse(savedSettings) };
+            }
+        }
+        this.applySettings();
+    }
+
+    // 保存设置
+    async saveSettings() {
+        try {
+            await chrome.storage.sync.set({ settings: this.settings });
+        } catch (error) {
+            console.log('无法保存到Chrome存储，使用localStorage');
+            localStorage.setItem('freshtab-settings', JSON.stringify(this.settings));
+        }
+    }
+
+    // 应用设置
+    applySettings() {
+        const grid = document.getElementById('bookmarks-grid');
+        
+        // 移除所有列数类
+        grid.classList.remove('columns-3', 'columns-4', 'columns-5', 'columns-6', 'columns-7', 'columns-8');
+        // 添加当前设置的列数类
+        grid.classList.add(`columns-${this.settings.columnsPerRow}`);
+        
+        // 移除所有大小类
+        grid.classList.remove('size-small', 'size-medium', 'size-large');
+        // 添加当前设置的大小类
+        grid.classList.add(`size-${this.settings.bookmarkSize}`);
+    }
+
     // 加载书签
     async loadBookmarks() {
         try {
@@ -172,6 +217,9 @@ class FreshTab {
             const bookmarkElement = this.createBookmarkElement(bookmark, index);
             grid.appendChild(bookmarkElement);
         });
+
+        // 应用当前设置
+        this.applySettings();
     }
 
     // 创建书签元素
@@ -319,14 +367,58 @@ class FreshTab {
         return name.charAt(0).toUpperCase();
     }
 
-    // 设置按钮功能
-    setupSettings() {
+    // 设置模态框功能
+    setupSettingsModal() {
+        const modal = document.getElementById('settings-modal');
         const settingsBtn = document.getElementById('settings-btn');
-        
+        const closeBtn = document.getElementById('close-settings');
+        const cancelBtn = document.getElementById('cancel-settings');
+        const saveBtn = document.getElementById('save-settings');
+        const columnsSlider = document.getElementById('columns-per-row');
+        const columnsValue = document.getElementById('columns-value');
+        const bookmarkSizeSelect = document.getElementById('bookmark-size');
+
+        // 打开设置模态框
         settingsBtn.addEventListener('click', () => {
-            // 这里可以添加设置面板功能
-            alert('设置功能即将推出！');
+            modal.classList.add('show');
+            // 更新UI为当前设置值
+            columnsSlider.value = this.settings.columnsPerRow;
+            columnsValue.textContent = this.settings.columnsPerRow;
+            bookmarkSizeSelect.value = this.settings.bookmarkSize;
         });
+
+        // 关闭模态框
+        const closeModal = () => {
+            modal.classList.remove('show');
+        };
+
+        closeBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+
+        // 点击背景关闭
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+
+        // 滑块值实时更新
+        columnsSlider.addEventListener('input', (e) => {
+            columnsValue.textContent = e.target.value;
+        });
+
+        // 保存设置
+        saveBtn.addEventListener('click', async () => {
+            this.settings.columnsPerRow = parseInt(columnsSlider.value);
+            this.settings.bookmarkSize = bookmarkSizeSelect.value;
+            
+            await this.saveSettings();
+            this.applySettings();
+            closeModal();
+        });
+    }
+
+    // 设置按钮功能（旧方法替换）
+    setupSettings() {
+        // 这个方法现在被 setupSettingsModal 替代
     }
 }
 

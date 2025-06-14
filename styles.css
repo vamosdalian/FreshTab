@@ -20,7 +20,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: 20px 40px;
 }
 
 /* 背景装饰 */
@@ -53,8 +53,8 @@ body {
 
 /* 主要内容区域 */
 .main-content {
-    max-width: 800px;
-    width: 100%;
+    max-width: 1200px;
+    width: 90%;
     margin: 20px 0;
     padding: 40px;
     animation: slideUp 0.8s ease-out;
@@ -133,7 +133,7 @@ body {
 .search-input-wrapper {
     position: relative;
     width: 100%;
-    max-width: 500px;
+    max-width: 600px;
 }
 
 .search-icon {
@@ -214,7 +214,7 @@ body {
 
 .bookmarks-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 16px;
     margin-bottom: 20px;
 }
@@ -512,11 +512,313 @@ body {
     background: #5a67d8;
 }
 
+/* 设置模态框特殊样式 */
+.settings-modal-content {
+    max-width: 500px;
+}
+
+.settings-section {
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.settings-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.settings-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 16px;
+}
+
+.setting-item {
+    margin-bottom: 20px;
+}
+
+.setting-item:last-child {
+    margin-bottom: 0;
+}
+
+.setting-item label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #4a5568;
+    font-size: 0.9rem;
+}
+
+.setting-control {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.slider {
+    flex: 1;
+    height: 6px;
+    border-radius: 3px;
+    background: #e2e8f0;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #667eea;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #667eea;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.setting-value {
+    font-weight: 600;
+    color: #667eea;
+    min-width: 20px;
+    text-align: center;
+}
+
+.setting-select {
+    padding: 8px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: white;
+    font-size: 0.9rem;
+    color: #4a5568;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.setting-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.setting-description {
+    font-size: 0.8rem;
+    color: #718096;
+    margin-top: 4px;
+    line-height: 1.4;
+}
+
+/* 动态书签网格样式 - 固定图标大小，调整间距 */
+.bookmarks-grid.columns-3 {
+    grid-template-columns: repeat(3, 140px);
+    justify-content: center;
+    gap: 24px;
+}
+
+.bookmarks-grid.columns-4 {
+    grid-template-columns: repeat(4, 140px);
+    justify-content: center;
+    gap: 20px;
+}
+
+.bookmarks-grid.columns-5 {
+    grid-template-columns: repeat(5, 140px);
+    justify-content: center;
+    gap: 18px;
+}
+
+.bookmarks-grid.columns-6 {
+    grid-template-columns: repeat(6, 140px);
+    justify-content: center;
+    gap: 16px;
+}
+
+.bookmarks-grid.columns-7 {
+    grid-template-columns: repeat(7, 140px);
+    justify-content: center;
+    gap: 14px;
+}
+
+.bookmarks-grid.columns-8 {
+    grid-template-columns: repeat(8, 140px);
+    justify-content: center;
+    gap: 12px;
+}
+
+/* 书签大小变化 - 小尺寸 */
+.bookmarks-grid.size-small.columns-3 {
+    grid-template-columns: repeat(3, 110px);
+    gap: 20px;
+}
+
+.bookmarks-grid.size-small.columns-4 {
+    grid-template-columns: repeat(4, 110px);
+    gap: 18px;
+}
+
+.bookmarks-grid.size-small.columns-5 {
+    grid-template-columns: repeat(5, 110px);
+    gap: 16px;
+}
+
+.bookmarks-grid.size-small.columns-6 {
+    grid-template-columns: repeat(6, 110px);
+    gap: 14px;
+}
+
+.bookmarks-grid.size-small.columns-7 {
+    grid-template-columns: repeat(7, 110px);
+    gap: 12px;
+}
+
+.bookmarks-grid.size-small.columns-8 {
+    grid-template-columns: repeat(8, 110px);
+    gap: 10px;
+}
+
+.bookmarks-grid.size-small .bookmark-item {
+    padding: 12px;
+    width: 110px;
+}
+
+.bookmarks-grid.size-small .bookmark-icon {
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+}
+
+.bookmarks-grid.size-small .bookmark-name {
+    font-size: 0.8rem;
+}
+
+/* 书签大小变化 - 中等尺寸 */
+.bookmarks-grid.size-medium.columns-3 {
+    grid-template-columns: repeat(3, 140px);
+    gap: 24px;
+}
+
+.bookmarks-grid.size-medium.columns-4 {
+    grid-template-columns: repeat(4, 140px);
+    gap: 20px;
+}
+
+.bookmarks-grid.size-medium.columns-5 {
+    grid-template-columns: repeat(5, 140px);
+    gap: 18px;
+}
+
+.bookmarks-grid.size-medium.columns-6 {
+    grid-template-columns: repeat(6, 140px);
+    gap: 16px;
+}
+
+.bookmarks-grid.size-medium.columns-7 {
+    grid-template-columns: repeat(7, 140px);
+    gap: 14px;
+}
+
+.bookmarks-grid.size-medium.columns-8 {
+    grid-template-columns: repeat(8, 140px);
+    gap: 12px;
+}
+
+.bookmarks-grid.size-medium .bookmark-item {
+    padding: 16px;
+    width: 140px;
+}
+
+.bookmarks-grid.size-medium .bookmark-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+}
+
+.bookmarks-grid.size-medium .bookmark-name {
+    font-size: 0.9rem;
+}
+
+/* 书签大小变化 - 大尺寸 */
+.bookmarks-grid.size-large.columns-3 {
+    grid-template-columns: repeat(3, 170px);
+    gap: 28px;
+}
+
+.bookmarks-grid.size-large.columns-4 {
+    grid-template-columns: repeat(4, 170px);
+    gap: 24px;
+}
+
+.bookmarks-grid.size-large.columns-5 {
+    grid-template-columns: repeat(5, 170px);
+    gap: 22px;
+}
+
+.bookmarks-grid.size-large.columns-6 {
+    grid-template-columns: repeat(6, 170px);
+    gap: 20px;
+}
+
+.bookmarks-grid.size-large.columns-7 {
+    grid-template-columns: repeat(7, 170px);
+    gap: 18px;
+}
+
+.bookmarks-grid.size-large.columns-8 {
+    grid-template-columns: repeat(8, 170px);
+    gap: 16px;
+}
+
+.bookmarks-grid.size-large .bookmark-item {
+    padding: 20px;
+    width: 170px;
+}
+
+.bookmarks-grid.size-large .bookmark-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 22px;
+}
+
+.bookmarks-grid.size-large .bookmark-name {
+    font-size: 1rem;
+}
+
 /* 响应式设计 */
+@media (min-width: 1600px) {
+    .main-content {
+        max-width: 1400px;
+        width: 80%;
+    }
+    
+    .bookmarks-grid {
+        gap: 20px;
+    }
+}
+
+@media (max-width: 1400px) {
+    .main-content {
+        max-width: 1000px;
+        width: 85%;
+    }
+}
+
 @media (max-width: 768px) {
     .main-content {
         padding: 24px;
         margin: 10px;
+        width: 95%;
+        max-width: none;
     }
     
     .time {
@@ -527,9 +829,23 @@ body {
         font-size: 1.2rem;
     }
     
-    .bookmarks-grid {
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    /* 在平板上限制最大列数并调整固定宽度 */
+    .bookmarks-grid.size-small.columns-7,
+    .bookmarks-grid.size-small.columns-8 {
+        grid-template-columns: repeat(5, 110px);
         gap: 12px;
+    }
+    
+    .bookmarks-grid.size-medium.columns-7,
+    .bookmarks-grid.size-medium.columns-8 {
+        grid-template-columns: repeat(5, 140px);
+        gap: 14px;
+    }
+    
+    .bookmarks-grid.size-large.columns-7,
+    .bookmarks-grid.size-large.columns-8 {
+        grid-template-columns: repeat(4, 170px);
+        gap: 16px;
     }
     
     .settings-container {
@@ -539,11 +855,56 @@ body {
 }
 
 @media (max-width: 480px) {
+    .main-content {
+        width: 100%;
+        padding: 20px;
+        margin: 0;
+    }
+    
     .time {
         font-size: 2.5rem;
     }
     
     .search-engines {
         flex-wrap: wrap;
+    }
+    
+    /* 在手机上进一步限制列数并调整固定宽度 */
+    .bookmarks-grid.size-small.columns-5,
+    .bookmarks-grid.size-small.columns-6,
+    .bookmarks-grid.size-small.columns-7,
+    .bookmarks-grid.size-small.columns-8 {
+        grid-template-columns: repeat(4, 110px);
+        gap: 8px;
+    }
+    
+    .bookmarks-grid.size-small.columns-3,
+    .bookmarks-grid.size-small.columns-4 {
+        grid-template-columns: repeat(3, 110px);
+        gap: 10px;
+    }
+    
+    .bookmarks-grid.size-medium.columns-5,
+    .bookmarks-grid.size-medium.columns-6,
+    .bookmarks-grid.size-medium.columns-7,
+    .bookmarks-grid.size-medium.columns-8 {
+        grid-template-columns: repeat(3, 140px);
+        gap: 12px;
+    }
+    
+    .bookmarks-grid.size-medium.columns-3,
+    .bookmarks-grid.size-medium.columns-4 {
+        grid-template-columns: repeat(3, 140px);
+        gap: 14px;
+    }
+    
+    .bookmarks-grid.size-large.columns-3,
+    .bookmarks-grid.size-large.columns-4,
+    .bookmarks-grid.size-large.columns-5,
+    .bookmarks-grid.size-large.columns-6,
+    .bookmarks-grid.size-large.columns-7,
+    .bookmarks-grid.size-large.columns-8 {
+        grid-template-columns: repeat(2, 170px);
+        gap: 16px;
     }
 }

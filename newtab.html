@@ -101,6 +101,47 @@
         </div>
     </div>
 
+    <!-- 设置模态框 -->
+    <div class="modal" id="settings-modal">
+        <div class="modal-content settings-modal-content">
+            <div class="modal-header">
+                <h3>设置</h3>
+                <button class="close-btn" id="close-settings">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h4 class="settings-section-title">书签显示</h4>
+                    <div class="setting-item">
+                        <label for="columns-per-row">每行显示图标数量</label>
+                        <div class="setting-control">
+                            <input type="range" id="columns-per-row" min="3" max="8" value="6" class="slider">
+                            <span class="setting-value" id="columns-value">6</span>
+                        </div>
+                        <div class="setting-description">调整书签网格中每行显示的图标数量</div>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h4 class="settings-section-title">外观设置</h4>
+                    <div class="setting-item">
+                        <label for="bookmark-size">书签图标大小</label>
+                        <div class="setting-control">
+                            <select id="bookmark-size" class="setting-select">
+                                <option value="small">小</option>
+                                <option value="medium" selected>中</option>
+                                <option value="large">大</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" id="cancel-settings">取消</button>
+                <button class="btn-save" id="save-settings">保存设置</button>
+            </div>
+        </div>
+    </div>
+
     <script src="newtab.js"></script>
 </body>
 </html>
