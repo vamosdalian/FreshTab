@@ -1,14 +1,19 @@
+# FreshTab Chrome Extension specific
+# Build outputs
+dist/
+build/
+
+# Temporary extension files
+*.zip
+*.crx
+*.pem
+
 # Dependencies
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-
-# Build outputs
-dist/
-build/
-*.tsbuildinfo
 
 # Environment variables
 .env
@@ -95,14 +100,3 @@ jspm_packages/
 
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
-
-# Chrome extension specific
-# (Keep manifest.json and icons as they're needed for the extension)
-web-ext-artifacts/
-*.zip
-*.crx
-*.pem
-
-# Temporary files
-*.tmp
-*.temp
