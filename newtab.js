@@ -1,16 +1,19 @@
 // 新标签页功能
 class FreshTab {
     constructor() {
-        this.searchEngines = {
-            google: 'https://www.google.com/search?q=',
-            bing: 'https://www.bing.com/search?q=',
-            baidu: 'https://www.baidu.com/s?wd='
-        };
+        this.searchEngines = [
+            { id: 'google', name: 'Google', url: 'https://www.google.com/search?q=' },
+            { id: 'bing', name: 'Bing', url: 'https://www.bing.com/search?q=' },
+            { id: 'baidu', name: '百度', url: 'https://www.baidu.com/s?wd=' },
+            { id: 'duckduckgo', name: 'DuckDuckGo', url: 'https://duckduckgo.com/?q=' },
+            { id: 'yahoo', name: 'Yahoo', url: 'https://search.yahoo.com/search?p=' }
+        ];
         this.currentEngine = 'google';
         this.bookmarks = [];
         this.settings = {
             columnsPerRow: 6,
-            bookmarkSize: 'medium'
+            bookmarkSize: 'medium',
+            searchEngine: 'google'
         };
         
         this.init();
@@ -18,9 +21,9 @@ class FreshTab {
 
     init() {
         this.updateTime();
+        this.loadSettings();
         this.setupSearchEngine();
         this.setupSearch();
-        this.loadSettings();
         this.loadBookmarks();
         this.setupBookmarkModal();
         this.setupSettingsModal();
@@ -37,22 +40,21 @@ class FreshTab {
     updateTime() {
         const now = new Date();
         const timeElement = document.getElementById('current-time');
-        const periodElement = document.getElementById('time-period');
         const dateElement = document.getElementById('current-date');
 
-        // 格式化时间
-        let hours = now.getHours();
+        // 检查元素是否存在
+        if (!timeElement || !dateElement) {
+            console.warn('时间或日期元素未找到');
+            return;
+        }
+
+        // 格式化时间 - 24小时制
+        const hours = now.getHours();
         const minutes = now.getMinutes();
-        const period = hours >= 12 ? 'PM' : 'AM';
         
-        // 转换为12小时制
-        hours = hours % 12;
-        hours = hours ? hours : 12;
-        
-        const timeString = `${hours}:${minutes.toString().padStart(2, '0')}`;
+        const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
         
         timeElement.textContent = timeString;
-        periodElement.textContent = period;
 
         // 格式化日期
         const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
@@ -71,6 +73,12 @@ class FreshTab {
         const hour = now.getHours();
         const greetingElement = document.getElementById('greeting');
         
+        // 检查元素是否存在
+        if (!greetingElement) {
+            console.warn('问候语元素未找到');
+            return;
+        }
+        
         let greeting;
         if (hour < 6) {
             greeting = '夜深了，早点休息！';
@@ -87,23 +95,61 @@ class FreshTab {
 
     // 设置搜索引擎切换
     setupSearchEngine() {
-        const engineButtons = document.querySelectorAll('.engine-btn');
+        const searchEngineSelect = document.getElementById('search-engine-select');
         
-        engineButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                // 移除所有活动状态
-                engineButtons.forEach(b => b.classList.remove('active'));
-                // 添加活动状态到当前按钮
-                btn.classList.add('active');
-                // 更新当前搜索引擎
-                this.currentEngine = btn.dataset.engine;
-            });
+        // 检查元素是否存在
+        if (!searchEngineSelect) {
+            console.warn('搜索引擎选择元素未找到');
+            return;
+        }
+        
+        // 加载搜索引擎选项
+        this.searchEngines.forEach(engine => {
+            const option = document.createElement('option');
+            option.value = engine.id;
+            option.textContent = engine.name;
+            searchEngineSelect.appendChild(option);
         });
+        
+        // 设置当前选中的搜索引擎
+        searchEngineSelect.value = this.currentEngine;
+        
+        // 监听搜索引擎切换
+        searchEngineSelect.addEventListener('change', (e) => {
+            this.currentEngine = e.target.value;
+            this.settings.searchEngine = this.currentEngine;
+            this.saveSettings();
+            this.updateSearchPlaceholder();
+        });
+        
+        this.updateSearchPlaceholder();
+    }
+    
+    // 更新搜索框占位符
+    updateSearchPlaceholder() {
+        const searchInput = document.getElementById('search-input');
+        
+        // 检查元素是否存在
+        if (!searchInput) {
+            console.warn('搜索输入框元素未找到');
+            return;
+        }
+        
+        const currentEngine = this.searchEngines.find(engine => engine.id === this.currentEngine);
+        if (currentEngine) {
+            searchInput.placeholder = `搜索 ${currentEngine.name} 或输入网址`;
+        }
     }
 
     // 设置搜索功能
     setupSearch() {
         const searchInput = document.getElementById('search-input');
+        
+        // 检查搜索输入框是否存在
+        if (!searchInput) {
+            console.warn('搜索输入框元素未找到');
+            return;
+        }
         
         searchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -112,9 +158,12 @@ class FreshTab {
         });
 
         // 点击搜索图标也可以搜索
-        document.querySelector('.search-icon').addEventListener('click', () => {
-            this.performSearch(searchInput.value);
-        });
+        const searchIcon = document.querySelector('.search-icon');
+        if (searchIcon) {
+            searchIcon.addEventListener('click', () => {
+                this.performSearch(searchInput.value);
+            });
+        }
     }
 
     // 执行搜索
@@ -127,8 +176,11 @@ class FreshTab {
             window.location.href = query.startsWith('http') ? query : `https://${query}`;
         } else {
             // 否则使用搜索引擎搜索
-            const searchURL = this.searchEngines[this.currentEngine] + encodeURIComponent(query);
-            window.location.href = searchURL;
+            const currentEngine = this.searchEngines.find(engine => engine.id === this.currentEngine);
+            if (currentEngine) {
+                const searchURL = currentEngine.url + encodeURIComponent(query);
+                window.location.href = searchURL;
+            }
         }
     }
 
@@ -147,11 +199,13 @@ class FreshTab {
         try {
             const result = await chrome.storage.sync.get(['settings']);
             this.settings = { ...this.settings, ...(result.settings || {}) };
+            this.currentEngine = this.settings.searchEngine || 'google';
         } catch (error) {
             console.log('使用默认设置');
             const savedSettings = localStorage.getItem('freshtab-settings');
             if (savedSettings) {
                 this.settings = { ...this.settings, ...JSON.parse(savedSettings) };
+                this.currentEngine = this.settings.searchEngine || 'google';
             }
         }
         this.applySettings();
@@ -171,6 +225,12 @@ class FreshTab {
     applySettings() {
         const grid = document.getElementById('bookmarks-grid');
         
+        // 检查网格元素是否存在
+        if (!grid) {
+            console.warn('书签网格元素未找到');
+            return;
+        }
+        
         // 移除所有列数类
         grid.classList.remove('columns-3', 'columns-4', 'columns-5', 'columns-6', 'columns-7', 'columns-8');
         // 添加当前设置的列数类
@@ -180,6 +240,13 @@ class FreshTab {
         grid.classList.remove('size-small', 'size-medium', 'size-large');
         // 添加当前设置的大小类
         grid.classList.add(`size-${this.settings.bookmarkSize}`);
+        
+        // 更新搜索引擎选择
+        const searchEngineSelect = document.getElementById('search-engine-select');
+        if (searchEngineSelect) {
+            searchEngineSelect.value = this.currentEngine;
+            this.updateSearchPlaceholder();
+        }
     }
 
     // 加载书签
@@ -211,12 +278,29 @@ class FreshTab {
     // 渲染书签
     renderBookmarks() {
         const grid = document.getElementById('bookmarks-grid');
+        
+        // 检查网格元素是否存在
+        if (!grid) {
+            console.warn('书签网格元素未找到');
+            return;
+        }
+        
+        // 保存添加按钮
+        const addBtn = document.getElementById('add-bookmark-btn');
+        
+        // 清空网格但保留添加按钮
         grid.innerHTML = '';
-
+        
+        // 重新添加所有书签
         this.bookmarks.forEach((bookmark, index) => {
             const bookmarkElement = this.createBookmarkElement(bookmark, index);
             grid.appendChild(bookmarkElement);
         });
+        
+        // 将添加按钮放在最后（如果存在）
+        if (addBtn) {
+            grid.appendChild(addBtn);
+        }
 
         // 应用当前设置
         this.applySettings();
@@ -272,6 +356,12 @@ class FreshTab {
         const saveBtn = document.getElementById('save-bookmark');
         const nameInput = document.getElementById('bookmark-name');
         const urlInput = document.getElementById('bookmark-url');
+
+        // 检查必要元素是否存在
+        if (!modal || !addBtn || !closeBtn || !cancelBtn || !saveBtn || !nameInput || !urlInput) {
+            console.warn('书签模态框相关元素未完全找到');
+            return;
+        }
 
         // 打开模态框
         addBtn.addEventListener('click', () => {
@@ -378,6 +468,12 @@ class FreshTab {
         const columnsValue = document.getElementById('columns-value');
         const bookmarkSizeSelect = document.getElementById('bookmark-size');
 
+        // 检查必要元素是否存在
+        if (!modal || !settingsBtn || !closeBtn || !cancelBtn || !saveBtn || !columnsSlider || !columnsValue || !bookmarkSizeSelect) {
+            console.warn('设置模态框相关元素未完全找到');
+            return;
+        }
+
         // 打开设置模态框
         settingsBtn.addEventListener('click', () => {
             modal.classList.add('show');
@@ -423,20 +519,39 @@ class FreshTab {
 }
 
 // 页面加载完成后初始化
-document.addEventListener('DOMContentLoaded', () => {
-    new FreshTab();
-});
+if (document.readyState === 'loading') {
+    // DOM还在加载中，等待DOMContentLoaded事件
+    document.addEventListener('DOMContentLoaded', () => {
+        try {
+            new FreshTab();
+        } catch (error) {
+            console.error('FreshTab初始化失败:', error);
+        }
+    });
+} else {
+    // DOM已经加载完成，直接初始化
+    try {
+        new FreshTab();
+    } catch (error) {
+        console.error('FreshTab初始化失败:', error);
+    }
+}
 
 // 键盘快捷键
 document.addEventListener('keydown', (e) => {
     // Ctrl/Cmd + K 聚焦搜索框
     if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
-        document.getElementById('search-input').focus();
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+            searchInput.focus();
+        }
     }
     
     // ESC 取消焦点
     if (e.key === 'Escape') {
-        document.activeElement.blur();
+        if (document.activeElement) {
+            document.activeElement.blur();
+        }
     }
 });
