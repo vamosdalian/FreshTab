@@ -96,7 +96,7 @@ export default {
       showEngineDropdown.value = !showEngineDropdown.value
     }
 
-    const selectSearchEngine = (engine) => {
+    const selectSearchEngine = async (engine) => {
       setSearchEngine(engine)
       showEngineDropdown.value = false
     }
@@ -239,14 +239,6 @@ export default {
   color: rgba(255, 255, 255, 0.6);
 }
 
-/* 重要：覆盖全局样式，防止聚焦时的颜色变化 */
-.search-input:focus {
-  border: none !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  outline: none !important;
-}
-
 /* 搜索按钮 */
 .search-button {
   position: absolute;
@@ -285,15 +277,14 @@ export default {
 /* 搜索引擎下拉菜单 */
 .engine-dropdown {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 0.5rem);
   left: 0;
-  width: 100%;
+  width: 200px;
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(20px);
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   z-index: 1000;
-  margin-top: 0.5rem;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.3);
 }

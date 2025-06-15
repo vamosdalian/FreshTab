@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 
-export function useSearch(settings) {
+export function useSearch(settings, saveSettings) {
   const searchQuery = ref('')
   const searchEngines = ref([
     { 
@@ -70,9 +70,13 @@ export function useSearch(settings) {
   }
 
   // 设置搜索引擎
-  const setSearchEngine = (engine) => {
-    if (settings && settings.value) {
-      settings.value.searchEngine = engine.id
+  const setSearchEngine = async (engine) => {
+    if (settings && settings.searchEngine !== undefined) {
+      settings.searchEngine = engine.id
+      // 保存到Chrome存储
+      if (saveSettings) {
+        await saveSettings({ searchEngine: engine.id })
+      }
     }
   }
 

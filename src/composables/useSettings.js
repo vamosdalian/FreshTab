@@ -5,7 +5,10 @@ export function useSettings() {
     columnsPerRow: 6,
     bookmarkSize: 'medium',
     searchEngine: 'google',
-    showTime: true
+    showTime: true,
+    showSearch: true,
+    showBookmarks: true,
+    showWeather: true
   })
 
   // 加载设置

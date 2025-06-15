@@ -86,7 +86,7 @@ export default {
     const { bookmarkGroups, addBookmarkToGroup, deleteBookmark, saveBookmarkGroups } = useBookmarks()
     const { settings, saveSettings } = useSettings()
     const { currentTime, greeting } = useTime()
-    const { searchQuery, searchEngines, currentEngine, performSearch, setSearchEngine } = useSearch(settings)
+    const { searchQuery, searchEngines, currentEngine, performSearch, setSearchEngine } = useSearch(settings, saveSettings)
 
     // 模态框状态
     const showSettingsModal = ref(false)
