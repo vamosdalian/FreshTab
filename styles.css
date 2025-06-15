@@ -1340,12 +1340,6 @@ body {
     align-items: center;
     padding: 16px;
     background: #f8f9fa;
-    cursor: pointer;
-    transition: background 0.2s ease;
-}
-
-.group-header:hover {
-    background: #e9ecef;
 }
 
 .group-header .group-info {
@@ -1397,34 +1391,16 @@ body {
     height: 14px;
 }
 
-/* 分组展开内容区域 */
+/* 分组内容区域 - 平铺风格 */
 .group-content {
-    display: none;
+    display: block;
     padding: 16px;
     border-top: 1px solid #e2e8f0;
     background: #ffffff;
 }
 
-.group-content.expanded {
-    display: block;
-}
-
 .group-expand-icon {
-    padding: 4px;
-    color: #718096;
-    transition: transform 0.3s ease;
-    cursor: pointer;
-}
-
-.group-expand-icon.expanded {
-    transform: rotate(180deg);
-}
-
-.group-bookmarks-title {
-    font-weight: 600;
-    color: #2d3748;
-    margin-bottom: 12px;
-    font-size: 0.9rem;
+    display: none; /* 隐藏展开图标 */
 }
 
 .group-bookmarks-list {

@@ -887,55 +887,33 @@ class FreshTab {
         }
     }
 
-    // 渲染分组列表 - 内联管理版本
-    renderGroupsList() {
-        const container = document.getElementById('groups-management');
-        if (!container) return;
-
-        container.innerHTML = '';
-
-        this.bookmarkGroups.forEach(group => {
-            const groupItem = document.createElement('div');
-            groupItem.className = 'group-management-item';
-            groupItem.innerHTML = `
-                <div class="group-header" data-group-id="${group.id}">
+    // HTML模板（作为常量，便于维护）
+    getGroupItemTemplate() {
+        return `
+            <div class="group-management-item">
+                <div class="group-header" data-group-id="{{GROUP_ID}}">
                     <div class="group-info">
-                        <span class="group-name">${group.name}</span>
-                        <span class="group-count">${group.bookmarks.length} 个书签</span>
+                        <span class="group-name">{{GROUP_NAME}}</span>
+                        <span class="group-count">{{GROUP_COUNT}}</span>
                     </div>
                     <div class="group-controls">
-                        <button class="btn-edit-group-name" data-group-id="${group.id}" title="编辑分组名称">
+                        <button class="btn-edit-group-name" data-group-id="{{GROUP_ID}}" title="编辑分组名称">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3l-9.5 9.5-4 1 1-4 9.5-9.5z"></path>
                             </svg>
                         </button>
-                        ${group.id !== 'default' ? `
-                        <button class="btn-delete-group" data-group-id="${group.id}" title="删除分组">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="3,6 5,6 21,6"></polyline>
-                                <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6m3,0V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2v2"></path>
-                            </svg>
-                        </button>
-                        ` : ''}
-                        <div class="group-expand-icon">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="6,9 12,15 18,9"></polyline>
-                            </svg>
-                        </div>
+                        {{DELETE_BUTTON}}
                     </div>
                 </div>
-                <div class="group-content" id="group-content-${group.id}">
+                <div class="group-content">
                     <div class="group-bookmarks">
-                        <div class="group-bookmarks-title">书签列表</div>
-                        <div class="group-bookmarks-list" id="bookmarks-list-${group.id}">
-                            ${group.bookmarks.length === 0 ? 
-                                '<div class="empty-group-message">该分组暂无书签</div>' : ''
-                            }
+                        <div class="group-bookmarks-list" id="bookmarks-list-{{GROUP_ID}}">
+                            {{EMPTY_MESSAGE}}
                         </div>
                     </div>
                     <div class="group-add-bookmark">
-                        <button class="btn-add-bookmark-inline" data-group-id="${group.id}">
+                        <button class="btn-add-bookmark-inline" data-group-id="{{GROUP_ID}}">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <line x1="12" y1="5" x2="12" y2="19"></line>
                                 <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -944,49 +922,105 @@ class FreshTab {
                         </button>
                     </div>
                 </div>
-            `;
+            </div>
+        `;
+    }
 
-            // 分组头部点击展开/折叠
-            const header = groupItem.querySelector('.group-header');
-            const content = groupItem.querySelector('.group-content');
-            const expandIcon = groupItem.querySelector('.group-expand-icon');
-            
-            header.addEventListener('click', (e) => {
-                // 如果点击的是按钮，不触发展开/折叠
-                if (e.target.closest('button')) return;
-                
-                const isExpanded = content.classList.contains('expanded');
-                content.classList.toggle('expanded');
-                expandIcon.classList.toggle('expanded');
-                header.classList.toggle('expanded');
-            });
+    getBookmarkItemTemplate() {
+        return `
+            <div class="group-bookmark-item">
+                <div class="bookmark-info-inline">
+                    <div class="bookmark-icon-inline">{{BOOKMARK_ICON}}</div>
+                    <div class="bookmark-details-inline">
+                        <div class="bookmark-name-inline">{{BOOKMARK_NAME}}</div>
+                        <div class="bookmark-url-inline">{{BOOKMARK_URL}}</div>
+                    </div>
+                </div>
+                <button class="btn-remove-bookmark-inline" data-group-id="{{GROUP_ID}}" data-bookmark-index="{{BOOKMARK_INDEX}}" title="删除书签">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+        `;
+    }
 
-            // 编辑分组名称
-            const editNameBtn = groupItem.querySelector('.btn-edit-group-name');
-            editNameBtn.addEventListener('click', (e) => {
+    // 渲染分组列表 - 内联管理版本
+    renderGroupsList() {
+        const container = document.getElementById('groups-management');
+        if (!container) return;
+
+        // JavaScript只处理数据，生成HTML
+        const groupsHtml = this.bookmarkGroups.map(group => {
+            return this.createGroupItemHtml(group);
+        }).join('');
+
+        container.innerHTML = groupsHtml;
+
+        // 绑定事件（在HTML插入后）
+        this.bindAllGroupEvents();
+        
+        // 渲染每个分组内的书签
+        this.bookmarkGroups.forEach(group => {
+            this.renderGroupBookmarksInline(group);
+        });
+    }
+
+    // 创建分组项HTML（只处理数据）
+    createGroupItemHtml(group) {
+        const template = this.getGroupItemTemplate();
+        
+        // 处理删除按钮（默认分组不显示）
+        const deleteButton = group.id !== 'default' ? `
+            <button class="btn-delete-group" data-group-id="${group.id}" title="删除分组">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3,6 5,6 21,6"></polyline>
+                    <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6m3,0V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2v2"></path>
+                </svg>
+            </button>
+        ` : '';
+
+        // 处理空消息
+        const emptyMessage = group.bookmarks.length === 0 ? 
+            '<div class="empty-group-message">该分组暂无书签</div>' : '';
+
+        // 替换模板中的占位符
+        return template
+            .replace(/{{GROUP_ID}}/g, group.id)
+            .replace(/{{GROUP_NAME}}/g, group.name)
+            .replace(/{{GROUP_COUNT}}/g, `${group.bookmarks.length} 个书签`)
+            .replace(/{{DELETE_BUTTON}}/g, deleteButton)
+            .replace(/{{EMPTY_MESSAGE}}/g, emptyMessage);
+    }
+
+    // 绑定所有分组事件
+    bindAllGroupEvents() {
+        // 编辑分组名称按钮
+        document.querySelectorAll('.btn-edit-group-name').forEach(btn => {
+            btn.addEventListener('click', (e) => {
                 e.stopPropagation();
+                const groupId = btn.dataset.groupId;
+                const group = this.bookmarkGroups.find(g => g.id === groupId);
                 this.showEditGroupNameInline(group);
             });
+        });
 
-            // 删除分组
-            const deleteBtn = groupItem.querySelector('.btn-delete-group');
-            if (deleteBtn) {
-                deleteBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    this.deleteGroup(group.id);
-                });
-            }
-
-            // 添加书签
-            const addBookmarkBtn = groupItem.querySelector('.btn-add-bookmark-inline');
-            addBookmarkBtn.addEventListener('click', () => {
-                this.showAddBookmarkInlineModal(group.id);
+        // 删除分组按钮
+        document.querySelectorAll('.btn-delete-group').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const groupId = btn.dataset.groupId;
+                this.deleteGroup(groupId);
             });
+        });
 
-            container.appendChild(groupItem);
-            
-            // 渲染分组内的书签（必须在元素添加到DOM后调用）
-            this.renderGroupBookmarksInline(group);
+        // 添加书签按钮
+        document.querySelectorAll('.btn-add-bookmark-inline').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const groupId = btn.dataset.groupId;
+                this.showAddBookmarkInlineModal(groupId);
+            });
         });
     }
 
@@ -995,31 +1029,19 @@ class FreshTab {
         const container = document.getElementById(`bookmarks-list-${group.id}`);
         if (!container) return;
 
-        const bookmarksList = group.bookmarks.map((bookmark, index) => `
-            <div class="group-bookmark-item">
-                <div class="bookmark-info-inline">
-                    <div class="bookmark-icon-inline">${bookmark.icon}</div>
-                    <div class="bookmark-details-inline">
-                        <div class="bookmark-name-inline">${bookmark.name}</div>
-                        <div class="bookmark-url-inline">${bookmark.url}</div>
-                    </div>
-                </div>
-                <button class="btn-remove-bookmark-inline" data-group-id="${group.id}" data-bookmark-index="${index}" title="删除书签">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                </button>
-            </div>
-        `).join('');
-
         if (group.bookmarks.length === 0) {
             container.innerHTML = '<div class="empty-group-message">该分组暂无书签</div>';
-        } else {
-            container.innerHTML = bookmarksList;
+            return;
         }
 
-        // 添加删除书签事件
+        // JavaScript只处理数据，生成HTML
+        const bookmarksHtml = group.bookmarks.map((bookmark, index) => {
+            return this.createBookmarkItemHtml(bookmark, index, group.id);
+        }).join('');
+
+        container.innerHTML = bookmarksHtml;
+
+        // 绑定删除书签事件
         container.querySelectorAll('.btn-remove-bookmark-inline').forEach(btn => {
             btn.addEventListener('click', () => {
                 const groupId = btn.dataset.groupId;
@@ -1027,6 +1049,19 @@ class FreshTab {
                 this.deleteBookmarkFromGroup(groupId, bookmarkIndex);
             });
         });
+    }
+
+    // 创建书签项HTML（只处理数据）
+    createBookmarkItemHtml(bookmark, index, groupId) {
+        const template = this.getBookmarkItemTemplate();
+        
+        // 替换模板中的占位符
+        return template
+            .replace(/{{BOOKMARK_ICON}}/g, bookmark.icon)
+            .replace(/{{BOOKMARK_NAME}}/g, bookmark.name)
+            .replace(/{{BOOKMARK_URL}}/g, bookmark.url)
+            .replace(/{{GROUP_ID}}/g, groupId)
+            .replace(/{{BOOKMARK_INDEX}}/g, index);
     }
 
     // 显示编辑分组名称
