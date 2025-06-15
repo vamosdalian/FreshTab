@@ -159,7 +159,7 @@ export default {
   align-items: center;
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
-  border-radius: 50px 30px 30px 50px;
+  border-radius: 50px 50px 50px 50px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   transition: all 0.3s ease;
   overflow: hidden;
@@ -171,20 +171,26 @@ export default {
 .engine-icon-btn {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.875rem 0.75rem;
+  gap: 0;
+  padding: 0.875rem 0.5rem;
   background: none;
   border: none;
   color: rgba(255, 255, 255, 0.8);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 50px 0 0 50px;
   flex-shrink: 0;
+  width: auto;
+  overflow: hidden;
+  position: relative;
 }
 
 .engine-icon-btn:hover {
-  /* 移除背景颜色变化 */
+  /* 悬停时向左展开 */
   color: white;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  gap: 0.5rem;
 }
 
 .engine-icon {
@@ -201,14 +207,19 @@ export default {
 }
 
 .dropdown-arrow {
-  opacity: 0.6;
-  transition: all 0.3s ease;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
+  transform: translateX(10px);
+  width: 0;
+  margin-left: 0;
 }
 
 .engine-icon-btn:hover .dropdown-arrow {
   opacity: 1;
-  transform: scale(1.1);
+  transform: translateX(0) scale(1.05);
+  width: 12px;
+  margin-left: 0.25rem;
 }
 
 /* 搜索输入框 */
@@ -347,9 +358,15 @@ export default {
   }
   
   .engine-icon-btn {
-    padding: 0.875rem 0.5rem;
-    gap: 0.375rem;
+    padding: 0.875rem 0.375rem;
+    gap: 0;
     border-radius: 40px 0 0 40px;
+  }
+  
+  .engine-icon-btn:hover {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    gap: 0.25rem;
   }
   
   .engine-icon,
