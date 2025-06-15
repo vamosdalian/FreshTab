@@ -155,13 +155,14 @@ export default {
 }
 
 .modal-content {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--card-bg, rgba(255, 255, 255, 0.15));
   backdrop-filter: blur(20px);
   border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
   max-width: 400px;
   width: 90%;
   animation: slideIn 0.3s ease;
+  transition: background 0.3s ease, border 0.3s ease;
 }
 
 @keyframes slideIn {
@@ -178,10 +179,11 @@ export default {
 }
 
 .modal-header h2 {
-  color: white;
+  color: var(--text-color, white);
   margin: 0;
   font-size: 1.3rem;
   font-weight: 400;
+  transition: color 0.3s ease;
 }
 
 .close-button {
@@ -208,31 +210,33 @@ export default {
 
 .form-label {
   display: block;
-  color: white;
+  color: var(--text-color, white);
   margin-bottom: 0.5rem;
   font-size: 1rem;
   font-weight: 400;
+  transition: color 0.3s ease;
 }
 
 .form-input {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.3));
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  background: var(--input-bg, rgba(255, 255, 255, 0.1));
+  color: var(--text-color, white);
   font-size: 1rem;
   outline: none;
   transition: all 0.3s ease;
 }
 
 .form-input::placeholder {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-color-light, rgba(255, 255, 255, 0.6));
+  transition: color 0.3s ease;
 }
 
 .form-input:focus {
-  border-color: rgba(255, 255, 255, 0.6);
-  background: rgba(255, 255, 255, 0.15);
+  border-color: var(--border-color, rgba(255, 255, 255, 0.6));
+  background: var(--input-bg, rgba(255, 255, 255, 0.15));
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
 }
 
@@ -246,20 +250,20 @@ export default {
 .cancel-button,
 .submit-button {
   padding: 0.75rem 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.3));
   border-radius: 8px;
   cursor: pointer;
   font-size: 1rem;
   transition: all 0.3s ease;
-  color: white;
+  color: var(--text-color, white);
 }
 
 .cancel-button {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--button-bg, rgba(255, 255, 255, 0.1));
 }
 
 .cancel-button:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--button-hover-bg, rgba(255, 255, 255, 0.2));
 }
 
 .submit-button {

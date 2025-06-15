@@ -157,10 +157,10 @@ export default {
   position: relative;
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--input-bg, rgba(255, 255, 255, 0.1));
   backdrop-filter: blur(10px);
   border-radius: 50px 50px 50px 50px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
   transition: all 0.3s ease;
   overflow: hidden;
   margin: 0 auto;
@@ -175,7 +175,7 @@ export default {
   padding: 0.875rem 0.5rem 0.875rem 1rem;
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-color-light, rgba(255, 255, 255, 0.8));
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 50px 0 0 50px;
@@ -187,7 +187,7 @@ export default {
 
 .engine-icon-btn:hover {
   /* 悬停时向左展开 */
-  color: white;
+  color: var(--text-color, white);
   padding-left: 1.25rem;
   padding-right: 0.75rem;
   gap: 0.5rem;
@@ -229,14 +229,16 @@ export default {
   border: none;
   background: transparent;
   font-size: 1rem;
-  color: white;
+  color: var(--text-color, white);
   outline: none;
   height: 100%;
   position: relative;
+  transition: color 0.3s ease;
 }
 
 .search-input::placeholder {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-color-light, rgba(255, 255, 255, 0.6));
+  transition: color 0.3s ease;
 }
 
 /* 搜索按钮 */
@@ -245,7 +247,7 @@ export default {
   right: 0.75rem;
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-color-light, rgba(255, 255, 255, 0.7));
   padding: 0.75rem;
   border-radius: 50%;
   cursor: pointer;
@@ -256,8 +258,8 @@ export default {
 }
 
 .search-button:hover {
-  background: rgba(255, 255, 255, 0.15);
-  color: white;
+  background: var(--button-hover-bg, rgba(255, 255, 255, 0.15));
+  color: var(--text-color, white);
   transform: scale(1.05);
 }
 
@@ -280,13 +282,14 @@ export default {
   top: calc(100% + 0.5rem);
   left: 200px;
   width: 200px;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--card-bg, rgba(255, 255, 255, 0.9));
   backdrop-filter: blur(20px);
   border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 32px var(--card-shadow, rgba(0, 0, 0, 0.2));
   z-index: 1000;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.3));
+  transition: background 0.3s ease, box-shadow 0.3s ease, border 0.3s ease;
 }
 
 .engine-option {
@@ -296,8 +299,8 @@ export default {
   padding: 0.875rem 1rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  color: rgba(0, 0, 0, 0.8);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  color: var(--text-color, rgba(0, 0, 0, 0.8));
+  border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.3));
 }
 
 .engine-option:last-child {
@@ -305,13 +308,13 @@ export default {
 }
 
 .engine-option:hover {
-  background: rgba(255, 255, 255, 0.4);
-  color: rgba(0, 0, 0, 0.9);
+  background: var(--button-hover-bg, rgba(255, 255, 255, 0.4));
+  color: var(--text-color, rgba(0, 0, 0, 0.9));
 }
 
 .engine-option.active {
-  background: rgba(255, 255, 255, 0.5);
-  color: rgba(0, 0, 0, 0.9);
+  background: var(--button-bg, rgba(255, 255, 255, 0.5));
+  color: var(--text-color, rgba(0, 0, 0, 0.9));
   font-weight: 500;
 }
 

@@ -52,6 +52,22 @@
         </div>
         
         <div class="settings-group">
+          <h3>主题设置</h3>
+          <div class="setting-item">
+            <label class="setting-label-text">主题模式</label>
+            <select 
+              :value="settings.theme"
+              @change="updateSetting('theme', $event.target.value)"
+              class="setting-select"
+            >
+              <option value="auto">跟随系统</option>
+              <option value="light">浅色模式</option>
+              <option value="dark">深色模式</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="settings-group">
           <h3>背景设置</h3>
           <div class="setting-item">
             <label class="setting-label-text">背景类型</label>
@@ -147,15 +163,16 @@ export default {
 }
 
 .modal-content {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--card-bg, rgba(255, 255, 255, 0.15));
   backdrop-filter: blur(20px);
   border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
   max-width: 500px;
   width: 90%;
   max-height: 80vh;
   overflow-y: auto;
   animation: slideIn 0.3s ease;
+  transition: background 0.3s ease, border 0.3s ease;
 }
 
 @keyframes slideIn {
@@ -172,10 +189,11 @@ export default {
 }
 
 .modal-header h2 {
-  color: white;
+  color: var(--text-color, white);
   margin: 0;
   font-size: 1.5rem;
   font-weight: 300;
+  transition: color 0.3s ease;
 }
 
 .close-button {
@@ -205,12 +223,13 @@ export default {
 }
 
 .settings-group h3 {
-  color: white;
+  color: var(--text-color, white);
   font-size: 1.2rem;
   font-weight: 400;
   margin: 0 0 1rem 0;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
+  transition: color 0.3s ease, border-color 0.3s ease;
 }
 
 .setting-item {
@@ -220,9 +239,10 @@ export default {
 .setting-label {
   display: flex;
   align-items: center;
-  color: white;
+  color: var(--text-color, white);
   cursor: pointer;
   font-size: 1rem;
+  transition: color 0.3s ease;
 }
 
 .setting-label input[type="checkbox"] {
@@ -257,19 +277,20 @@ export default {
 
 .setting-label-text {
   display: block;
-  color: white;
+  color: var(--text-color, white);
   margin-bottom: 0.5rem;
   font-size: 1rem;
+  transition: color 0.3s ease;
 }
 
 .setting-select,
 .setting-input {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.3));
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  background: var(--input-bg, rgba(255, 255, 255, 0.1));
+  color: var(--text-color, white);
   font-size: 1rem;
   outline: none;
   transition: all 0.3s ease;
@@ -277,13 +298,13 @@ export default {
 
 .setting-select:focus,
 .setting-input:focus {
-  border-color: rgba(255, 255, 255, 0.6);
-  background: rgba(255, 255, 255, 0.15);
+  border-color: var(--border-color, rgba(255, 255, 255, 0.6));
+  background: var(--input-bg, rgba(255, 255, 255, 0.15));
 }
 
 .setting-select option {
-  background: #333;
-  color: white;
+  background: var(--card-bg, #333);
+  color: var(--text-color, white);
 }
 
 .setting-color {

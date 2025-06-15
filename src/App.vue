@@ -40,7 +40,7 @@
       :isOpen="showSettingsModal"
       :settings="settings"
       @close="showSettingsModal = false"
-      @updateSetting="(key, value) => { settings[key] = value; saveSettings() }"
+      @updateSetting="(key, value) => { settings[key] = value; saveSettings(); updateTheme() }"
       @resetSettings="() => { /* TODO: implement reset */ }"
     />
 
@@ -79,7 +79,7 @@ export default {
   setup() {
     // 使用组合式函数
     const { bookmarkGroups, addBookmarkToGroup, deleteBookmark, saveBookmarkGroups } = useBookmarks()
-    const { settings, saveSettings } = useSettings()
+    const { settings, saveSettings, updateTheme } = useSettings()
     const { currentTime, greeting } = useTime()
     const { searchQuery, searchEngines, currentEngine, performSearch, setSearchEngine } = useSearch(settings, saveSettings)
 

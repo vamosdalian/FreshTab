@@ -88,10 +88,11 @@ export default {
 }
 
 .bookmarks-header h3 {
-  color: white;
+  color: var(--text-color, white);
   font-size: 1.5rem;
   font-weight: 300;
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .add-bookmark-btn {
@@ -99,17 +100,17 @@ export default {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: var(--button-bg, rgba(255, 255, 255, 0.15));
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.3));
   border-radius: 20px;
-  color: white;
+  color: var(--text-color, white);
   cursor: pointer;
   transition: all 0.3s ease;
   font-size: 0.9rem;
 }
 
 .add-bookmark-btn:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: var(--button-hover-bg, rgba(255, 255, 255, 0.25));
   transform: translateY(-1px);
 }
 
@@ -127,18 +128,18 @@ export default {
   flex-direction: column;
   align-items: center;
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--card-bg, rgba(255, 255, 255, 0.1));
   backdrop-filter: blur(10px);
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
 }
 
 .bookmark-item:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--button-hover-bg, rgba(255, 255, 255, 0.2));
   transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 20px var(--card-shadow, rgba(0, 0, 0, 0.2));
 }
 
 .bookmark-icon {
@@ -150,8 +151,9 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--button-bg, rgba(255, 255, 255, 0.1));
   font-size: 20px;
+  transition: background 0.3s ease;
 }
 
 .bookmark-icon img {
@@ -162,15 +164,18 @@ export default {
 
 .bookmark-icon span {
   font-size: 20px;
+  color: var(--text-color, white);
+  transition: color 0.3s ease;
 }
 
 .bookmark-title {
-  color: white;
+  color: var(--text-color, white);
   font-size: 0.9rem;
   text-align: center;
   line-height: 1.3;
   word-break: break-word;
   max-width: 100%;
+  transition: color 0.3s ease;
 }
 
 .delete-btn {
@@ -203,7 +208,8 @@ export default {
 .empty-state {
   text-align: center;
   padding: 3rem 1rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-color-light, rgba(255, 255, 255, 0.7));
+  transition: color 0.3s ease;
 }
 
 .empty-state p {
@@ -213,17 +219,17 @@ export default {
 
 .add-first-btn {
   padding: 0.8rem 1.5rem;
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: var(--button-bg, rgba(255, 255, 255, 0.2));
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.3));
   border-radius: 25px;
-  color: white;
+  color: var(--text-color, white);
   cursor: pointer;
   transition: all 0.3s ease;
   font-size: 1rem;
 }
 
 .add-first-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--button-hover-bg, rgba(255, 255, 255, 0.3));
   transform: translateY(-1px);
 }
 
