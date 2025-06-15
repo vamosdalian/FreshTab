@@ -95,7 +95,7 @@ export default {
 <style scoped>
 .theme-toggle-button {
   position: fixed;
-  bottom: 5rem; /* 在设置按钮上方 */
+  bottom: 6rem; /* 在设置按钮上方 */
   left: 2rem;
   width: 48px;
   height: 48px;

@@ -16,8 +16,8 @@
     --card-shadow: rgba(0, 0, 0, 0.1);
     --border-color: rgba(0, 0, 0, 0.1);
     --input-bg: rgba(255, 255, 255, 0.9);
-    --button-bg: rgba(255, 255, 255, 0.2);
-    --button-hover-bg: rgba(255, 255, 255, 0.3);
+    --button-bg: rgba(0, 0, 0, 0.05);
+    --button-hover-bg: rgba(0, 0, 0, 0.08);
 }
 
 [data-theme="dark"] {

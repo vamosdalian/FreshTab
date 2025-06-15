@@ -308,12 +308,12 @@ export default {
 }
 
 .engine-option:hover {
-  background: var(--button-hover-bg, rgba(255, 255, 255, 0.4));
+  background: var(--button-hover-bg, rgba(0, 0, 0, 0.08));
   color: var(--text-color, rgba(0, 0, 0, 0.9));
 }
 
 .engine-option.active {
-  background: var(--button-bg, rgba(255, 255, 255, 0.5));
+  background: var(--button-bg, rgba(0, 0, 0, 0.05));
   color: var(--text-color, rgba(0, 0, 0, 0.9));
   font-weight: 500;
 }
