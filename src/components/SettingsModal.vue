@@ -49,18 +49,6 @@
               显示书签
             </label>
           </div>
-          
-          <div class="setting-item">
-            <label class="setting-label">
-              <input
-                type="checkbox"
-                :checked="settings.showWeather"
-                @change="updateSetting('showWeather', $event.target.checked)"
-              />
-              <span class="checkmark"></span>
-              显示天气
-            </label>
-          </div>
         </div>
         
         <div class="settings-group">

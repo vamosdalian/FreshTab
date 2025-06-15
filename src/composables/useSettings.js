@@ -7,8 +7,7 @@ export function useSettings() {
     searchEngine: 'google',
     showTime: true,
     showSearch: true,
-    showBookmarks: true,
-    showWeather: true
+    showBookmarks: true
   })
 
   // 加载设置
