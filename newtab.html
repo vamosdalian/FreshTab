@@ -30,14 +30,10 @@
             <div class="search-section">
                 <div class="search-container">
                     <div class="search-input-wrapper">
-                        <select class="search-engine-select" id="search-engine-select">
-                            <!-- 搜索引擎选项将通过JavaScript动态加载 -->
-                        </select>
                         <div class="search-input-container">
-                            <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="11" cy="11" r="8"></circle>
-                                <path d="m21 21-4.35-4.35"></path>
-                            </svg>
+                            <div class="search-engine-icon" id="search-engine-icon">
+                                🔍
+                            </div>
                             <input type="text" class="search-input" id="search-input" placeholder="搜索 Google 或输入网址">
                         </div>
                     </div>
@@ -124,6 +120,15 @@
                 
                 <div class="settings-section">
                     <h4 class="settings-section-title">外观设置</h4>
+                    <div class="setting-item">
+                        <label for="search-engine">默认搜索引擎</label>
+                        <div class="setting-control">
+                            <select id="search-engine" class="setting-select">
+                                <!-- 搜索引擎选项将通过JavaScript动态加载 -->
+                            </select>
+                        </div>
+                        <div class="setting-description">选择默认的搜索引擎</div>
+                    </div>
                     <div class="setting-item">
                         <label for="show-time">显示时间</label>
                         <div class="setting-control">

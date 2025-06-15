@@ -2,11 +2,11 @@
 class FreshTab {
     constructor() {
         this.searchEngines = [
-            { id: 'google', name: 'Google', url: 'https://www.google.com/search?q=' },
-            { id: 'bing', name: 'Bing', url: 'https://www.bing.com/search?q=' },
-            { id: 'baidu', name: '百度', url: 'https://www.baidu.com/s?wd=' },
-            { id: 'duckduckgo', name: 'DuckDuckGo', url: 'https://duckduckgo.com/?q=' },
-            { id: 'yahoo', name: 'Yahoo', url: 'https://search.yahoo.com/search?p=' }
+            { id: 'google', name: 'Google', url: 'https://www.google.com/search?q=', icon: '🔍' },
+            { id: 'bing', name: 'Bing', url: 'https://www.bing.com/search?q=', icon: '🅱️' },
+            { id: 'baidu', name: '百度', url: 'https://www.baidu.com/s?wd=', icon: '🟦' },
+            { id: 'duckduckgo', name: 'DuckDuckGo', url: 'https://duckduckgo.com/?q=', icon: '🦆' },
+            { id: 'yahoo', name: 'Yahoo', url: 'https://search.yahoo.com/search?p=', icon: '🟣' }
         ];
         this.currentEngine = 'google';
         this.bookmarks = [];
@@ -23,7 +23,6 @@ class FreshTab {
     init() {
         this.updateTime();
         this.loadSettings();
-        this.setupSearchEngine();
         this.setupSearch();
         this.loadBookmarks();
         this.setupBookmarkModal();
@@ -94,50 +93,20 @@ class FreshTab {
         greetingElement.textContent = greeting;
     }
 
-    // 设置搜索引擎切换
-    setupSearchEngine() {
-        const searchEngineSelect = document.getElementById('search-engine-select');
-        
-        // 检查元素是否存在
-        if (!searchEngineSelect) {
-            console.warn('搜索引擎选择元素未找到');
-            return;
-        }
-        
-        // 加载搜索引擎选项
-        this.searchEngines.forEach(engine => {
-            const option = document.createElement('option');
-            option.value = engine.id;
-            option.textContent = engine.name;
-            searchEngineSelect.appendChild(option);
-        });
-        
-        // 设置当前选中的搜索引擎
-        searchEngineSelect.value = this.currentEngine;
-        
-        // 监听搜索引擎切换
-        searchEngineSelect.addEventListener('change', (e) => {
-            this.currentEngine = e.target.value;
-            this.settings.searchEngine = this.currentEngine;
-            this.saveSettings();
-            this.updateSearchPlaceholder();
-        });
-        
-        this.updateSearchPlaceholder();
-    }
-    
-    // 更新搜索框占位符
-    updateSearchPlaceholder() {
+    // 更新搜索引擎图标和占位符
+    updateSearchEngine() {
+        const searchEngineIcon = document.getElementById('search-engine-icon');
         const searchInput = document.getElementById('search-input');
         
         // 检查元素是否存在
-        if (!searchInput) {
-            console.warn('搜索输入框元素未找到');
+        if (!searchEngineIcon || !searchInput) {
+            console.warn('搜索引擎图标或搜索输入框元素未找到');
             return;
         }
         
         const currentEngine = this.searchEngines.find(engine => engine.id === this.currentEngine);
         if (currentEngine) {
+            searchEngineIcon.textContent = currentEngine.icon;
             searchInput.placeholder = `搜索 ${currentEngine.name} 或输入网址`;
         }
     }
@@ -145,6 +114,7 @@ class FreshTab {
     // 设置搜索功能
     setupSearch() {
         const searchInput = document.getElementById('search-input');
+        const searchEngineIcon = document.getElementById('search-engine-icon');
         
         // 检查搜索输入框是否存在
         if (!searchInput) {
@@ -159,9 +129,8 @@ class FreshTab {
         });
 
         // 点击搜索图标也可以搜索
-        const searchIcon = document.querySelector('.search-icon');
-        if (searchIcon) {
-            searchIcon.addEventListener('click', () => {
+        if (searchEngineIcon) {
+            searchEngineIcon.addEventListener('click', () => {
                 this.performSearch(searchInput.value);
             });
         }
@@ -257,12 +226,8 @@ class FreshTab {
             }
         }
         
-        // 更新搜索引擎选择
-        const searchEngineSelect = document.getElementById('search-engine-select');
-        if (searchEngineSelect) {
-            searchEngineSelect.value = this.currentEngine;
-            this.updateSearchPlaceholder();
-        }
+        // 更新搜索引擎
+        this.updateSearchEngine();
     }
 
     // 加载书签
@@ -484,12 +449,21 @@ class FreshTab {
         const columnsValue = document.getElementById('columns-value');
         const bookmarkSizeSelect = document.getElementById('bookmark-size');
         const showTimeCheckbox = document.getElementById('show-time');
+        const searchEngineSelect = document.getElementById('search-engine');
 
         // 检查必要元素是否存在
-        if (!modal || !settingsBtn || !closeBtn || !cancelBtn || !saveBtn || !columnsSlider || !columnsValue || !bookmarkSizeSelect || !showTimeCheckbox) {
+        if (!modal || !settingsBtn || !closeBtn || !cancelBtn || !saveBtn || !columnsSlider || !columnsValue || !bookmarkSizeSelect || !showTimeCheckbox || !searchEngineSelect) {
             console.warn('设置模态框相关元素未完全找到');
             return;
         }
+
+        // 初始化搜索引擎选项
+        this.searchEngines.forEach(engine => {
+            const option = document.createElement('option');
+            option.value = engine.id;
+            option.textContent = `${engine.icon} ${engine.name}`;
+            searchEngineSelect.appendChild(option);
+        });
 
         // 打开设置模态框
         settingsBtn.addEventListener('click', () => {
@@ -499,6 +473,7 @@ class FreshTab {
             columnsValue.textContent = this.settings.columnsPerRow;
             bookmarkSizeSelect.value = this.settings.bookmarkSize;
             showTimeCheckbox.checked = this.settings.showTime;
+            searchEngineSelect.value = this.currentEngine;
         });
 
         // 关闭模态框
@@ -524,6 +499,8 @@ class FreshTab {
             this.settings.columnsPerRow = parseInt(columnsSlider.value);
             this.settings.bookmarkSize = bookmarkSizeSelect.value;
             this.settings.showTime = showTimeCheckbox.checked;
+            this.settings.searchEngine = searchEngineSelect.value;
+            this.currentEngine = searchEngineSelect.value;
             
             await this.saveSettings();
             this.applySettings();

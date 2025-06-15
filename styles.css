@@ -145,34 +145,7 @@ body {
     max-width: 600px;
     display: flex;
     align-items: center;
-    gap: 12px;
-}
-
-.search-engine-select {
-    padding: 12px 16px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 12px;
-    font-size: 0.9rem;
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(10px);
-    color: #4a5568;
-    cursor: pointer;
-    outline: none;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    min-width: 100px;
-    font-weight: 500;
-}
-
-.search-engine-select:focus {
-    border-color: rgba(255, 255, 255, 0.8);
-    background: rgba(255, 255, 255, 0.95);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15), 0 0 0 3px rgba(255, 255, 255, 0.2);
-}
-
-.search-engine-select:hover {
-    border-color: rgba(255, 255, 255, 0.5);
-    background: rgba(255, 255, 255, 0.95);
+    justify-content: center;
 }
 
 .search-input-container {
@@ -180,14 +153,19 @@ body {
     flex: 1;
 }
 
-.search-icon {
+.search-engine-icon {
     position: absolute;
     left: 16px;
     top: 50%;
     transform: translateY(-50%);
-    color: #667eea;
+    font-size: 20px;
     z-index: 1;
-    pointer-events: none;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.search-engine-icon:hover {
+    transform: translateY(-50%) scale(1.1);
 }
 
 .search-input {
@@ -953,21 +931,8 @@ body {
         font-size: 3rem;
     }
     
-    /* 搜索框在平板上的响应式调整 */
     .search-input-wrapper {
-        flex-direction: column;
-        gap: 8px;
-    }
-    
-    .search-engine-select {
-        min-width: auto;
-        width: 100%;
-        max-width: 200px;
-        align-self: center;
-    }
-    
-    .search-input-container {
-        width: 100%;
+        max-width: none;
     }
     
     /* 在平板上限制最大列数并调整固定宽度 */
@@ -1006,22 +971,8 @@ body {
         font-size: 2.5rem;
     }
     
-    /* 搜索框在手机上的响应式调整 */
     .search-input-wrapper {
-        flex-direction: column;
-        gap: 12px;
         max-width: none;
-    }
-    
-    .search-engine-select {
-        width: 100%;
-        max-width: none;
-        font-size: 1rem;
-        padding: 14px 16px;
-    }
-    
-    .search-input-container {
-        width: 100%;
     }
     
     .search-input {
@@ -1029,7 +980,7 @@ body {
         padding: 14px 14px 14px 44px;
     }
     
-    .search-icon {
+    .search-engine-icon {
         left: 14px;
     }
     
