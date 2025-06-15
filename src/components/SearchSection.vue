@@ -172,7 +172,7 @@ export default {
   display: flex;
   align-items: center;
   gap: 0;
-  padding: 0.875rem 0.5rem;
+  padding: 0.875rem 0.5rem 0.875rem 0.75rem;
   background: none;
   border: none;
   color: rgba(255, 255, 255, 0.8);
@@ -188,7 +188,7 @@ export default {
 .engine-icon-btn:hover {
   /* 悬停时向左展开 */
   color: white;
-  padding-left: 0.75rem;
+  padding-left: 1rem;
   padding-right: 0.75rem;
   gap: 0.5rem;
 }
@@ -358,13 +358,13 @@ export default {
   }
   
   .engine-icon-btn {
-    padding: 0.875rem 0.375rem;
+    padding: 0.875rem 0.375rem 0.875rem 0.5rem;
     gap: 0;
     border-radius: 40px 0 0 40px;
   }
   
   .engine-icon-btn:hover {
-    padding-left: 0.5rem;
+    padding-left: 0.625rem;
     padding-right: 0.5rem;
     gap: 0.25rem;
   }
