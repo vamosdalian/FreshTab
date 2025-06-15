@@ -42,16 +42,8 @@
 
             <!-- 快捷书签 -->
             <div class="bookmarks-section">
-                <h3 class="section-title">快速访问</h3>
-                <div class="bookmarks-grid" id="bookmarks-grid">
-                    <!-- 书签将通过JavaScript动态加载 -->
-                    <button class="add-bookmark-btn" id="add-bookmark-btn">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="12" y1="5" x2="12" y2="19"></line>
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                        </svg>
-                        <span>添加书签</span>
-                    </button>
+                <div class="bookmarks-groups" id="bookmarks-groups">
+                    <!-- 分组将通过JavaScript动态加载 -->
                 </div>
             </div>
 
@@ -117,6 +109,17 @@
                         <div class="setting-description">调整书签网格中每行显示的图标数量</div>
                     </div>
                 </div>
+
+                <div class="settings-section">
+                    <h4 class="settings-section-title">分组管理</h4>
+                    <div class="setting-item">
+                        <label>书签分组</label>
+                        <div class="setting-control">
+                            <button class="btn-manage-groups" id="manage-groups-btn">管理分组</button>
+                        </div>
+                        <div class="setting-description">添加、删除或编辑书签分组</div>
+                    </div>
+                </div>
                 
                 <div class="settings-section">
                     <h4 class="settings-section-title">外观设置</h4>
@@ -154,6 +157,88 @@
             <div class="modal-footer">
                 <button class="btn-cancel" id="cancel-settings">取消</button>
                 <button class="btn-save" id="save-settings">保存设置</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 分组管理模态框 -->
+    <div class="modal" id="groups-modal">
+        <div class="modal-content groups-modal-content">
+            <div class="modal-header">
+                <h3>分组管理</h3>
+                <button class="close-btn" id="close-groups">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="groups-list" id="groups-list">
+                    <!-- 分组列表将通过JavaScript动态加载 -->
+                </div>
+                <button class="btn-add-group" id="add-group-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    添加新分组
+                </button>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" id="cancel-groups">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑分组模态框 -->
+    <div class="modal" id="edit-group-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="edit-group-title">编辑分组</h3>
+                <button class="close-btn" id="close-edit-group">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label for="group-name">分组名称</label>
+                    <input type="text" id="group-name" placeholder="输入分组名称">
+                </div>
+                <div class="bookmarks-in-group">
+                    <h4>分组内书签</h4>
+                    <div class="bookmarks-list" id="bookmarks-list">
+                        <!-- 书签列表将通过JavaScript动态加载 -->
+                    </div>
+                    <button class="btn-add-bookmark-to-group" id="add-bookmark-to-group-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        添加书签
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" id="cancel-edit-group">取消</button>
+                <button class="btn-save" id="save-group">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加书签到分组模态框 -->
+    <div class="modal" id="add-bookmark-to-group-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>添加书签</h3>
+                <button class="close-btn" id="close-add-bookmark-to-group">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label for="bookmark-name-group">名称</label>
+                    <input type="text" id="bookmark-name-group" placeholder="输入书签名称">
+                </div>
+                <div class="input-group">
+                    <label for="bookmark-url-group">网址</label>
+                    <input type="url" id="bookmark-url-group" placeholder="输入网址">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" id="cancel-add-bookmark-to-group">取消</button>
+                <button class="btn-save" id="save-bookmark-to-group">保存</button>
             </div>
         </div>
     </div>

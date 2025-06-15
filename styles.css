@@ -900,6 +900,224 @@ body {
     font-size: 1rem;
 }
 
+/* 分组相关样式 */
+.bookmark-group {
+    margin-bottom: 40px;
+}
+
+.bookmark-group .section-title {
+    font-size: 1.2rem;
+    color: #ffffff;
+    margin-bottom: 20px;
+    text-align: center;
+    font-weight: 600;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* 分组管理相关样式 */
+.btn-manage-groups {
+    padding: 8px 16px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s ease;
+}
+
+.btn-manage-groups:hover {
+    background: #5a67d8;
+}
+
+.groups-modal-content {
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.groups-list {
+    max-height: 400px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+}
+
+.group-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    background: #f7fafc;
+}
+
+.group-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.group-name {
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.group-count {
+    font-size: 0.8rem;
+    color: #718096;
+}
+
+.group-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-edit-group, .btn-delete-group {
+    padding: 4px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: background 0.2s ease;
+}
+
+.btn-edit-group {
+    background: #667eea;
+    color: white;
+}
+
+.btn-edit-group:hover {
+    background: #5a67d8;
+}
+
+.btn-delete-group {
+    background: #e53e3e;
+    color: white;
+}
+
+.btn-delete-group:hover {
+    background: #c53030;
+}
+
+.btn-delete-group:disabled {
+    background: #cbd5e0;
+    cursor: not-allowed;
+}
+
+.btn-add-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: #48bb78;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s ease;
+    width: 100%;
+    justify-content: center;
+}
+
+.btn-add-group:hover {
+    background: #38a169;
+}
+
+/* 编辑分组内的书签列表 */
+.bookmarks-in-group {
+    margin-top: 20px;
+}
+
+.bookmarks-in-group h4 {
+    margin-bottom: 12px;
+    color: #2d3748;
+    font-size: 1rem;
+}
+
+.bookmarks-list {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    margin-bottom: 12px;
+}
+
+.bookmark-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.bookmark-list-item:last-child {
+    border-bottom: none;
+}
+
+.bookmark-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+}
+
+.bookmark-info .bookmark-icon {
+    font-size: 16px;
+    width: 20px;
+    text-align: center;
+}
+
+.bookmark-info .bookmark-name {
+    font-weight: 500;
+    color: #2d3748;
+    min-width: 80px;
+}
+
+.bookmark-info .bookmark-url {
+    font-size: 0.8rem;
+    color: #718096;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.btn-delete-bookmark {
+    padding: 2px 8px;
+    background: #e53e3e;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: background 0.2s ease;
+}
+
+.btn-delete-bookmark:hover {
+    background: #c53030;
+}
+
+.btn-add-bookmark-to-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #48bb78;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s ease;
+}
+
+.btn-add-bookmark-to-group:hover {
+    background: #38a169;
+}
+
 /* 响应式设计 */
 @media (min-width: 1600px) {
     .main-content {
@@ -1021,5 +1239,251 @@ body {
     .bookmarks-grid.size-large.columns-8 {
         grid-template-columns: repeat(2, 170px);
         gap: 16px;
+    }
+}
+
+/* 分组相关样式 */
+.bookmark-group {
+    margin-bottom: 40px;
+}
+
+.bookmark-group .section-title {
+    font-size: 1.2rem;
+    color: #ffffff;
+    margin-bottom: 20px;
+    text-align: center;
+    font-weight: 600;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* 分组管理相关样式 */
+.btn-manage-groups {
+    padding: 8px 16px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s ease;
+}
+
+.btn-manage-groups:hover {
+    background: #5a67d8;
+}
+
+.groups-modal-content {
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.groups-list {
+    max-height: 400px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+}
+
+.group-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    background: #f7fafc;
+}
+
+.group-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.group-name {
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.group-count {
+    font-size: 0.8rem;
+    color: #718096;
+}
+
+.group-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-edit-group, .btn-delete-group {
+    padding: 4px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: background 0.2s ease;
+}
+
+.btn-edit-group {
+    background: #667eea;
+    color: white;
+}
+
+.btn-edit-group:hover {
+    background: #5a67d8;
+}
+
+.btn-delete-group {
+    background: #e53e3e;
+    color: white;
+}
+
+.btn-delete-group:hover {
+    background: #c53030;
+}
+
+.btn-delete-group:disabled {
+    background: #cbd5e0;
+    cursor: not-allowed;
+}
+
+.btn-add-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: #48bb78;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s ease;
+    width: 100%;
+    justify-content: center;
+}
+
+.btn-add-group:hover {
+    background: #38a169;
+}
+
+/* 编辑分组内的书签列表 */
+.bookmarks-in-group {
+    margin-top: 20px;
+}
+
+.bookmarks-in-group h4 {
+    margin-bottom: 12px;
+    color: #2d3748;
+    font-size: 1rem;
+}
+
+.bookmarks-list {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    margin-bottom: 12px;
+}
+
+.bookmark-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.bookmark-list-item:last-child {
+    border-bottom: none;
+}
+
+.bookmark-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+}
+
+.bookmark-info .bookmark-icon {
+    font-size: 16px;
+    width: 20px;
+    text-align: center;
+}
+
+.bookmark-info .bookmark-name {
+    font-weight: 500;
+    color: #2d3748;
+    min-width: 80px;
+}
+
+.bookmark-info .bookmark-url {
+    font-size: 0.8rem;
+    color: #718096;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.btn-delete-bookmark {
+    padding: 2px 8px;
+    background: #e53e3e;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: background 0.2s ease;
+}
+
+.btn-delete-bookmark:hover {
+    background: #c53030;
+}
+
+.btn-add-bookmark-to-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #48bb78;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s ease;
+}
+
+.btn-add-bookmark-to-group:hover {
+    background: #38a169;
+}
+
+/* 响应式设计调整 */
+@media (max-width: 768px) {
+    .groups-modal-content {
+        max-width: 90%;
+        margin: 5%;
+    }
+    
+    .group-item {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+    }
+    
+    .group-actions {
+        justify-content: center;
+    }
+    
+    .bookmark-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+    
+    .bookmark-info .bookmark-url {
+        width: 100%;
     }
 }
