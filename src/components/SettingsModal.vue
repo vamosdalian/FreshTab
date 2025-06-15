@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isOpen" class="modal-overlay" @click="handleOverlayClick">
+  <div class="modal-overlay" @click="handleOverlayClick">
     <div class="modal-content" @click.stop>
       <div class="modal-header">
         <h2>设置</h2>
@@ -47,6 +47,45 @@
               />
               <span class="checkmark"></span>
               显示书签
+            </label>
+          </div>
+        </div>
+        
+        <div class="settings-group">
+          <h3>时间设置</h3>
+          <div class="setting-item">
+            <label class="setting-label-text">时间格式</label>
+            <select 
+              :value="settings.timeFormat"
+              @change="updateSetting('timeFormat', $event.target.value)"
+              class="setting-select"
+            >
+              <option value="24h">24小时制</option>
+              <option value="12h">12小时制</option>
+            </select>
+          </div>
+          
+          <div class="setting-item">
+            <label class="setting-label">
+              <input
+                type="checkbox"
+                :checked="settings.showDate"
+                @change="updateSetting('showDate', $event.target.checked)"
+              />
+              <span class="checkmark"></span>
+              显示日期
+            </label>
+          </div>
+          
+          <div class="setting-item">
+            <label class="setting-label">
+              <input
+                type="checkbox"
+                :checked="settings.showSeconds"
+                @change="updateSetting('showSeconds', $event.target.checked)"
+              />
+              <span class="checkmark"></span>
+              显示秒数
             </label>
           </div>
         </div>

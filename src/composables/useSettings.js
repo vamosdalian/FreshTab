@@ -9,7 +9,10 @@ export function useSettings() {
     showSearch: true,
     showBookmarks: true,
     theme: 'auto', // 'light', 'dark', 'auto'
-    isDarkMode: false
+    isDarkMode: false,
+    timeFormat: '24h', // '12h', '24h'
+    showDate: true,
+    showSeconds: false
   })
 
   // 检测系统主题偏好
@@ -89,9 +92,39 @@ export function useSettings() {
     watch(() => settings.theme, updateTheme)
   })
 
+  // 重置设置到默认值
+  const resetSettings = async () => {
+    const defaultSettings = {
+      columnsPerRow: 6,
+      bookmarkSize: 'medium',
+      searchEngine: 'google',
+      showTime: true,
+      showSearch: true,
+      showBookmarks: true,
+      theme: 'auto',
+      isDarkMode: detectSystemTheme(),
+      timeFormat: '24h',
+      showDate: true,
+      showSeconds: false
+    }
+    
+    Object.assign(settings, defaultSettings)
+    
+    try {
+      await chrome.storage.sync.set({ settings })
+    } catch (error) {
+      console.log('无法保存到Chrome存储，使用localStorage')
+      localStorage.setItem('freshtab-settings', JSON.stringify(settings))
+    }
+    
+    // 重置后更新主题
+    updateTheme()
+  }
+
   return {
     settings,
     saveSettings,
-    updateTheme
+    updateTheme,
+    resetSettings
   }
 }

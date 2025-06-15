@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isOpen" class="modal-overlay" @click="handleOverlayClick">
+  <div class="modal-overlay" @click="handleOverlayClick">
     <div class="modal-content" @click.stop>
       <div class="modal-header">
         <h2>{{ isEditing ? '编辑网站' : '添加网站' }}</h2>

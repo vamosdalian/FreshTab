@@ -17,8 +17,8 @@ export default {
 <style scoped>
 .settings-button {
   position: fixed;
-  top: 2rem;
-  right: 2rem;
+  bottom: 2rem;
+  left: 2rem;
   width: 48px;
   height: 48px;
   border-radius: 50%;
@@ -42,8 +42,8 @@ export default {
 
 @media (max-width: 768px) {
   .settings-button {
-    top: 1rem;
-    right: 1rem;
+    bottom: 1rem;
+    left: 1rem;
     width: 44px;
     height: 44px;
   }

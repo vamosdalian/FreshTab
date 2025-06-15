@@ -1,17 +1,13 @@
 <template>
   <section class="time-section">
-    <div class="time-display">{{ currentTime }}</div>
-    <div class="greeting">{{ greeting }}</div>
-    <!-- 临时主题切换按钮用于测试 -->
-    <div class="theme-switcher">
-      <button @click="toggleTheme" class="theme-toggle-btn">
-        {{ isDarkMode ? '🌞' : '🌙' }} 切换主题
-      </button>
-    </div>
+    <div class="time-display" :class="timeFormatClass">{{ formattedTime }}</div>
+    <div v-if="showDate" class="date-display">{{ currentDate }}</div>
   </section>
 </template>
 
 <script>
+import { computed } from 'vue'
+
 export default {
   name: 'TimeSection',
   props: {
@@ -22,25 +18,62 @@ export default {
     greeting: {
       type: String,
       required: true
+    },
+    timeFormat: {
+      type: String,
+      default: '24h' // '12h' | '24h'
+    },
+    showDate: {
+      type: Boolean,
+      default: true
+    },
+    showSeconds: {
+      type: Boolean,
+      default: false
     }
   },
-  data() {
-    return {
-      isDarkMode: document.documentElement.getAttribute('data-theme') === 'dark'
-    }
-  },
-  mounted() {
-    // 监听主题变化
-    const observer = new MutationObserver(() => {
-      this.isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark'
+  setup(props) {
+    const timeFormatClass = computed(() => {
+      return {
+        'time-12h': props.timeFormat === '12h',
+        'time-24h': props.timeFormat === '24h'
+      }
     })
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
-  },
-  methods: {
-    toggleTheme() {
-      const newTheme = this.isDarkMode ? 'light' : 'dark'
-      document.documentElement.setAttribute('data-theme', newTheme)
-      this.isDarkMode = !this.isDarkMode
+    
+    const formattedTime = computed(() => {
+      const now = new Date()
+      
+      if (props.timeFormat === '12h') {
+        return now.toLocaleTimeString('zh-CN', {
+          hour12: true,
+          hour: 'numeric',
+          minute: '2-digit',
+          second: props.showSeconds ? '2-digit' : undefined
+        })
+      } else {
+        return now.toLocaleTimeString('zh-CN', {
+          hour12: false,
+          hour: '2-digit',
+          minute: '2-digit',
+          second: props.showSeconds ? '2-digit' : undefined
+        })
+      }
+    })
+    
+    const currentDate = computed(() => {
+      const now = new Date()
+      return now.toLocaleDateString('zh-CN', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        weekday: 'long'
+      })
+    })
+    
+    return {
+      timeFormatClass,
+      formattedTime,
+      currentDate
     }
   }
 }
@@ -61,51 +94,36 @@ export default {
   transition: color 0.3s ease, text-shadow 0.3s ease;
 }
 
-.greeting {
-  font-size: 1.5rem;
-  color: rgba(255, 255, 255, 0.8);
-  font-weight: 300;
-  transition: color 0.3s ease;
-}
-
 /* Dark mode adjustments */
 :root[data-theme="dark"] .time-display {
   color: #e0e0e0;
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
-:root[data-theme="dark"] .greeting {
-  color: rgba(224, 224, 224, 0.7);
+:root[data-theme="dark"] .date-display {
+  color: #e0e0e0;
 }
 
-.theme-switcher {
-  margin-top: 1rem;
-  text-align: center;
+.date-display {
+  font-size: 1rem;
+  color: white;
+  font-weight: 300;
+  margin-top: 0.5rem;
+  transition: color 0.3s ease;
 }
 
-.theme-toggle-btn {
-  background: var(--button-bg, rgba(255, 255, 255, 0.2));
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.3));
-  border-radius: 25px;
-  color: var(--text-color, white);
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 0.9rem;
+.time-12h {
+  font-family: 'Georgia', serif;
 }
 
-.theme-toggle-btn:hover {
-  background: var(--button-hover-bg, rgba(255, 255, 255, 0.3));
-  transform: translateY(-1px);
+.time-24h {
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.1em;
 }
 
 @media (max-width: 768px) {
   .time-display {
     font-size: 3rem;
-  }
-  
-  .greeting {
-    font-size: 1.2rem;
   }
 }
 </style>
