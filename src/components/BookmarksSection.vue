@@ -137,7 +137,7 @@ export default {
 }
 
 .bookmark-item:hover {
-  background: var(--button-hover-bg, rgba(255, 255, 255, 0.2));
+  background: var(--button-hover-bg, rgba(255, 255, 255, 0.6));
   transform: translateY(-2px);
   box-shadow: 0 4px 20px var(--card-shadow, rgba(0, 0, 0, 0.2));
 }
