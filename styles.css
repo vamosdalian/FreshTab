@@ -398,8 +398,8 @@ body {
 /* 设置按钮 */
 .settings-container {
     position: fixed;
-    top: 20px;
-    right: 20px;
+    bottom: 20px;
+    left: 20px;
 }
 
 .settings-btn {
@@ -421,7 +421,7 @@ body {
 .settings-btn:hover {
     background: white;
     color: #667eea;
-    transform: scale(1.05);
+    transform: scale(1.05) rotate(90deg);
 }
 
 /* 模态框样式 */
@@ -955,8 +955,8 @@ body {
     }
     
     .settings-container {
-        top: 16px;
-        right: 16px;
+        bottom: 16px;
+        left: 16px;
     }
 }
 
