@@ -13,7 +13,8 @@ class FreshTab {
         this.settings = {
             columnsPerRow: 6,
             bookmarkSize: 'medium',
-            searchEngine: 'google'
+            searchEngine: 'google',
+            showTime: true
         };
         
         this.init();
@@ -241,6 +242,21 @@ class FreshTab {
         // 添加当前设置的大小类
         grid.classList.add(`size-${this.settings.bookmarkSize}`);
         
+        // 控制时间显示
+        const timeSection = document.getElementById('time-section');
+        if (timeSection) {
+            // 不改变整个区域的显示，只控制内容的可见性
+            const timeContent = timeSection.querySelector('.time-date-display');
+            const greetingContent = timeSection.querySelector('.greeting');
+            
+            if (timeContent) {
+                timeContent.style.visibility = this.settings.showTime ? 'visible' : 'hidden';
+            }
+            if (greetingContent) {
+                greetingContent.style.visibility = this.settings.showTime ? 'visible' : 'hidden';
+            }
+        }
+        
         // 更新搜索引擎选择
         const searchEngineSelect = document.getElementById('search-engine-select');
         if (searchEngineSelect) {
@@ -467,9 +483,10 @@ class FreshTab {
         const columnsSlider = document.getElementById('columns-per-row');
         const columnsValue = document.getElementById('columns-value');
         const bookmarkSizeSelect = document.getElementById('bookmark-size');
+        const showTimeCheckbox = document.getElementById('show-time');
 
         // 检查必要元素是否存在
-        if (!modal || !settingsBtn || !closeBtn || !cancelBtn || !saveBtn || !columnsSlider || !columnsValue || !bookmarkSizeSelect) {
+        if (!modal || !settingsBtn || !closeBtn || !cancelBtn || !saveBtn || !columnsSlider || !columnsValue || !bookmarkSizeSelect || !showTimeCheckbox) {
             console.warn('设置模态框相关元素未完全找到');
             return;
         }
@@ -481,6 +498,7 @@ class FreshTab {
             columnsSlider.value = this.settings.columnsPerRow;
             columnsValue.textContent = this.settings.columnsPerRow;
             bookmarkSizeSelect.value = this.settings.bookmarkSize;
+            showTimeCheckbox.checked = this.settings.showTime;
         });
 
         // 关闭模态框
@@ -505,6 +523,7 @@ class FreshTab {
         saveBtn.addEventListener('click', async () => {
             this.settings.columnsPerRow = parseInt(columnsSlider.value);
             this.settings.bookmarkSize = bookmarkSizeSelect.value;
+            this.settings.showTime = showTimeCheckbox.checked;
             
             await this.saveSettings();
             this.applySettings();

@@ -14,7 +14,7 @@
         <!-- 主要内容区域 -->
         <main class="main-content">
             <!-- 时间显示 -->
-            <div class="time-section">
+            <div class="time-section" id="time-section">
                 <div class="time-date-display">
                     <div class="time-display">
                         <span class="time" id="current-time">12:00</span>
@@ -124,6 +124,16 @@
                 
                 <div class="settings-section">
                     <h4 class="settings-section-title">外观设置</h4>
+                    <div class="setting-item">
+                        <label for="show-time">显示时间</label>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="show-time" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="setting-description">控制是否在页面顶部显示时间和日期</div>
+                    </div>
                     <div class="setting-item">
                         <label for="bookmark-size">书签图标大小</label>
                         <div class="setting-control">
