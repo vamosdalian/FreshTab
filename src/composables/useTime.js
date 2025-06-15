@@ -2,7 +2,6 @@ import { ref, onMounted, onUnmounted } from 'vue'
 
 export function useTime() {
   const currentTime = ref('')
-  const currentDate = ref('')
   const greeting = ref('')
 
   const updateTime = () => {
@@ -12,16 +11,6 @@ export function useTime() {
     const hours = now.getHours()
     const minutes = now.getMinutes()
     currentTime.value = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
-
-    // 格式化日期
-    const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
-    const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
-    
-    const weekday = weekdays[now.getDay()]
-    const month = months[now.getMonth()]
-    const day = now.getDate()
-    
-    currentDate.value = `${weekday}, ${month}${day}日`
   }
 
   const updateGreeting = () => {
@@ -60,7 +49,6 @@ export function useTime() {
 
   return {
     currentTime,
-    currentDate,
     greeting
   }
 }

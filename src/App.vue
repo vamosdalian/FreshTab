@@ -9,7 +9,6 @@
       <TimeSection 
         v-if="settings.showTime" 
         :currentTime="currentTime" 
-        :currentDate="currentDate" 
         :greeting="greeting" 
       />
 
@@ -86,7 +85,7 @@ export default {
     // 使用组合式函数
     const { bookmarkGroups, addBookmarkToGroup, deleteBookmark, saveBookmarkGroups } = useBookmarks()
     const { settings, saveSettings } = useSettings()
-    const { currentTime, currentDate, greeting } = useTime()
+    const { currentTime, greeting } = useTime()
     const { searchQuery, searchEngines, currentEngine, performSearch, setSearchEngine } = useSearch(settings)
 
     // 模态框状态
@@ -111,7 +110,6 @@ export default {
       bookmarkGroups,
       settings,
       currentTime,
-      currentDate,
       greeting,
       searchQuery,
       searchEngines,

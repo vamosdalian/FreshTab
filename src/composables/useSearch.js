@@ -3,11 +3,41 @@ import { ref, computed } from 'vue'
 export function useSearch(settings) {
   const searchQuery = ref('')
   const searchEngines = ref([
-    { id: 'google', name: 'Google', url: 'https://www.google.com/search?q=', icon: '🔍' },
-    { id: 'bing', name: 'Bing', url: 'https://www.bing.com/search?q=', icon: '🅱️' },
-    { id: 'baidu', name: '百度', url: 'https://www.baidu.com/s?wd=', icon: '🟦' },
-    { id: 'duckduckgo', name: 'DuckDuckGo', url: 'https://duckduckgo.com/?q=', icon: '🦆' },
-    { id: 'yahoo', name: 'Yahoo', url: 'https://search.yahoo.com/search?p=', icon: '🟣' }
+    { 
+      id: 'google', 
+      name: 'Google', 
+      url: 'https://www.google.com/search?q=', 
+      icon: 'https://www.google.com/favicon.ico',
+      fallbackIcon: '🔍'
+    },
+    { 
+      id: 'bing', 
+      name: 'Bing', 
+      url: 'https://www.bing.com/search?q=', 
+      icon: 'https://www.bing.com/favicon.ico',
+      fallbackIcon: '🅱️'
+    },
+    { 
+      id: 'baidu', 
+      name: '百度', 
+      url: 'https://www.baidu.com/s?wd=', 
+      icon: 'https://www.baidu.com/favicon.ico',
+      fallbackIcon: '🟦'
+    },
+    { 
+      id: 'duckduckgo', 
+      name: 'DuckDuckGo', 
+      url: 'https://duckduckgo.com/?q=', 
+      icon: 'https://duckduckgo.com/favicon.ico',
+      fallbackIcon: '🦆'
+    },
+    { 
+      id: 'yahoo', 
+      name: 'Yahoo', 
+      url: 'https://search.yahoo.com/search?p=', 
+      icon: 'https://search.yahoo.com/favicon.ico',
+      fallbackIcon: '🟣'
+    }
   ])
 
   const currentEngine = computed(() => {
