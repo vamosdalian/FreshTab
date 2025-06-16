@@ -72,75 +72,13 @@
         <!-- Emoji选择器 -->
         <div v-if="formData.iconType === 'emoji'" class="form-group">
           <label class="form-label">选择Emoji</label>
-          
-          <!-- Emoji搜索框 -->
-          <div class="emoji-search">
-            <input
-              v-model="emojiSearchQuery"
-              type="text"
-              placeholder="搜索emoji或输入网站名称..."
-              class="form-input emoji-search-input"
-              @input="onEmojiSearch"
-            />
-          </div>
-
-          <!-- 智能推荐 -->
-          <div v-if="smartRecommendations.length > 0" class="emoji-recommendations">
-            <div class="recommendations-label">智能推荐</div>
-            <div class="emoji-grid-small">
-              <div 
-                v-for="emoji in smartRecommendations" 
-                :key="'rec-' + emoji"
-                @click="selectEmoji(emoji)"
-                :class="['emoji-item', { selected: formData.iconValue === emoji }]"
-                :title="getEmojiName(emoji)"
-              >
-                {{ emoji }}
-              </div>
-            </div>
-          </div>
-
-          <!-- 最近使用 -->
-          <div v-if="recentEmojis.length > 0" class="emoji-recent">
-            <div class="recent-label">最近使用</div>
-            <div class="emoji-grid-small">
-              <div 
-                v-for="emoji in recentEmojis" 
-                :key="'recent-' + emoji"
-                @click="selectEmoji(emoji)"
-                :class="['emoji-item', { selected: formData.iconValue === emoji }]"
-                :title="getEmojiName(emoji)"
-              >
-                {{ emoji }}
-              </div>
-            </div>
-          </div>
-
-          <!-- Emoji分类标签 -->
-          <div class="emoji-categories">
-            <button
-              v-for="(emojis, category) in displayEmojiCategories"
-              :key="category"
-              @click="selectedEmojiCategory = category"
-              :class="['category-btn', { active: selectedEmojiCategory === category }]"
-              type="button"
-            >
-              {{ category }}
-            </button>
-          </div>
-
-          <!-- Emoji网格 -->
-          <div class="emoji-grid">
-            <div 
-              v-for="emoji in displayEmojis" 
-              :key="emoji"
-              @click="selectEmoji(emoji)"
-              :class="['emoji-item', { selected: formData.iconValue === emoji }]"
-              :title="getEmojiName(emoji)"
-            >
-              {{ emoji }}
-            </div>
-          </div>
+          <EmojiPicker 
+            :selected-emoji="formData.iconValue"
+            :show-smart-recommendations="true"
+            :site-name="formData.name"
+            :site-url="formData.url"
+            @select-emoji="handleEmojiSelect"
+          />
         </div>
         
         <!-- 文字输入 -->
@@ -204,10 +142,13 @@
 
 <script>
 import { ref, watch, nextTick, computed } from 'vue'
-import { emojiLibrary, enhancedEmojiUtils } from '../utils/emojiLibrary'
+import EmojiPicker from './EmojiPicker.vue'
 
 export default {
   name: 'TagModal',
+  components: {
+    EmojiPicker
+  },
   props: {
     isOpen: {
       type: Boolean,
@@ -238,81 +179,6 @@ export default {
     
     const nameInput = ref(null)
     const isEditing = ref(false)
-    
-    // 新增emoji相关的响应式数据
-    const emojiSearchQuery = ref('')
-    const searchResults = ref([])
-    const smartRecommendations = ref([])
-    const recentEmojis = ref([])
-    
-    // 获取emoji分类数据
-    const emojiCategories = computed(() => {
-      return enhancedEmojiUtils.getCategorizedEmojis()
-    })
-    
-    // 动态设置初始分类
-    const selectedEmojiCategory = ref('')
-    
-    // 初始化选择的分类
-    watch(emojiCategories, (categories) => {
-      if (categories && Object.keys(categories).length > 0) {
-        const availableCategories = Object.keys(categories)
-        if (!selectedEmojiCategory.value || !availableCategories.includes(selectedEmojiCategory.value)) {
-          selectedEmojiCategory.value = availableCategories[0]
-        }
-      }
-    }, { immediate: true })
-    
-    // 根据搜索和分类显示的emoji
-    const displayEmojiCategories = computed(() => {
-      if (emojiSearchQuery.value) {
-        return { '搜索结果': searchResults.value }
-      }
-      return emojiCategories.value
-    })
-    
-    const displayEmojis = computed(() => {
-      if (emojiSearchQuery.value) {
-        return searchResults.value
-      }
-      return emojiCategories.value[selectedEmojiCategory.value] || []
-    })
-    
-    // 监听表单数据变化，更新智能推荐
-    watch([() => formData.value.name, () => formData.value.url], ([name, url]) => {
-      if (name || url) {
-        smartRecommendations.value = enhancedEmojiUtils.getSmartRecommendations(name, url)
-      } else {
-        smartRecommendations.value = []
-      }
-    }, { immediate: true })
-    
-    // 加载最近使用的emoji
-    const loadRecentEmojis = () => {
-      recentEmojis.value = enhancedEmojiUtils.getRecentEmojis()
-    }
-    
-    // emoji搜索处理
-    const onEmojiSearch = () => {
-      if (emojiSearchQuery.value.trim()) {
-        searchResults.value = enhancedEmojiUtils.searchEmojis(emojiSearchQuery.value.trim())
-      } else {
-        searchResults.value = []
-      }
-    }
-    
-    // 选择emoji
-    const selectEmoji = (emoji) => {
-      formData.value.iconValue = emoji
-      // 保存到最近使用
-      enhancedEmojiUtils.saveRecentEmoji(emoji)
-      loadRecentEmojis()
-    }
-    
-    // 获取emoji名称
-    const getEmojiName = (emoji) => {
-      return emojiLibrary.getEmojiName ? emojiLibrary.getEmojiName(emoji) : emoji
-    }
     
     // 监听 props 变化，初始化表单数据
     watch(() => props.tag, (newTag) => {
@@ -390,32 +256,23 @@ export default {
       event.target.style.display = 'none'
     }
     
+    // emoji选择处理
+    const handleEmojiSelect = (emoji) => {
+      formData.value.iconValue = emoji
+    }
+    
     // 初始化数据
     const initializeModal = () => {
-      loadRecentEmojis()
+      // 模态框初始化逻辑
     }
     
     // 监听modal打开状态
     watch(() => props.isOpen, (isOpen) => {
       if (isOpen) {
         initializeModal()
-        // 确保选择的分类在当前分类列表中存在
-        const categories = emojiCategories.value
-        const availableCategories = Object.keys(categories)
-        if (availableCategories.length > 0 && !availableCategories.includes(selectedEmojiCategory.value)) {
-          selectedEmojiCategory.value = availableCategories[0]
-        }
         nextTick(() => {
           nameInput.value?.focus()
         })
-      } else {
-        // 清理搜索状态
-        emojiSearchQuery.value = ''
-        searchResults.value = []
-        // 重置为默认分类，但确保它存在
-        const categories = emojiCategories.value
-        const availableCategories = Object.keys(categories)
-        selectedEmojiCategory.value = availableCategories.length > 0 ? availableCategories[0] : '常用'
       }
     })
 
@@ -423,22 +280,12 @@ export default {
       formData,
       nameInput,
       isEditing,
-      // emoji相关
-      emojiSearchQuery,
-      selectedEmojiCategory,
-      displayEmojiCategories,
-      displayEmojis,
-      smartRecommendations,
-      recentEmojis,
       // 方法
       handleOverlayClick,
       handleSubmit,
       getFaviconUrl,
       handleFaviconError,
-      onEmojiSearch,
-      selectEmoji,
-      getEmojiName,
-      loadRecentEmojis
+      handleEmojiSelect
     }
   }
 }

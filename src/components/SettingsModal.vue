@@ -253,16 +253,10 @@
           
           <div class="form-group">
             <label>选择Emoji</label>
-            <div class="emoji-selector">
-              <div 
-                v-for="emoji in emojiOptions" 
-                :key="emoji"
-                @click="groupForm.emoji = emoji"
-                :class="['emoji-option', { selected: groupForm.emoji === emoji }]"
-              >
-                {{ emoji }}
-              </div>
-            </div>
+            <EmojiPicker 
+              :selected-emoji="groupForm.emoji"
+              @select-emoji="handleSelectGroupEmoji"
+            />
           </div>
           
           <div class="form-group">
@@ -290,9 +284,13 @@
 
 <script>
 import { useTagGroups } from '../composables/useTagGroups'
+import EmojiPicker from './EmojiPicker.vue'
 
 export default {
   name: 'SettingsModal',
+  components: {
+    EmojiPicker
+  },
   props: {
     isOpen: {
       type: Boolean,
@@ -419,6 +417,11 @@ export default {
     
     async deleteGroupConfirm(groupId) {
       await this.deleteGroup(groupId)
+    },
+    
+    // emoji相关方法
+    handleSelectGroupEmoji(emoji) {
+      this.groupForm.emoji = emoji
     }
   }
 }
@@ -1004,38 +1007,6 @@ export default {
   outline: none;
   border-color: #007bff;
   box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-}
-
-.emoji-selector {
-  display: grid;
-  grid-template-columns: repeat(10, 1fr);
-  gap: 4px;
-  max-height: 120px;
-  overflow-y: auto;
-  border: 1px solid #e9ecef;
-  border-radius: 6px;
-  padding: 8px;
-}
-
-.emoji-option {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  border-radius: 4px;
-  font-size: 16px;
-  transition: background 0.3s ease;
-}
-
-.emoji-option:hover {
-  background: #f8f9fa;
-}
-
-.emoji-option.selected {
-  background: #007bff;
-  color: white;
 }
 
 .color-selector {
