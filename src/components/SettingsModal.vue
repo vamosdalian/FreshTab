@@ -133,7 +133,85 @@
           <!-- 主题切换 -->
           <div class="settings-group">
             <h3>主题切换</h3>
-            <!-- 主题切换内容待添加 -->
+            <div class="setting-row">
+              <span class="setting-label">外观主题</span>
+              <select 
+                class="setting-select"
+                :value="settings.theme"
+                @change="updateSetting('theme', $event.target.value)"
+              >
+                <option value="auto">跟随系统</option>
+                <option value="light">浅色主题</option>
+                <option value="dark">深色主题</option>
+              </select>
+            </div>
+            <div class="setting-row theme-status-row">
+              <span class="setting-label">当前状态</span>
+              <span class="theme-status">
+                <span class="status-indicator" :class="{ dark: settings.isDarkMode }"></span>
+                {{ getThemeStatusText() }}
+              </span>
+            </div>
+            <div class="theme-preview-row">
+              <div class="theme-preview-container">
+                <div 
+                  class="theme-preview-item" 
+                  :class="{ active: settings.theme === 'auto' }"
+                  @click="updateSetting('theme', 'auto')"
+                >
+                  <div class="preview-card auto-preview">
+                    <div class="preview-header">
+                      <div class="preview-dot"></div>
+                      <div class="preview-dot"></div>
+                      <div class="preview-dot"></div>
+                    </div>
+                    <div class="preview-content">
+                      <div class="preview-text"></div>
+                      <div class="preview-text short"></div>
+                    </div>
+                  </div>
+                  <span class="preview-label">跟随系统</span>
+                </div>
+                
+                <div 
+                  class="theme-preview-item" 
+                  :class="{ active: settings.theme === 'light' }"
+                  @click="updateSetting('theme', 'light')"
+                >
+                  <div class="preview-card light-preview">
+                    <div class="preview-header">
+                      <div class="preview-dot"></div>
+                      <div class="preview-dot"></div>
+                      <div class="preview-dot"></div>
+                    </div>
+                    <div class="preview-content">
+                      <div class="preview-text"></div>
+                      <div class="preview-text short"></div>
+                    </div>
+                  </div>
+                  <span class="preview-label">浅色主题</span>
+                </div>
+                
+                <div 
+                  class="theme-preview-item" 
+                  :class="{ active: settings.theme === 'dark' }"
+                  @click="updateSetting('theme', 'dark')"
+                >
+                  <div class="preview-card dark-preview">
+                    <div class="preview-header">
+                      <div class="preview-dot"></div>
+                      <div class="preview-dot"></div>
+                      <div class="preview-dot"></div>
+                    </div>
+                    <div class="preview-content">
+                      <div class="preview-text"></div>
+                      <div class="preview-text short"></div>
+                    </div>
+                  </div>
+                  <span class="preview-label">深色主题</span>
+                </div>
+              </div>
+            </div>
           </div>
 
         </div>
@@ -627,6 +705,17 @@ export default {
       }
       
       return options
+    },
+    
+    // 获取主题状态文字
+    getThemeStatusText() {
+      if (this.settings.theme === 'auto') {
+        return this.settings.isDarkMode ? '系统深色模式' : '系统浅色模式'
+      } else if (this.settings.theme === 'light') {
+        return '浅色模式'
+      } else {
+        return '深色模式'
+      }
     }
   }
 }
@@ -974,6 +1063,193 @@ export default {
   font-size: 12px;
   min-width: 80px;
   text-align: right;
+}
+
+/* 主题状态样式 */
+.theme-status-row {
+  background: #f8f9fa;
+  border-radius: 6px;
+  margin: 8px 0;
+  padding: 12px 16px !important;
+}
+
+.theme-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #495057;
+  font-weight: 500;
+}
+
+.status-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ffc107;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px #dee2e6;
+  transition: all 0.3s ease;
+}
+
+.status-indicator.dark {
+  background: #6f42c1;
+}
+
+/* 主题预览样式 */
+.theme-preview-row {
+  padding: 20px 0 0 0;
+  border-bottom: none;
+}
+
+.theme-preview-container {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+.theme-preview-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.theme-preview-item:hover {
+  background: #f8f9fa;
+}
+
+.theme-preview-item.active {
+  border-color: #007bff;
+  background: #f8f9fa;
+}
+
+.preview-card {
+  width: 80px;
+  height: 60px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.preview-header {
+  height: 16px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0 6px;
+}
+
+.preview-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+}
+
+.preview-content {
+  padding: 4px 6px;
+  height: calc(100% - 16px);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.preview-text {
+  height: 6px;
+  border-radius: 2px;
+}
+
+.preview-text.short {
+  width: 60%;
+}
+
+/* 浅色主题预览 */
+.light-preview {
+  background: #ffffff;
+}
+
+.light-preview .preview-header {
+  background: #f8f9fa;
+}
+
+.light-preview .preview-dot {
+  background: #dee2e6;
+}
+
+.light-preview .preview-content {
+  background: #ffffff;
+}
+
+.light-preview .preview-text {
+  background: #e9ecef;
+}
+
+/* 深色主题预览 */
+.dark-preview {
+  background: #2d3748;
+}
+
+.dark-preview .preview-header {
+  background: #4a5568;
+}
+
+.dark-preview .preview-dot {
+  background: #718096;
+}
+
+.dark-preview .preview-content {
+  background: #2d3748;
+}
+
+.dark-preview .preview-text {
+  background: #4a5568;
+}
+
+/* 自动主题预览（渐变效果） */
+.auto-preview {
+  background: linear-gradient(135deg, #ffffff 50%, #2d3748 50%);
+}
+
+.auto-preview .preview-header {
+  background: linear-gradient(135deg, #f8f9fa 50%, #4a5568 50%);
+}
+
+.auto-preview .preview-dot:nth-child(1) {
+  background: #dee2e6;
+}
+
+.auto-preview .preview-dot:nth-child(2) {
+  background: linear-gradient(135deg, #dee2e6 50%, #718096 50%);
+}
+
+.auto-preview .preview-dot:nth-child(3) {
+  background: #718096;
+}
+
+.auto-preview .preview-content {
+  background: linear-gradient(135deg, #ffffff 50%, #2d3748 50%);
+}
+
+.auto-preview .preview-text {
+  background: linear-gradient(135deg, #e9ecef 50%, #4a5568 50%);
+}
+
+.preview-label {
+  font-size: 12px;
+  color: #495057;
+  font-weight: 500;
+  text-align: center;
+}
+
+.theme-preview-item.active .preview-label {
+  color: #007bff;
+  font-weight: 600;
 }
 
 /* 分组管理样式 */
