@@ -44,7 +44,7 @@ export default {
       const now = new Date()
       
       if (props.timeFormat === '12h') {
-        return now.toLocaleTimeString('zh-CN', {
+        return now.toLocaleTimeString('en-US', {
           hour12: true,
           hour: 'numeric',
           minute: '2-digit',

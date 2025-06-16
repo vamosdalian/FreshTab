@@ -51,12 +51,15 @@
                 <input 
                   type="range" 
                   min="300" 
-                  max="1200" 
+                  :max="getMaxDisplayWidth()" 
                   :value="settings.displayWidth" 
                   @input="updateDisplayWidth"
                   class="setting-range"
                 >
-                <span class="range-value">{{ settings.displayWidth }}px</span>
+                <span class="range-value">
+                  {{ settings.displayWidth }}px 
+                  ({{ Math.round((settings.displayWidth / windowWidth) * 100) }}%)
+                </span>
               </div>
             </div>
             <div class="setting-row">
@@ -158,21 +161,23 @@
                 <div class="group-info">
                   <span class="group-emoji">{{ group.emoji }}</span>
                   <div class="group-details">
-                    <h4>{{ group.name }}</h4>
+                    <div class="group-title-row">
+                      <h4>{{ group.name }}</h4>
+                      <button 
+                        @click="editGroupModal(group)"
+                        class="edit-btn inline-edit-btn"
+                        title="编辑分组"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                      </button>
+                    </div>
                     <span class="tag-count">{{ Array.isArray(group.tags) ? group.tags.length : 0 }} 个标签</span>
                   </div>
                 </div>
                 <div class="group-actions">
-                  <button 
-                    @click="editGroupModal(group)"
-                    class="edit-btn"
-                    title="编辑分组"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                    </svg>
-                  </button>
                   <button 
                     v-if="group.id !== 'default'"
                     @click="deleteGroupConfirm(group.id)"
@@ -333,6 +338,7 @@ export default {
       showAddGroupModal: false,
       showEditGroupModal: false,
       editingGroupId: null,
+      windowWidth: window.innerWidth, // 添加窗口宽度跟踪
       groupForm: {
         name: '',
         emoji: '📁',
@@ -366,6 +372,14 @@ export default {
         }
       ]
     }
+  },
+  mounted() {
+    // 监听窗口大小变化
+    window.addEventListener('resize', this.handleWindowResize)
+  },
+  beforeUnmount() {
+    // 清理事件监听器
+    window.removeEventListener('resize', this.handleWindowResize)
   },
   methods: {
     handleOverlayClick() {
@@ -432,6 +446,23 @@ export default {
     updateDisplayWidth(event) {
       const width = Number(event.target.value)
       this.updateSetting('displayWidth', width)
+    },
+    
+    // 计算最大显示宽度（窗口的90%）
+    getMaxDisplayWidth() {
+      const maxWidth = Math.floor(this.windowWidth * 0.9)
+      return Math.max(maxWidth, 800) // 最小保证800px
+    },
+    
+    // 处理窗口大小变化
+    handleWindowResize() {
+      this.windowWidth = window.innerWidth
+      
+      // 如果当前设置的宽度超过了新的最大值，自动调整
+      const maxWidth = this.getMaxDisplayWidth()
+      if (this.settings.displayWidth > maxWidth) {
+        this.updateSetting('displayWidth', maxWidth)
+      }
     },
     
     // 计算最大列数选项
@@ -767,7 +798,7 @@ export default {
 }
 
 .setting-range {
-  width: 100px;
+  width: 300px;
   height: 4px;
   border-radius: 2px;
   background: #dee2e6;
@@ -806,7 +837,7 @@ export default {
 .range-value {
   color: #6c757d;
   font-size: 12px;
-  min-width: 40px;
+  min-width: 80px;
   text-align: right;
 }
 
@@ -889,6 +920,35 @@ export default {
   margin: 0;
   font-size: 16px;
   color: #333;
+}
+
+.group-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.inline-edit-btn {
+  padding: 4px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: #6c757d;
+  opacity: 0;
+}
+
+.group-item:hover .inline-edit-btn {
+  opacity: 1;
+}
+
+.inline-edit-btn:hover {
+  background: #f8f9fa;
+  color: #495057;
 }
 
 .tag-count {
