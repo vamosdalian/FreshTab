@@ -230,8 +230,132 @@
         
         <!-- 关于页面 -->
         <div v-if="activeMenu === 'about'" class="content-section">
-          <h3>关于</h3>
-          <!-- 内容保持不变 -->
+          <div class="about-container">
+            <!-- 应用信息 -->
+            <div class="about-section app-info">
+              <!-- <div class="app-logo">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <circle cx="9" cy="9" r="2"></circle>
+                  <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path>
+                </svg>
+              </div> -->
+              <div class="app-details">
+                <h2 class="app-title">FreshTab</h2>
+                <p class="app-version">版本 1.0.0</p>
+                <p class="app-description">
+                  一个简洁优雅的浏览器新标签页扩展，让您的浏览体验更加高效和美观。
+                </p>
+              </div>
+            </div>
+
+            <!-- 功能特性 -->
+            <div class="about-section features">
+              <h3>功能特性</h3>
+              <div class="features-grid">
+                <div class="feature-item">
+                  <div class="feature-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+                      <path d="M7 2v4"></path>
+                      <path d="M17 2v4"></path>
+                    </svg>
+                  </div>
+                  <div class="feature-content">
+                    <h4>智能分组</h4>
+                    <p>支持自定义分组管理，让您的书签井井有条</p>
+                  </div>
+                </div>
+                <div class="feature-item">
+                  <div class="feature-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                  </div>
+                  <div class="feature-content">
+                    <h4>快速搜索</h4>
+                    <p>支持多搜索引擎，一键切换，搜索更便捷</p>
+                  </div>
+                </div>
+                <div class="feature-item">
+                  <div class="feature-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                      <circle cx="9" cy="9" r="2"></circle>
+                      <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path>
+                    </svg>
+                  </div>
+                  <div class="feature-content">
+                    <h4>个性壁纸</h4>
+                    <p>丰富的壁纸选择，打造属于您的专属桌面</p>
+                  </div>
+                </div>
+                <div class="feature-item">
+                  <div class="feature-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12,6 12,12 16,14"></polyline>
+                    </svg>
+                  </div>
+                  <div class="feature-content">
+                    <h4>时间显示</h4>
+                    <p>实时时间和日期显示，支持多种格式选择</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 开发信息 -->
+            <div class="about-section developer-info">
+              <h3>开发信息</h3>
+              <div class="developer-content">
+                <div class="info-row">
+                  <span class="info-label">开发者：</span>
+                  <span class="info-value">vamosdalian</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">发布日期：</span>
+                  <span class="info-value">2025年</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">许可证：</span>
+                  <span class="info-value">MIT License</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 联系方式 -->
+            <div class="about-section contact-info">
+              <h3>联系我们</h3>
+              <div class="contact-content">
+                <p>如果您在使用过程中遇到问题或有任何建议，欢迎通过以下方式联系我们：</p>
+                <div class="contact-links">
+                  <a href="https://github.com/vamosdalian/FreshTab" class="contact-link">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+                    </svg>
+                    GitHub
+                  </a>
+                  <a href="elve960520@gmail.com" class="contact-link">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                      <polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                    邮箱反馈
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- 版权信息 -->
+            <div class="about-section copyright">
+              <div class="copyright-content">
+                <p>&copy; 2025 FreshTab Team. All rights reserved.</p>
+                <p class="thanks-text">感谢您选择 FreshTab，让我们一起打造更美好的浏览体验！</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -369,16 +493,11 @@ export default {
           name: '分组管理',
           icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M7 2v4"></path><path d="M17 2v4"></path><path d="M14 14l-1-1"></path><circle cx="12" cy="12" r="2"></circle></svg>'
         },
-        {
-          id: 'wallpaper',
-          name: '壁纸',
-          icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path></svg>'
-        },
-        {
-          id: 'theme',
-          name: '主题切换',
-          icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="M4.93 4.93l1.41 1.41"></path><path d="M17.66 17.66l1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="M6.34 17.66l-1.41 1.41"></path><path d="M19.07 4.93l-1.41 1.41"></path></svg>'
-        },
+        // {
+        //   id: 'wallpaper',
+        //   name: '壁纸',
+        //   icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path></svg>'
+        // },
         {
           id: 'about',
           name: '关于我们',
@@ -1226,5 +1345,244 @@ export default {
 .emoji-select-text {
   color: #495057;
   font-size: 0.9rem;
+}
+
+/* 关于页面样式 */
+.about-container {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.about-section {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  border: 1px solid #e9ecef;
+}
+
+.about-section:last-child {
+  margin-bottom: 0;
+}
+
+/* 应用信息样式 */
+.app-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  text-align: left;
+}
+
+.app-logo {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.app-details {
+  flex: 1;
+}
+
+.app-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #212529;
+  margin: 0 0 8px 0;
+}
+
+.app-version {
+  font-size: 14px;
+  color: #6c757d;
+  margin: 0 0 12px 0;
+  background: #f8f9fa;
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.app-description {
+  font-size: 16px;
+  color: #495057;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* 功能特性样式 */
+.features h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #212529;
+  margin: 0 0 20px 0;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.feature-icon {
+  width: 40px;
+  height: 40px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #007bff;
+  flex-shrink: 0;
+}
+
+.feature-content h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #212529;
+  margin: 0 0 8px 0;
+}
+
+.feature-content p {
+  font-size: 14px;
+  color: #6c757d;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* 开发信息样式 */
+.developer-info h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #212529;
+  margin: 0 0 20px 0;
+}
+
+.developer-content {
+  display: grid;
+  gap: 12px;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font-weight: 500;
+  color: #495057;
+  min-width: 120px;
+}
+
+.info-value {
+  color: #212529;
+  flex: 1;
+}
+
+/* 联系方式样式 */
+.contact-info h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #212529;
+  margin: 0 0 20px 0;
+}
+
+.contact-content p {
+  font-size: 14px;
+  color: #495057;
+  line-height: 1.6;
+  margin: 0 0 16px 0;
+}
+
+.contact-links {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.contact-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #f8f9fa;
+  color: #495057;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border: 1px solid #e9ecef;
+}
+
+.contact-link:hover {
+  background: #007bff;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
+}
+
+/* 版权信息样式 */
+.copyright {
+  text-align: center;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+}
+
+.copyright-content p {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.copyright-content p:last-child {
+  margin-bottom: 0;
+}
+
+.thanks-text {
+  color: #007bff !important;
+  font-weight: 500;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .app-info {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .contact-links {
+    justify-content: center;
+  }
+  
+  .info-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .info-label {
+    min-width: auto;
+    font-weight: 600;
+  }
 }
 </style>
