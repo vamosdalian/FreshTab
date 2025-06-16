@@ -25,13 +25,13 @@
         @setEngine="setSearchEngine"
       />
 
-      <!-- 快捷书签组件 -->
-      <BookmarksSection 
+      <!-- 标签组件 -->
+      <TagsSection 
         v-if="settings.showBookmarks"
-        :bookmarks="bookmarkGroups[0]?.bookmarks || []"
-        @openBookmark="(url) => window.open(url, '_self')"
-        @deleteBookmark="deleteBookmark"
-        @openAddModal="showAddBookmarkModal"
+        :tagGroups="tagGroups"
+        @addTag="showAddTagModal"
+        @deleteTag="deleteTag"
+        @openSettings="showSettingsModal = true"
       />
     </main>
 
@@ -56,13 +56,16 @@
       />
     </Transition>
 
-    <!-- 添加书签模态框 -->
+    <!-- 添加标签模态框 -->
     <Transition name="modal">
-      <BookmarkModal 
-        v-if="showBookmarkModal"
-        :isOpen="showBookmarkModal"
-        @close="showBookmarkModal = false"
-        @save="(bookmark) => { addBookmarkToGroup(bookmark); showBookmarkModal = false }"
+      <TagModal 
+        v-if="showTagModal"
+        :isOpen="showTagModal"
+        :tag="currentEditingTag"
+        :emojiOptions="emojiOptions"
+        :themeColors="themeColors"
+        @close="closeTagModal"
+        @save="saveTag"
       />
     </Transition>
   </div>
@@ -72,13 +75,13 @@
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import TimeSection from './components/TimeSection.vue'
 import SearchSection from './components/SearchSection.vue'
-import BookmarksSection from './components/BookmarksSection.vue'
+import TagsSection from './components/TagsSection.vue'
 import SettingsButton from './components/SettingsButton.vue'
 import ThemeToggleButton from './components/ThemeToggleButton.vue'
 import SettingsModal from './components/SettingsModal.vue'
-import BookmarkModal from './components/BookmarkModal.vue'
+import TagModal from './components/TagModal.vue'
 
-import { useBookmarks } from './composables/useBookmarks'
+import { useTagGroups } from './composables/useTagGroups'
 import { useSettings } from './composables/useSettings'
 import { useTime } from './composables/useTime'
 import { useSearch } from './composables/useSearch'
@@ -88,45 +91,71 @@ export default {
   components: {
     TimeSection,
     SearchSection,
-    BookmarksSection,
+    TagsSection,
     SettingsButton,
     ThemeToggleButton,
     SettingsModal,
-    BookmarkModal
+    TagModal
   },
   setup() {
     // 使用组合式函数
-    const { bookmarkGroups, addBookmarkToGroup, deleteBookmark, saveBookmarkGroups } = useBookmarks()
+    const { 
+      tagGroups, 
+      emojiOptions, 
+      themeColors, 
+      addTag, 
+      editTag, 
+      deleteTag 
+    } = useTagGroups()
     const { settings, saveSettings, updateTheme, resetSettings } = useSettings()
     const { currentTime, greeting } = useTime()
     const { searchQuery, searchEngines, currentEngine, performSearch, setSearchEngine } = useSearch(settings, saveSettings)
 
     // 模态框状态
     const showSettingsModal = ref(false)
-    const showBookmarkModal = ref(false)
-    const currentEditingGroup = ref(null)
+    const showTagModal = ref(false)
+    const currentEditingTag = ref(null)
+    const currentGroupId = ref(null)
 
     // 键盘事件处理
     const handleKeydown = (event) => {
       if (event.key === 'Escape') {
         if (showSettingsModal.value) {
           showSettingsModal.value = false
-        } else if (showBookmarkModal.value) {
-          showBookmarkModal.value = false
+        } else if (showTagModal.value) {
+          showTagModal.value = false
         }
       }
     }
 
-    // 显示添加书签模态框
-    const showAddBookmarkModal = (groupId) => {
-      currentEditingGroup.value = groupId
-      showBookmarkModal.value = true
+    // 显示添加标签模态框
+    const showAddTagModal = (groupId) => {
+      currentGroupId.value = groupId
+      currentEditingTag.value = null
+      showTagModal.value = true
     }
 
-    // 更新书签分组
-    const updateBookmarkGroups = (newGroups) => {
-      bookmarkGroups.value = newGroups
-      saveBookmarkGroups()
+    // 显示编辑标签模态框  
+    const showEditTagModal = (groupId, tag) => {
+      currentGroupId.value = groupId
+      currentEditingTag.value = tag
+      showTagModal.value = true
+    }
+
+    // 关闭标签模态框
+    const closeTagModal = () => {
+      showTagModal.value = false
+      currentEditingTag.value = null
+      currentGroupId.value = null
+    }
+
+    // 保存标签
+    const saveTag = async (tagData) => {
+      if (currentEditingTag.value) {
+        await editTag(currentGroupId.value, currentEditingTag.value.id, tagData)
+      } else {
+        await addTag(currentGroupId.value, tagData)
+      }
     }
 
     // 生命周期
@@ -140,7 +169,9 @@ export default {
 
     return {
       // 数据
-      bookmarkGroups,
+      tagGroups,
+      emojiOptions,
+      themeColors,
       settings,
       currentTime,
       greeting,
@@ -148,17 +179,18 @@ export default {
       searchEngines,
       currentEngine,
       showSettingsModal,
-      showBookmarkModal,
-      currentEditingGroup,
+      showTagModal,
+      currentEditingTag,
       
       // 方法
       performSearch,
       setSearchEngine,
-      addBookmarkToGroup,
-      deleteBookmark,
       saveSettings,
-      showAddBookmarkModal,
-      updateBookmarkGroups,
+      showAddTagModal,
+      showEditTagModal,
+      closeTagModal,
+      saveTag,
+      deleteTag,
       resetSettings
     }
   }

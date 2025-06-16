@@ -131,6 +131,82 @@
 
         </div>
         
+        <!-- 分组管理页面 -->
+        <div v-if="activeMenu === 'tagManagement'" class="content-section">
+          <div class="section-header">
+            <h3>分组管理</h3>
+            <button @click="showAddGroupModal = true" class="add-button">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              添加分组
+            </button>
+          </div>
+          
+          <div class="groups-list">
+            <div 
+              v-for="group in tagGroups" 
+              :key="group.id"
+              class="group-item"
+            >
+              <div class="group-header">
+                <div class="group-info">
+                  <span class="group-emoji">{{ group.emoji }}</span>
+                  <div class="group-details">
+                    <h4>{{ group.name }}</h4>
+                    <span class="tag-count">{{ group.tags.length }} 个标签</span>
+                  </div>
+                </div>
+                <div class="group-actions">
+                  <button 
+                    @click="editGroupModal(group)"
+                    class="edit-btn"
+                    title="编辑分组"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                  </button>
+                  <button 
+                    v-if="group.id !== 'default'"
+                    @click="deleteGroupConfirm(group.id)"
+                    class="delete-btn"
+                    title="删除分组"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3,6 5,6 21,6"></polyline>
+                      <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6M8,6V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              
+              <div class="group-color-preview" :style="{ backgroundColor: group.themeColor }"></div>
+              
+              <div class="tags-preview">
+                <div 
+                  v-for="tag in group.tags.slice(0, 4)" 
+                  :key="tag.id"
+                  class="tag-preview"
+                  :style="{ backgroundColor: tag.backgroundColor }"
+                >
+                  <span v-if="tag.iconType === 'emoji'">{{ tag.iconValue }}</span>
+                  <span v-else-if="tag.iconType === 'text'">{{ tag.iconValue }}</span>
+                  <img 
+                    v-else-if="tag.iconType === 'favicon'"
+                    :src="getFaviconUrl(tag.url)"
+                    :alt="tag.name"
+                    @error="$event.target.style.display='none'"
+                  />
+                </div>
+                <span v-if="group.tags.length > 4" class="more-count">+{{ group.tags.length - 4 }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         <!-- 标签管理页面 -->
         <div v-if="activeMenu === 'bookmarks'" class="content-section">
           <h3>标签管理</h3>
@@ -150,10 +226,71 @@
         </div>
       </div>
     </div>
+    
+    <!-- 添加/编辑分组模态框 -->
+    <div v-if="showAddGroupModal || showEditGroupModal" class="group-modal-overlay" @click="closeGroupModal">
+      <div class="group-modal-content" @click.stop>
+        <div class="group-modal-header">
+          <h3>{{ showEditGroupModal ? '编辑分组' : '添加分组' }}</h3>
+          <button @click="closeGroupModal" class="close-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="group-modal-body">
+          <div class="form-group">
+            <label>分组名称</label>
+            <input 
+              v-model="groupForm.name" 
+              type="text" 
+              placeholder="输入分组名称"
+              class="form-input"
+            />
+          </div>
+          
+          <div class="form-group">
+            <label>选择Emoji</label>
+            <div class="emoji-selector">
+              <div 
+                v-for="emoji in emojiOptions" 
+                :key="emoji"
+                @click="groupForm.emoji = emoji"
+                :class="['emoji-option', { selected: groupForm.emoji === emoji }]"
+              >
+                {{ emoji }}
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>主题颜色</label>
+            <div class="color-selector">
+              <div 
+                v-for="color in themeColors" 
+                :key="color"
+                @click="groupForm.themeColor = color"
+                :class="['color-option', { selected: groupForm.themeColor === color }]"
+                :style="{ backgroundColor: color }"
+              ></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="group-modal-footer">
+          <button @click="closeGroupModal" class="cancel-btn">取消</button>
+          <button @click="saveGroup" class="save-btn">保存</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
+import { useTagGroups } from '../composables/useTagGroups'
+
 export default {
   name: 'SettingsModal',
   props: {
@@ -167,14 +304,48 @@ export default {
     }
   },
   emits: ['close', 'updateSetting', 'resetSettings'],
+  setup() {
+    const { 
+      tagGroups, 
+      emojiOptions, 
+      themeColors, 
+      addGroup, 
+      editGroup, 
+      deleteGroup,
+      getFaviconUrl 
+    } = useTagGroups()
+    
+    return {
+      tagGroups,
+      emojiOptions,
+      themeColors,
+      addGroup,
+      editGroup,
+      deleteGroup,
+      getFaviconUrl
+    }
+  },
   data() {
     return {
       activeMenu: 'settings',
+      showAddGroupModal: false,
+      showEditGroupModal: false,
+      editingGroupId: null,
+      groupForm: {
+        name: '',
+        emoji: '📁',
+        themeColor: '#667eea'
+      },
       menuItems: [
         {
           id: 'settings',
           name: '常规设置',
           icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>'
+        },
+        {
+          id: 'tagManagement',
+          name: '分组管理',
+          icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M7 2v4"></path><path d="M17 2v4"></path><path d="M14 14l-1-1"></path><circle cx="12" cy="12" r="2"></circle></svg>'
         },
         {
           id: 'wallpaper',
@@ -203,6 +374,51 @@ export default {
     },
     resetSettings() {
       this.$emit('resetSettings')
+    },
+    
+    // 分组管理方法
+    editGroupModal(group) {
+      this.editingGroupId = group.id
+      this.groupForm = {
+        name: group.name,
+        emoji: group.emoji,
+        themeColor: group.themeColor
+      }
+      this.showEditGroupModal = true
+    },
+    
+    closeGroupModal() {
+      this.showAddGroupModal = false
+      this.showEditGroupModal = false
+      this.editingGroupId = null
+      this.groupForm = {
+        name: '',
+        emoji: '📁',
+        themeColor: '#667eea'
+      }
+    },
+    
+    async saveGroup() {
+      if (!this.groupForm.name.trim()) {
+        alert('请输入分组名称')
+        return
+      }
+      
+      try {
+        if (this.showEditGroupModal) {
+          await this.editGroup(this.editingGroupId, this.groupForm)
+        } else {
+          await this.addGroup(this.groupForm.name, this.groupForm.emoji, this.groupForm.themeColor)
+        }
+        this.closeGroupModal()
+      } catch (error) {
+        console.error('保存分组失败:', error)
+        alert('保存失败，请重试')
+      }
+    },
+    
+    async deleteGroupConfirm(groupId) {
+      await this.deleteGroup(groupId)
     }
   }
 }
@@ -545,83 +761,340 @@ export default {
   font-size: 16px;
 }
 
-/* 自定义滚动条 */
-.setting-content::-webkit-scrollbar {
-  width: 6px;
+/* 分组管理样式 */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
 }
 
-.setting-content::-webkit-scrollbar-track {
-  background: #f1f3f4;
+.section-header h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #333;
 }
 
-.setting-content::-webkit-scrollbar-thumb {
-  background: #dee2e6;
-  border-radius: 3px;
+.add-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.3s ease;
 }
 
-.setting-content::-webkit-scrollbar-thumb:hover {
-  background: #ced4da;
+.add-button:hover {
+  background: #0056b3;
 }
 
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .modal-content {
-    width: 95vw;
-    height: 90vh;
-    flex-direction: column;
-  }
-  
-  .sidebar {
-    width: 100%;
-    height: auto;
-    min-width: auto;
-    max-width: none;
-    border-right: none;
-    border-bottom: 1px solid #e9ecef;
-  }
-  
-  .sidebar-nav {
-    flex-direction: row;
-    overflow-x: auto;
-    padding: 8px 0;
-  }
-  
-  .nav-group {
-    display: flex;
-    gap: 8px;
-    padding: 0 16px;
-  }
-  
-  .menu-item {
-    min-width: 100px;
-    justify-content: center;
-    flex-direction: column;
-    padding: 12px 8px;
-    border-radius: 8px;
-    margin: 0;
-  }
-  
-  .menu-icon {
-    margin-right: 0;
-    margin-bottom: 4px;
-  }
-  
-  .menu-text {
-    font-size: 12px;
-    text-align: center;
-  }
-  
-  .nav-footer {
-    display: none;
-  }
-  
-  .content-section {
-    padding: 16px;
-  }
-  
-  .settings-group {
-    padding: 16px;
-    margin-bottom: 16px;
-  }
+.groups-list {
+  display: grid;
+  gap: 16px;
+}
+
+.group-item {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.3s ease;
+}
+
+.group-item:hover {
+  border-color: #007bff;
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.1);
+}
+
+.group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.group-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.group-emoji {
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border-radius: 8px;
+  border: 2px solid #e9ecef;
+}
+
+.group-details h4 {
+  margin: 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.tag-count {
+  font-size: 12px;
+  color: #6c757d;
+}
+
+.group-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.edit-btn, .delete-btn {
+  padding: 6px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-btn {
+  background: #f8f9fa;
+  color: #6c757d;
+}
+
+.edit-btn:hover {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.delete-btn {
+  background: #f8f9fa;
+  color: #dc3545;
+}
+
+.delete-btn:hover {
+  background: #f5c6cb;
+  color: #721c24;
+}
+
+.group-color-preview {
+  height: 4px;
+  border-radius: 2px;
+  margin: 8px 0;
+}
+
+.tags-preview {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.tag-preview {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tag-preview img {
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+}
+
+.more-count {
+  font-size: 12px;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+/* 分组模态框样式 */
+.group-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.group-modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 500px;
+  max-width: 90vw;
+  max-height: 80vh;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.group-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.group-modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  color: #6c757d;
+  transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+  background: #f8f9fa;
+  color: #495057;
+}
+
+.group-modal-body {
+  padding: 20px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.emoji-selector {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 4px;
+  max-height: 120px;
+  overflow-y: auto;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  padding: 8px;
+}
+
+.emoji-option {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 16px;
+  transition: background 0.3s ease;
+}
+
+.emoji-option:hover {
+  background: #f8f9fa;
+}
+
+.emoji-option.selected {
+  background: #007bff;
+  color: white;
+}
+
+.color-selector {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+.color-option {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.color-option:hover {
+  transform: scale(1.1);
+}
+
+.color-option.selected {
+  border-color: #333;
+  transform: scale(1.1);
+}
+
+.group-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px;
+  border-top: 1px solid #e9ecef;
+  background: #f8f9fa;
+}
+
+.cancel-btn, .save-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.cancel-btn {
+  background: #6c757d;
+  color: white;
+}
+
+.cancel-btn:hover {
+  background: #545b62;
+}
+
+.save-btn {
+  background: #007bff;
+  color: white;
+}
+
+.save-btn:hover {
+  background: #0056b3;
 }
 </style>
