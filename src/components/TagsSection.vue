@@ -11,7 +11,7 @@
       
       <div class="tags-grid">
         <div
-          v-for="tag in group.tags"
+          v-for="tag in (Array.isArray(group.tags) ? group.tags : [])"
           :key="tag.id"
           class="tag-item"
           @click="openTag(tag.url)"
@@ -58,7 +58,7 @@
       </div>
       
       <!-- 空状态 -->
-      <div v-if="group.tags.length === 0" class="empty-state">
+      <div v-if="!Array.isArray(group.tags) || group.tags.length === 0" class="empty-state">
         <p>这个分组还没有标签</p>
         <button @click="$emit('addTag', group.id)" class="add-first-btn">
           添加第一个标签

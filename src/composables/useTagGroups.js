@@ -82,12 +82,34 @@ export function useTagGroups() {
     try {
       // 尝试从Chrome存储中加载
       const result = await chrome.storage.sync.get(['tagGroups'])
-      tagGroups.value = result.tagGroups || getDefaultTagGroups()
+      const loadedGroups = result.tagGroups || getDefaultTagGroups()
+      
+      // 验证和修复数据结构
+      tagGroups.value = validateAndFixTagGroups(loadedGroups)
     } catch (error) {
       console.log('Chrome API不可用，使用localStorage')
       const saved = localStorage.getItem('freshtab-tag-groups')
-      tagGroups.value = saved ? JSON.parse(saved) : getDefaultTagGroups()
+      const loadedGroups = saved ? JSON.parse(saved) : getDefaultTagGroups()
+      
+      // 验证和修复数据结构
+      tagGroups.value = validateAndFixTagGroups(loadedGroups)
     }
+  }
+
+  // 验证和修复标签分组数据结构
+  const validateAndFixTagGroups = (groups) => {
+    if (!Array.isArray(groups)) return getDefaultTagGroups()
+    
+    return groups.map(group => {
+      // 确保每个分组都有必要的属性
+      return {
+        id: group.id || 'group_' + Date.now(),
+        name: group.name || '未命名分组',
+        emoji: group.emoji || '📁',
+        themeColor: group.themeColor || '#667eea',
+        tags: Array.isArray(group.tags) ? group.tags : [] // 确保tags是数组
+      }
+    })
   }
 
   // 保存标签分组
@@ -222,6 +244,12 @@ export function useTagGroups() {
     return enhancedEmojiUtils.searchEmojis(query)
   }
 
+  // 重置为默认数据（用于修复损坏的数据）
+  const resetToDefault = async () => {
+    tagGroups.value = getDefaultTagGroups()
+    await saveTagGroups()
+  }
+
   onMounted(() => {
     loadTagGroups()
   })
@@ -248,6 +276,7 @@ export function useTagGroups() {
     getTagEmojiRecommendations,
     searchEmojis,
     saveTagGroups,
+    resetToDefault,
     
     // Emoji相关
     emojiLibrary: enhancedEmojiUtils

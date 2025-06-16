@@ -155,7 +155,7 @@
                   <span class="group-emoji">{{ group.emoji }}</span>
                   <div class="group-details">
                     <h4>{{ group.name }}</h4>
-                    <span class="tag-count">{{ group.tags.length }} 个标签</span>
+                    <span class="tag-count">{{ Array.isArray(group.tags) ? group.tags.length : 0 }} 个标签</span>
                   </div>
                 </div>
                 <div class="group-actions">
@@ -187,7 +187,7 @@
               
               <div class="tags-preview">
                 <div 
-                  v-for="tag in group.tags.slice(0, 4)" 
+                  v-for="tag in (Array.isArray(group.tags) ? group.tags.slice(0, 4) : [])" 
                   :key="tag.id"
                   class="tag-preview"
                   :style="{ backgroundColor: tag.backgroundColor }"
@@ -201,7 +201,7 @@
                     @error="$event.target.style.display='none'"
                   />
                 </div>
-                <span v-if="group.tags.length > 4" class="more-count">+{{ group.tags.length - 4 }}</span>
+                <span v-if="Array.isArray(group.tags) && group.tags.length > 4" class="more-count">+{{ group.tags.length - 4 }}</span>
               </div>
             </div>
           </div>
