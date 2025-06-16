@@ -7,6 +7,16 @@
           <span class="group-emoji">{{ group.emoji }}</span>
           <h3>{{ group.name }}</h3>
         </div>
+        <button 
+          class="add-tag-btn"
+          @click="$emit('addTag', group.id)"
+          title="添加标签"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </button>
       </div>
       
       <div 
@@ -47,21 +57,6 @@
               <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6M8,6V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6"></path>
             </svg>
           </button>
-        </div>
-        
-        <!-- 添加标签按钮 -->
-        <div 
-          class="add-tag-item"
-          @click="$emit('addTag', group.id)"
-          :style="{ '--tag-color': group.themeColor }"
-        >
-          <div class="add-tag-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-          </div>
-          <div class="add-tag-title">添加标签</div>
         </div>
       </div>
       
@@ -224,6 +219,29 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex: 1;
+}
+
+.add-tag-btn {
+  background: var(--card-bg, rgba(255, 255, 255, 0.1));
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: var(--text-color, white);
+  opacity: 0.7;
+}
+
+.add-tag-btn:hover {
+  background: var(--button-hover-bg, rgba(255, 255, 255, 0.2));
+  border-color: var(--tag-color, #667eea);
+  opacity: 1;
+  transform: scale(1.1);
 }
 
 .group-emoji {
@@ -256,20 +274,17 @@ export default {
 }
 
 /* 不同尺寸的标签容器 */
-.tag-size-small .tag-item,
-.tag-size-small .add-tag-item {
+.tag-size-small .tag-item {
   width: 80px;
   height: 80px;
 }
 
-.tag-size-medium .tag-item,
-.tag-size-medium .add-tag-item {
+.tag-size-medium .tag-item {
   width: 100px;
   height: 100px;
 }
 
-.tag-size-large .tag-item,
-.tag-size-large .add-tag-item {
+.tag-size-large .tag-item {
   width: 120px;
   height: 120px;
 }
@@ -298,24 +313,21 @@ export default {
 }
 
 /* 不同尺寸下的图标大小 */
-.tag-size-small .tag-icon,
-.tag-size-small .add-tag-icon {
+.tag-size-small .tag-icon {
   width: 32px;
   height: 32px;
   font-size: 16px;
   margin-bottom: 0.25rem;
 }
 
-.tag-size-medium .tag-icon,
-.tag-size-medium .add-tag-icon {
+.tag-size-medium .tag-icon {
   width: 40px;
   height: 40px;
   font-size: 20px;
   margin-bottom: 0.375rem;
 }
 
-.tag-size-large .tag-icon,
-.tag-size-large .add-tag-icon {
+.tag-size-large .tag-icon {
   width: 48px;
   height: 48px;
   font-size: 24px;
@@ -323,20 +335,17 @@ export default {
 }
 
 /* 不同尺寸下的文字大小 */
-.tag-size-small .tag-title,
-.tag-size-small .add-tag-title {
+.tag-size-small .tag-title {
   font-size: 0.7rem;
   line-height: 1.2;
 }
 
-.tag-size-medium .tag-title,
-.tag-size-medium .add-tag-title {
+.tag-size-medium .tag-title {
   font-size: 0.8rem;
   line-height: 1.3;
 }
 
-.tag-size-large .tag-title,
-.tag-size-large .add-tag-title {
+.tag-size-large .tag-title {
   font-size: 0.9rem;
   line-height: 1.4;
 }
@@ -415,53 +424,6 @@ export default {
 .delete-btn:hover {
   background: rgba(255, 0, 0, 1);
   transform: scale(1.1);
-}
-
-.add-tag-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem;
-  background: var(--card-bg, rgba(255, 255, 255, 0.05));
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: 2px dashed var(--border-color, rgba(255, 255, 255, 0.3));
-  flex-shrink: 0;
-}
-
-.add-tag-item:hover {
-  background: var(--button-hover-bg, rgba(255, 255, 255, 0.1));
-  border-color: var(--tag-color, #667eea);
-  transform: translateY(-2px);
-}
-
-.add-tag-icon {
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--tag-color, #667eea);
-  color: white;
-  transition: all 0.3s ease;
-  opacity: 0.7;
-}
-
-.add-tag-item:hover .add-tag-icon {
-  opacity: 1;
-  transform: scale(1.1);
-}
-
-.add-tag-title {
-  color: var(--text-color-light, rgba(255, 255, 255, 0.7));
-  text-align: center;
-  transition: color 0.3s ease;
-}
-
-.add-tag-item:hover .add-tag-title {
-  color: var(--text-color, white);
 }
 
 .empty-state {
@@ -543,13 +505,13 @@ export default {
   }
   
   /* 移动端强制使用小尺寸 */
-  .tag-item, .add-tag-item {
+  .tag-item {
     width: 70px !important;
     height: 70px !important;
     padding: 0.4rem;
   }
   
-  .tag-icon, .add-tag-icon {
+  .tag-icon {
     width: 28px !important;
     height: 28px !important;
     font-size: 14px !important;
@@ -561,7 +523,7 @@ export default {
     height: 14px !important;
   }
   
-  .tag-title, .add-tag-title {
+  .tag-title {
     font-size: 0.6rem !important;
     line-height: 1.1 !important;
   }

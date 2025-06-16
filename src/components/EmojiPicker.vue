@@ -13,8 +13,8 @@
           :data="emojiIndex"
           set="apple"
           :emoji-size="24"
-          :per-line="9"
-          :show-preview="true"
+          :per-line="8"
+          :show-preview="false"
           :show-search="true"
           :show-categories="true"
           :show-skin-tones="true"
@@ -143,11 +143,19 @@ export default {
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
   width: 90vw;
-  max-width: 420px;
+  max-width: 380px;
   max-height: 80vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+@media (max-width: 480px) {
+  .emoji-picker-modal {
+    width: 95vw;
+    max-width: 350px;
+    max-height: 70vh;
+  }
 }
 
 .emoji-picker-header {
@@ -219,4 +227,76 @@ export default {
 <!-- 导入emoji-mart默认样式 -->
 <style>
 @import 'emoji-mart-vue-fast/css/emoji-mart.css';
+
+/* 自定义emoji-mart样式以减少留白 */
+.emoji-mart {
+  width: 100% !important;
+  max-width: none !important;
+  border: none !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.emoji-mart-content {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+}
+
+.emoji-mart-bar {
+  border: none !important;
+}
+
+.emoji-mart-search {
+  margin: 0 !important;
+  padding: 12px 16px !important;
+}
+
+.emoji-mart-search input {
+  font-size: 14px !important;
+  padding: 8px 12px !important;
+}
+
+.emoji-mart-category .emoji-mart-emoji {
+  display: inline-block !important;
+  margin: 2px !important;
+}
+
+.emoji-mart-category-list {
+  height: 300px !important;
+  overflow-y: auto !important;
+  margin-bottom: 0 !important;
+}
+
+.emoji-mart-anchors {
+  padding: 0 6px !important;
+}
+
+.emoji-mart-anchor {
+  padding: 12px 4px !important;
+}
+
+/* 移动端优化 */
+@media (max-width: 480px) {
+  .emoji-mart-search {
+    padding: 8px 12px !important;
+  }
+  
+  .emoji-mart-search input {
+    font-size: 16px !important; /* 防止iOS缩放 */
+  }
+  
+  .emoji-mart-category-list {
+    height: 260px !important;
+    margin-bottom: 0 !important;
+  }
+  
+  .emoji-mart-anchors {
+    padding: 0 2px !important;
+  }
+  
+  .emoji-mart-anchor {
+    padding: 10px 2px !important;
+  }
+}
 </style>
