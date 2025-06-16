@@ -52,7 +52,7 @@
         :isOpen="showSettingsModal"
         :settings="settings"
         @close="showSettingsModal = false"
-        @updateSetting="(key, value) => { settings[key] = value; saveSettings(); updateTheme() }"
+        @updateSetting="handleSettingUpdate"
         @resetSettings="resetSettings"
       />
     </Transition>
@@ -162,6 +162,12 @@ export default {
       }
     }
 
+    // 处理设置更新
+    const handleSettingUpdate = (key, value) => {
+      settings[key] = value
+      saveSettings()
+    }
+
     // 生命周期
     onMounted(() => {
       document.addEventListener('keydown', handleKeydown)
@@ -195,7 +201,8 @@ export default {
       closeTagModal,
       saveTag,
       deleteTag,
-      resetSettings
+      resetSettings,
+      handleSettingUpdate
     }
   }
 }
