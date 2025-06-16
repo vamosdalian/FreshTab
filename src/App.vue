@@ -4,7 +4,7 @@
     <div class="background-gradient"></div>
     
     <!-- 主要内容区域 -->
-    <main class="main-content">
+    <main class="main-content" :style="{ maxWidth: settings.displayWidth + 'px' }">
       <!-- 时间显示组件 -->
       <TimeSection 
         v-if="settings.showTime" 
@@ -29,6 +29,7 @@
       <TagsSection 
         v-if="settings.showBookmarks"
         :tagGroups="tagGroups"
+        :settings="settings"
         @addTag="showAddTagModal"
         @deleteTag="deleteTag"
         @openSettings="showSettingsModal = true"

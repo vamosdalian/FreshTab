@@ -12,7 +12,8 @@ export function useSettings() {
     isDarkMode: false,
     timeFormat: '24h', // '12h', '24h'
     showDate: true,
-    showSeconds: false
+    showSeconds: false,
+    displayWidth: 800 // 新增：显示区域宽度设置
   })
 
   // 检测系统主题偏好
@@ -105,7 +106,8 @@ export function useSettings() {
       isDarkMode: detectSystemTheme(),
       timeFormat: '24h',
       showDate: true,
-      showSeconds: false
+      showSeconds: false,
+      displayWidth: 800 // 新增：显示区域宽度设置
     }
     
     Object.assign(settings, defaultSettings)

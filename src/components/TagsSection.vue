@@ -9,7 +9,14 @@
         </div>
       </div>
       
-      <div class="tags-grid">
+      <div 
+        class="tags-grid" 
+        :class="['tag-size-' + settings.bookmarkSize]"
+        :style="{ 
+          '--items-per-row': settings.columnsPerRow,
+          maxWidth: '100%'
+        }"
+      >
         <div
           v-for="tag in (Array.isArray(group.tags) ? group.tags : [])"
           :key="tag.id"
@@ -89,6 +96,10 @@ export default {
     tagGroups: {
       type: Array,
       required: true
+    },
+    settings: {
+      type: Object,
+      required: true
     }
   },
   emits: ['addTag', 'deleteTag', 'openSettings'],
@@ -104,6 +115,22 @@ export default {
       } catch {
         return ''
       }
+    },
+    
+    // 计算最大每行显示个数
+    getMaxColumnsPerRow() {
+      const tagSizes = {
+        small: 80,   // 小标签宽度
+        medium: 100, // 中标签宽度
+        large: 120   // 大标签宽度
+      }
+      const tagWidth = tagSizes[this.settings.bookmarkSize] || 100
+      const gap = 16 // 1rem = 16px
+      const displayWidth = this.settings.displayWidth || 800
+      
+      // 计算可以放置的标签数量（考虑间距）
+      const maxColumns = Math.floor((displayWidth + gap) / (tagWidth + gap))
+      return Math.max(1, maxColumns) // 至少显示1个
     },
     
     handleIconError(event) {
@@ -165,11 +192,30 @@ export default {
 }
 
 .tags-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 1rem;
-  max-width: 800px;
+  max-width: 100%;
   margin: 0 auto;
+}
+
+/* 不同尺寸的标签容器 */
+.tag-size-small .tag-item,
+.tag-size-small .add-tag-item {
+  width: 80px;
+  height: 80px;
+}
+
+.tag-size-medium .tag-item,
+.tag-size-medium .add-tag-item {
+  width: 100px;
+  height: 100px;
+}
+
+.tag-size-large .tag-item,
+.tag-size-large .add-tag-item {
+  width: 120px;
+  height: 120px;
 }
 
 .tag-item {
@@ -177,13 +223,15 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 1rem;
+  justify-content: center;
+  padding: 0.5rem;
   background: var(--card-bg, rgba(255, 255, 255, 0.1));
   backdrop-filter: blur(10px);
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
   border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
+  flex-shrink: 0;
 }
 
 .tag-item:hover {
@@ -193,24 +241,78 @@ export default {
   border-color: var(--tag-color, #667eea);
 }
 
-.tag-icon {
+/* 不同尺寸下的图标大小 */
+.tag-size-small .tag-icon,
+.tag-size-small .add-tag-icon {
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+  margin-bottom: 0.25rem;
+}
+
+.tag-size-medium .tag-icon,
+.tag-size-medium .add-tag-icon {
+  width: 40px;
+  height: 40px;
+  font-size: 20px;
+  margin-bottom: 0.375rem;
+}
+
+.tag-size-large .tag-icon,
+.tag-size-large .add-tag-icon {
   width: 48px;
   height: 48px;
+  font-size: 24px;
   margin-bottom: 0.5rem;
-  border-radius: 12px;
+}
+
+/* 不同尺寸下的文字大小 */
+.tag-size-small .tag-title,
+.tag-size-small .add-tag-title {
+  font-size: 0.7rem;
+  line-height: 1.2;
+}
+
+.tag-size-medium .tag-title,
+.tag-size-medium .add-tag-title {
+  font-size: 0.8rem;
+  line-height: 1.3;
+}
+
+.tag-size-large .tag-title,
+.tag-size-large .add-tag-title {
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.tag-icon {
+  border-radius: 8px;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
   color: white;
   transition: all 0.3s ease;
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.tag-icon img {
+/* 不同尺寸下的图片大小 */
+.tag-size-small .tag-icon img {
+  width: 16px;
+  height: 16px;
+}
+
+.tag-size-medium .tag-icon img {
+  width: 20px;
+  height: 20px;
+}
+
+.tag-size-large .tag-icon img {
   width: 24px;
   height: 24px;
+}
+
+.tag-icon img {
   object-fit: cover;
 }
 
@@ -221,12 +323,15 @@ export default {
 
 .tag-title {
   color: var(--text-color, white);
-  font-size: 0.9rem;
   text-align: center;
-  line-height: 1.3;
   word-break: break-word;
   max-width: 100%;
   transition: color 0.3s ease;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .delete-btn {
@@ -260,13 +365,15 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 1rem;
+  justify-content: center;
+  padding: 0.5rem;
   background: var(--card-bg, rgba(255, 255, 255, 0.05));
   backdrop-filter: blur(10px);
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
   border: 2px dashed var(--border-color, rgba(255, 255, 255, 0.3));
+  flex-shrink: 0;
 }
 
 .add-tag-item:hover {
@@ -276,10 +383,7 @@ export default {
 }
 
 .add-tag-icon {
-  width: 48px;
-  height: 48px;
-  margin-bottom: 0.5rem;
-  border-radius: 12px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -296,7 +400,6 @@ export default {
 
 .add-tag-title {
   color: var(--text-color-light, rgba(255, 255, 255, 0.7));
-  font-size: 0.9rem;
   text-align: center;
   transition: color 0.3s ease;
 }
@@ -380,27 +483,31 @@ export default {
 
 @media (max-width: 768px) {
   .tags-grid {
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     gap: 0.8rem;
   }
   
-  .tag-item {
-    padding: 0.8rem;
+  /* 移动端强制使用小尺寸 */
+  .tag-item, .add-tag-item {
+    width: 70px !important;
+    height: 70px !important;
+    padding: 0.4rem;
   }
   
-  .tag-icon {
-    width: 40px;
-    height: 40px;
-    font-size: 20px;
+  .tag-icon, .add-tag-icon {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 14px !important;
+    margin-bottom: 0.2rem !important;
   }
   
   .tag-icon img {
-    width: 20px;
-    height: 20px;
+    width: 14px !important;
+    height: 14px !important;
   }
   
-  .tag-title {
-    font-size: 0.8rem;
+  .tag-title, .add-tag-title {
+    font-size: 0.6rem !important;
+    line-height: 1.1 !important;
   }
   
   .group-header {

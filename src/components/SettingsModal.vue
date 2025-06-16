@@ -48,28 +48,42 @@
             <div class="setting-row">
               <span class="setting-label">显示区域宽度</span>
               <div class="range-control">
-                <input type="range" min="300" max="1200" value="800" class="setting-range">
-                <span class="range-value">800px</span>
+                <input 
+                  type="range" 
+                  min="300" 
+                  max="1200" 
+                  :value="settings.displayWidth" 
+                  @input="updateDisplayWidth"
+                  class="setting-range"
+                >
+                <span class="range-value">{{ settings.displayWidth }}px</span>
               </div>
             </div>
             <div class="setting-row">
               <span class="setting-label">每行显示个数</span>
-              <select class="setting-select">
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5" selected>5</option>
-                <option value="6">6</option>
-                <option value="7">7</option>
-                <option value="8">8</option>
-                <option value="9">9</option>
-                <option value="10">10</option>
+              <select 
+                class="setting-select"
+                :value="settings.columnsPerRow"
+                @change="updateSetting('columnsPerRow', Number($event.target.value))"
+              >
+                <option 
+                  v-for="n in getMaxColumnsOptions()" 
+                  :key="n" 
+                  :value="n"
+                >
+                  {{ n }}
+                </option>
               </select>
             </div>
             <div class="setting-row">
               <span class="setting-label">标签大小</span>
-              <select class="setting-select">
+              <select 
+                class="setting-select"
+                :value="settings.bookmarkSize"
+                @change="updateSetting('bookmarkSize', $event.target.value)"
+              >
                 <option value="large">大</option>
-                <option value="medium" selected>中</option>
+                <option value="medium">中</option>
                 <option value="small">小</option>
               </select>
             </div>
@@ -81,22 +95,34 @@
             <div class="setting-row">
               <span class="setting-label">显示时间</span>
               <label class="toggle-switch">
-                <input type="checkbox" checked>
+                <input 
+                  type="checkbox" 
+                  :checked="settings.showTime"
+                  @change="updateSetting('showTime', $event.target.checked)"
+                >
                 <span class="toggle-slider"></span>
               </label>
             </div>
             <div class="setting-row">
               <span class="setting-label">显示日期</span>
               <label class="toggle-switch">
-                <input type="checkbox" checked>
+                <input 
+                  type="checkbox" 
+                  :checked="settings.showDate"
+                  @change="updateSetting('showDate', $event.target.checked)"
+                >
                 <span class="toggle-slider"></span>
               </label>
             </div>
             <div class="setting-row">
               <span class="setting-label">时间格式</span>
-              <select class="setting-select">
-                <option value="24" selected>24小时制</option>
-                <option value="12">12小时制</option>
+              <select 
+                class="setting-select"
+                :value="settings.timeFormat"
+                @change="updateSetting('timeFormat', $event.target.value)"
+              >
+                <option value="24h">24小时制</option>
+                <option value="12h">12小时制</option>
               </select>
             </div>
           </div>
@@ -400,6 +426,41 @@ export default {
     // emoji相关方法
     handleSelectGroupEmoji(emoji) {
       this.groupForm.emoji = emoji
+    },
+    
+    // 宽度设置方法
+    updateDisplayWidth(event) {
+      const width = Number(event.target.value)
+      this.updateSetting('displayWidth', width)
+    },
+    
+    // 计算最大列数选项
+    getMaxColumnsOptions() {
+      const tagSizes = {
+        small: 80,   // 小标签宽度
+        medium: 100, // 中标签宽度
+        large: 120   // 大标签宽度
+      }
+      const tagWidth = tagSizes[this.settings.bookmarkSize] || 100
+      const gap = 16 // 1rem = 16px
+      const displayWidth = this.settings.displayWidth || 800
+      
+      // 计算可以放置的标签数量
+      const maxColumns = Math.floor((displayWidth + gap) / (tagWidth + gap))
+      const actualMax = Math.max(1, Math.min(maxColumns, 15)) // 最少1个，最多15个
+      
+      // 生成选项数组
+      const options = []
+      for (let i = 1; i <= actualMax; i++) {
+        options.push(i)
+      }
+      
+      // 确保当前值在范围内
+      if (this.settings.columnsPerRow > actualMax) {
+        this.updateSetting('columnsPerRow', actualMax)
+      }
+      
+      return options
     }
   }
 }
