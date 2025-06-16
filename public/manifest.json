@@ -1,7 +1,7 @@
 {
   "name": "FreshTab",
-  "description": "A beautiful and functional new tab replacement",
-  "version": "1.0",
+  "description": "基于 Vue.js 的美观且功能丰富的新标签页替换扩展",
+  "version": "2.0.0",
   "manifest_version": 3,
   "chrome_url_overrides": {
     "newtab": "newtab.html"
@@ -15,5 +15,12 @@
     "32": "icons/icon-32.png",
     "48": "icons/icon-48.png",
     "128": "icons/icon-128.png"
+  },
+  "action": {
+    "default_popup": "newtab.html",
+    "default_title": "FreshTab"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
   }
 }

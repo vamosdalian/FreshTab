@@ -1,0 +1,135 @@
+/* 全局样式重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* CSS 变量定义 */
+:root {
+    /* 浅色主题 */
+    --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --bg-gradient-decoration: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    --text-color: #333;
+    --text-color-light: #666;
+    --card-bg: rgba(255, 255, 255, 0.95);
+    --card-shadow: rgba(0, 0, 0, 0.1);
+    --border-color: rgba(0, 0, 0, 0.1);
+    --input-bg: rgba(255, 255, 255, 0.9);
+    --button-bg: rgba(0, 0, 0, 0.05);
+    --button-hover-bg: rgba(240, 240, 240, 0.8);
+    --icon-filter: brightness(0) invert(0.4);
+    --title-color: #1a1a1a;
+}
+
+[data-theme="dark"] {
+    /* 深色主题 */
+    --bg-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    --bg-gradient-decoration: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    --text-color: #e0e0e0;
+    --text-color-light: #b0b0b0;
+    --card-bg: rgba(30, 30, 30, 0.95);
+    --card-shadow: rgba(0, 0, 0, 0.3);
+    --border-color: rgba(255, 255, 255, 0.1);
+    --input-bg: rgba(40, 40, 40, 0.9);
+    --button-bg: rgba(255, 255, 255, 0.1);
+    --button-hover-bg: rgba(255, 255, 255, 0.2);
+    --icon-filter: brightness(0) invert(1);
+    --title-color: #ffffff;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: var(--bg-gradient);
+    color: var(--text-color);
+    overflow-x: hidden;
+    min-height: 100vh;
+    transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s ease;
+}
+
+.container {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 20px 40px;
+    padding-top: 20px;
+}
+
+/* 背景装饰 */
+.background-gradient {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--bg-gradient-decoration);
+    opacity: 0.8;
+    z-index: -1;
+    transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.background-gradient::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="%23ffffff" fill-opacity="0.1"><circle cx="30" cy="30" r="2"/></g></g></svg>');
+    animation: float 20s ease-in-out infinite;
+}
+
+[data-theme="dark"] .background-gradient::before {
+    background: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="%23ffffff" fill-opacity="0.05"><circle cx="30" cy="30" r="2"/></g></g></svg>');
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+}
+
+/* 主要内容区域 */
+.main-content {
+    max-width: 1200px;
+    width: 90%;
+    margin: 0 0 20px 0;
+    padding: 20px 40px 40px 40px;
+    animation: slideUp 0.8s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px 20px;
+    }
+    
+    .main-content {
+        width: 95%;
+        padding: 15px 20px 30px 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 10px 15px;
+    }
+    
+    .main-content {
+        width: 100%;
+        padding: 10px 15px 20px 15px;
+    }
+}

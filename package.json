@@ -1,0 +1,44 @@
+{
+  "name": "freshtab-vue",
+  "version": "2.0.0",
+  "description": "基于 Vue.js 3 构建的美观且功能丰富的新标签页替换 Chrome 扩展程序",
+  "type": "module",
+  "main": "src/main.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:extension": "vite build && npm run fix:extension",
+    "fix:extension": "mv dist/index.html dist/newtab.html",
+    "preview": "vite preview",
+    "clean": "rm -rf dist",
+    "lint": "echo \"No linter configured\"",
+    "test": "echo \"No tests configured\""
+  },
+  "keywords": [
+    "chrome-extension",
+    "vue",
+    "vite",
+    "new-tab",
+    "bookmark",
+    "search",
+    "productivity"
+  ],
+  "author": "FreshTab Team",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/username/freshtab.git"
+  },
+  "bugs": {
+    "url": "https://github.com/username/freshtab/issues"
+  },
+  "homepage": "https://github.com/username/freshtab#readme",
+  "dependencies": {
+    "@vitejs/plugin-vue": "^5.2.4",
+    "emoji-mart-vue-fast": "^15.0.4",
+    "emoji-regex": "^10.4.0",
+    "unicode-emoji-json": "^0.8.0",
+    "vite": "^6.3.5",
+    "vue": "^3.5.16"
+  }
+}
