@@ -235,7 +235,7 @@ export default {
 }
 
 .tag-item:hover {
-  background: var(--button-hover-bg, rgba(255, 255, 255, 0.6));
+  background: var(--button-hover-bg, rgba(255, 255, 255, 0.2));
   transform: translateY(-2px);
   box-shadow: 0 4px 20px var(--card-shadow, rgba(0, 0, 0, 0.2));
   border-color: var(--tag-color, #667eea);

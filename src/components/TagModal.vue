@@ -357,7 +357,7 @@ export default {
 }
 
 .close-button:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--button-hover-bg, rgba(255, 255, 255, 0.2));
 }
 
 .modal-body {
@@ -456,11 +456,11 @@ export default {
 
 .emoji-item {
   font-size: 1.2rem;
-  background: var(--item-bg, rgba(255, 255, 255, 0.1));
+  background: var(--button-bg, rgba(255, 255, 255, 0.1));
 }
 
 .emoji-item:hover {
-  background: var(--item-hover-bg, rgba(255, 255, 255, 0.2));
+  background: var(--button-hover-bg, rgba(255, 255, 255, 0.2));
 }
 
 .emoji-item.selected {
