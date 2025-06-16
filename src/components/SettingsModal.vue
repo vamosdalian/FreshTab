@@ -42,91 +42,69 @@
         <!-- 设置页面 -->
         <div v-if="activeMenu === 'settings'" class="content-section">
           
-          <!-- 控制栏 -->
+          <!-- 标签页 -->
           <div class="settings-group">
-            <h3>控制栏</h3>
+            <h3>标签页</h3>
             <div class="setting-row">
-              <span class="setting-label">侧边栏</span>
+              <span class="setting-label">显示区域宽度</span>
+              <div class="range-control">
+                <input type="range" min="300" max="1200" value="800" class="setting-range">
+                <span class="range-value">800px</span>
+              </div>
+            </div>
+            <div class="setting-row">
+              <span class="setting-label">每行显示个数</span>
               <select class="setting-select">
-                <option>自动隐藏</option>
-                <option>始终显示</option>
-                <option>始终隐藏</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5" selected>5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
               </select>
             </div>
             <div class="setting-row">
-              <span class="setting-label">侧边栏位置</span>
+              <span class="setting-label">标签大小</span>
               <select class="setting-select">
-                <option>左侧</option>
-                <option>右侧</option>
-              </select>
-            </div>
-            <div class="setting-row">
-              <span class="setting-label">底部栏</span>
-              <select class="setting-select">
-                <option>一直隐藏</option>
-                <option>自动隐藏</option>
-                <option>始终显示</option>
+                <option value="large">大</option>
+                <option value="medium" selected>中</option>
+                <option value="small">小</option>
               </select>
             </div>
           </div>
 
-          <!-- 图标 -->
+          <!-- 日期时间 -->
           <div class="settings-group">
-            <h3>图标</h3>
+            <h3>日期时间</h3>
             <div class="setting-row">
-              <span class="setting-label">打开方式</span>
-              <select class="setting-select">
-                <option>当前标签页</option>
-                <option>新标签页</option>
-              </select>
-            </div>
-            <div class="setting-row">
-              <span class="setting-label">图标尺寸</span>
-              <select class="setting-select">
-                <option>中</option>
-                <option>小</option>
-                <option>大</option>
-              </select>
-            </div>
-            <div class="setting-row">
-              <span class="setting-label">图标区域宽度</span>
-              <div class="range-control">
-                <input type="range" min="0" max="100" value="50" class="setting-range">
-                <span class="range-icon">›</span>
-              </div>
-            </div>
-            <div class="setting-row">
-              <span class="setting-label">隐藏添加图标</span>
+              <span class="setting-label">显示时间</span>
               <label class="toggle-switch">
                 <input type="checkbox" checked>
                 <span class="toggle-slider"></span>
               </label>
             </div>
             <div class="setting-row">
-              <span class="setting-label">隐藏图标名称</span>
-              <label class="toggle-switch">
-                <input type="checkbox">
-                <span class="toggle-slider"></span>
-              </label>
-            </div>
-            <div class="setting-row">
-              <span class="setting-label">滚动触发翻页</span>
+              <span class="setting-label">显示日期</span>
               <label class="toggle-switch">
                 <input type="checkbox" checked>
                 <span class="toggle-slider"></span>
               </label>
             </div>
+            <div class="setting-row">
+              <span class="setting-label">时间格式</span>
+              <select class="setting-select">
+                <option value="24" selected>24小时制</option>
+                <option value="12">12小时制</option>
+              </select>
+            </div>
           </div>
 
-          <!-- 搜索 -->
+          <!-- 主题切换 -->
           <div class="settings-group">
-            <h3>搜索</h3>
-            <div class="setting-row">
-              <span class="setting-label">搜索框样式</span>
-              <div class="range-control">
-                <span class="range-icon">›</span>
-              </div>
-            </div>
+            <h3>主题切换</h3>
+            <!-- 主题切换内容待添加 -->
           </div>
 
         </div>
@@ -762,6 +740,13 @@ export default {
 .range-icon {
   color: #6c757d;
   font-size: 16px;
+}
+
+.range-value {
+  color: #6c757d;
+  font-size: 12px;
+  min-width: 40px;
+  text-align: right;
 }
 
 /* 分组管理样式 */
