@@ -17,8 +17,8 @@ export function useTagGroups() {
             id: 'tag_1', 
             name: 'Google', 
             url: 'https://www.google.com',
-            iconType: 'favicon', // favicon, emoji, text
-            iconValue: '', // 空字符串表示使用favicon
+            iconType: 'emoji', // favicon, emoji, text
+            iconValue: '🔍', // 搜索图标
             backgroundColor: '#4285f4'
           },
           { 
@@ -49,8 +49,8 @@ export function useTagGroups() {
             id: 'tag_5', 
             name: 'YouTube', 
             url: 'https://www.youtube.com',
-            iconType: 'favicon',
-            iconValue: '',
+            iconType: 'emoji',
+            iconValue: '📺',
             backgroundColor: '#ff0000'
           },
           { 
