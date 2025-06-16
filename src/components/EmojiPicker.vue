@@ -72,7 +72,7 @@
 </template>
 
 <script>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, defineExpose } from 'vue'
 import { emojiLibrary, enhancedEmojiUtils } from '../utils/emojiLibrary'
 
 export default {
