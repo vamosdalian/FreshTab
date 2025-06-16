@@ -1,10 +1,17 @@
 // 增强版Emoji管理工具 - 使用第三方库数据
-import emojiData from 'unicode-emoji-json/data-by-group.json'
+import emojiData from 'unicode-emoji-json/data-by-group.json' with { type: 'json' }
 import emojiRegex from 'emoji-regex'
 
 export class EmojiLibrary {
   constructor() {
-    this.emojiData = emojiData
+    // 安全加载emoji数据
+    try {
+      this.emojiData = emojiData || {}
+    } catch (error) {
+      console.warn('Failed to load emoji data, using fallback:', error)
+      this.emojiData = {}
+    }
+    
     this.cache = new Map()
     this.popularEmojis = [
       '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇',
@@ -24,26 +31,43 @@ export class EmojiLibrary {
 
   // 获取所有分组
   getAllGroups() {
-    return Object.keys(this.emojiData)
+    if (!this.emojiData || typeof this.emojiData !== 'object') return []
+    
+    // 处理数字索引的组
+    return Object.keys(this.emojiData).map(key => {
+      const group = this.emojiData[key]
+      return group && group.name ? group.name : key
+    }).filter(Boolean)
   }
 
   // 获取指定分组的emoji
-  getEmojisByGroup(group) {
-    if (this.cache.has(group)) {
-      return this.cache.get(group)
+  getEmojisByGroup(groupName) {
+    if (this.cache.has(groupName)) {
+      return this.cache.get(groupName)
     }
 
-    const groupData = this.emojiData[group]
-    if (!groupData) return []
+    // 查找匹配的组
+    let targetGroup = null
+    for (const key of Object.keys(this.emojiData || {})) {
+      const group = this.emojiData[key]
+      if (group && group.name === groupName) {
+        targetGroup = group
+        break
+      }
+    }
 
-    const emojis = Object.keys(groupData).map(key => ({
-      emoji: key,
-      name: groupData[key].name,
-      keywords: groupData[key].keywords || [],
-      category: group
-    }))
+    if (!targetGroup || !targetGroup.emojis) return []
 
-    this.cache.set(group, emojis)
+    const emojis = targetGroup.emojis.map(emojiData => {
+      return {
+        emoji: emojiData.emoji,
+        name: emojiData.name || 'Unknown',
+        keywords: [], // 这个数据源没有keywords
+        category: groupName
+      }
+    })
+
+    this.cache.set(groupName, emojis)
     return emojis
   }
 
@@ -80,9 +104,13 @@ export class EmojiLibrary {
     const allEmojis = this.getAllEmojis()
     
     return allEmojis.filter(item => {
+      // 安全检查：确保name和keywords存在且不为undefined
+      const name = item.name || ''
+      const keywords = item.keywords || []
+      
       return (
-        item.name.toLowerCase().includes(searchTerm) ||
-        item.keywords.some(keyword => keyword.toLowerCase().includes(searchTerm)) ||
+        name.toLowerCase().includes(searchTerm) ||
+        keywords.some(keyword => keyword && keyword.toLowerCase().includes(searchTerm)) ||
         this.getWebsiteEmoji(searchTerm) === item.emoji
       )
     }).slice(0, 50) // 限制结果数量
@@ -90,10 +118,13 @@ export class EmojiLibrary {
 
   // 获取emoji名称
   getEmojiName(emoji) {
-    for (const group of this.getAllGroups()) {
-      const groupData = this.emojiData[group]
-      if (groupData[emoji]) {
-        return groupData[emoji].name
+    for (const key of Object.keys(this.emojiData || {})) {
+      const group = this.emojiData[key]
+      if (group && group.emojis) {
+        const found = group.emojis.find(item => item.emoji === emoji)
+        if (found) {
+          return found.name || 'Unknown'
+        }
       }
     }
     return 'Unknown'
@@ -150,6 +181,25 @@ export class EmojiLibrary {
 
   // 按分类获取emoji（适配原有接口）
   getCategorizedEmojis() {
+    // 如果第三方数据不可用，使用基础emoji作为回退
+    const hasValidData = this.getAllGroups().length > 0
+    
+    if (!hasValidData) {
+      // 回退到基础分类
+      return {
+        '常用': this.popularEmojis.slice(0, 20),
+        '技术': ['💻', '🖥️', '📱', '⌨️', '🖱️', '📺', '📷', '📹', '💾', '💿'],
+        '社交': ['👥', '💬', '📧', '📞', '📱', '💌', '📮', '📪', '📫', '📬'],
+        '娱乐': ['🎮', '🕹️', '🎲', '🎯', '🎱', '🎪', '🎭', '🎨', '🎵', '🎬'],
+        '购物': ['🛒', '💰', '💳', '🏪', '🏬', '🛍️', '💎', '👑', '🎁', '🛎️'],
+        '学习': ['📚', '📖', '📝', '📊', '📈', '📉', '📋', '🔍', '💡', '🎓'],
+        '交通': ['🚗', '🚕', '🚙', '🚌', '🚎', '🚐', '🚑', '🚒', '🚓', '🚔'],
+        '动物': ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯'],
+        '食物': ['🍎', '🍔', '🍕', '🍜', '🍣', '🎂', '🍰', '☕', '🍺', '🍷'],
+        '符号': ['⭐', '💫', '🔥', '💎', '🎯', '🚀', '⚡', '💡', '🔗', '📊']
+      }
+    }
+    
     const categories = {
       '常用': this.getPopularEmojis().map(item => item.emoji),
       '笑脸与情感': this.getEmojisByGroup('Smileys & Emotion').slice(0, 20).map(item => item.emoji),
@@ -209,6 +259,9 @@ export class EmojiLibrary {
   getSmartRecommendations(siteName, siteUrl) {
     const suggestions = []
     
+    // 确保siteName存在
+    if (!siteName) siteName = ''
+    
     // 基于网站名称的推荐
     const websiteEmoji = this.getWebsiteEmoji(siteName)
     if (websiteEmoji) {
@@ -233,13 +286,17 @@ export class EmojiLibrary {
     }
 
     // 基于关键词的推荐
-    const keywords = siteName.toLowerCase().split(/[\s\-_]+/)
-    for (const keyword of keywords) {
-      const searchResults = this.searchEmojis(keyword)
-      if (searchResults.length > 0) {
-        const emoji = searchResults[0].emoji
-        if (!suggestions.includes(emoji)) {
-          suggestions.push(emoji)
+    if (siteName) {
+      const keywords = siteName.toLowerCase().split(/[\s\-_]+/)
+      for (const keyword of keywords) {
+        if (keyword.trim()) {
+          const searchResults = this.searchEmojis(keyword.trim())
+          if (searchResults.length > 0) {
+            const emoji = searchResults[0].emoji
+            if (emoji && !suggestions.includes(emoji)) {
+              suggestions.push(emoji)
+            }
+          }
         }
       }
     }

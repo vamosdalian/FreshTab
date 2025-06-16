@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emoji测试</title>
+</head>
+<body>
+    <h1>Emoji加载测试</h1>
+    <div id="results"></div>
+    
+    <script type="module">
+        try {
+            // 动态导入emoji库
+            const { emojiLibrary, enhancedEmojiUtils } = await import('./src/utils/emojiLibrary.js');
+            
+            const resultsDiv = document.getElementById('results');
+            
+            // 测试获取分组
+            const groups = emojiLibrary.getAllGroups();
+            resultsDiv.innerHTML += `<h2>分组数量: ${groups.length}</h2>`;
+            resultsDiv.innerHTML += `<p>分组列表: ${groups.join(', ')}</p>`;
+            
+            // 测试获取具体分组的emoji
+            if (groups.length > 0) {
+                const firstGroup = groups[0];
+                const emojis = emojiLibrary.getEmojisByGroup(firstGroup);
+                resultsDiv.innerHTML += `<h2>${firstGroup} 分组的emoji数量: ${emojis.length}</h2>`;
+                
+                if (emojis.length > 0) {
+                    resultsDiv.innerHTML += `<p>前10个emoji: ${emojis.slice(0, 10).map(e => e.emoji).join(' ')}</p>`;
+                }
+            }
+            
+            // 测试分类获取
+            const categories = enhancedEmojiUtils.getCategorizedEmojis();
+            resultsDiv.innerHTML += `<h2>分类数量: ${Object.keys(categories).length}</h2>`;
+            resultsDiv.innerHTML += `<p>分类列表: ${Object.keys(categories).join(', ')}</p>`;
+            
+            // 显示每个分类的前5个emoji
+            for (const [category, emojis] of Object.entries(categories)) {
+                if (emojis && emojis.length > 0) {
+                    resultsDiv.innerHTML += `<p><strong>${category}:</strong> ${emojis.slice(0, 5).join(' ')}</p>`;
+                }
+            }
+            
+        } catch (error) {
+            document.getElementById('results').innerHTML = `<p style="color: red;">错误: ${error.message}</p>`;
+            console.error('Emoji测试错误:', error);
+        }
+    </script>
+</body>
+</html>

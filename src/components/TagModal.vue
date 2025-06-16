@@ -241,7 +241,6 @@ export default {
     
     // 新增emoji相关的响应式数据
     const emojiSearchQuery = ref('')
-    const selectedEmojiCategory = ref('常用')
     const searchResults = ref([])
     const smartRecommendations = ref([])
     const recentEmojis = ref([])
@@ -250,6 +249,19 @@ export default {
     const emojiCategories = computed(() => {
       return enhancedEmojiUtils.getCategorizedEmojis()
     })
+    
+    // 动态设置初始分类
+    const selectedEmojiCategory = ref('')
+    
+    // 初始化选择的分类
+    watch(emojiCategories, (categories) => {
+      if (categories && Object.keys(categories).length > 0) {
+        const availableCategories = Object.keys(categories)
+        if (!selectedEmojiCategory.value || !availableCategories.includes(selectedEmojiCategory.value)) {
+          selectedEmojiCategory.value = availableCategories[0]
+        }
+      }
+    }, { immediate: true })
     
     // 根据搜索和分类显示的emoji
     const displayEmojiCategories = computed(() => {
@@ -387,6 +399,12 @@ export default {
     watch(() => props.isOpen, (isOpen) => {
       if (isOpen) {
         initializeModal()
+        // 确保选择的分类在当前分类列表中存在
+        const categories = emojiCategories.value
+        const availableCategories = Object.keys(categories)
+        if (availableCategories.length > 0 && !availableCategories.includes(selectedEmojiCategory.value)) {
+          selectedEmojiCategory.value = availableCategories[0]
+        }
         nextTick(() => {
           nameInput.value?.focus()
         })
@@ -394,7 +412,10 @@ export default {
         // 清理搜索状态
         emojiSearchQuery.value = ''
         searchResults.value = []
-        selectedEmojiCategory.value = '常用'
+        // 重置为默认分类，但确保它存在
+        const categories = emojiCategories.value
+        const availableCategories = Object.keys(categories)
+        selectedEmojiCategory.value = availableCategories.length > 0 ? availableCategories[0] : '常用'
       }
     })
 
