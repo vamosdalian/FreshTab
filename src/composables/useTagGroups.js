@@ -1,4 +1,5 @@
 import { ref, onMounted } from 'vue'
+import { emojiUtils } from '../utils/emojiUtils'
 
 export function useTagGroups() {
   const tagGroups = ref([])
@@ -65,14 +66,9 @@ export function useTagGroups() {
     ]
   }
 
-  // 预设emoji列表
-  const emojiOptions = [
-    '🌟', '⭐', '💫', '🔥', '💎', '🎯', '🚀', '⚡', '🎨', '🎭',
-    '🔍', '📱', '💻', '🖥️', '⌨️', '🖱️', '📺', '📷', '📹', '🎵',
-    '🛒', '💰', '🏦', '📊', '📈', '📉', '📋', '📝', '📚', '📖',
-    '🌍', '🌎', '🌏', '🗺️', '🧭', '📍', '🏠', '🏢', '🏭', '🎪',
-    '🎮', '🕹️', '🎲', '🃏', '🎯', '🎱', '🏈', '⚽', '🏀', '🎾'
-  ]
+  // 使用emoji工具获取emoji选项
+  const emojiOptions = emojiUtils.getAllEmojis()
+  const emojiCategories = emojiUtils.getCategorizedEmojis()
 
   // 预设主题颜色
   const themeColors = [
