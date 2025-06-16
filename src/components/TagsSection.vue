@@ -29,8 +29,9 @@
             <span v-else-if="tag.iconType === 'text'">{{ tag.iconValue }}</span>
             <img 
               v-else-if="tag.iconType === 'favicon'"
-              :src="getFaviconUrl(tag.url)"
+              :src="getFaviconUrl(tag.url, tag)"
               :alt="tag.name"
+              :data-original-url="tag.url"
               @error="handleIconError"
             />
             <span v-else>🔗</span>
@@ -108,10 +109,32 @@ export default {
       window.location.href = url
     },
     
-    getFaviconUrl(url) {
+    getFaviconUrl(url, tag) {
+      // 优先使用保存的有效favicon URL
+      if (tag && tag.validFaviconUrl) {
+        return tag.validFaviconUrl
+      }
+      
       try {
         const domain = new URL(url).hostname
-        return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`
+        
+        // 国内外favicon服务列表（按优先级排序）
+        const faviconServices = [
+          // 国内服务（速度更快）
+          `https://api.iowen.cn/favicon/${domain}.png`,
+          `https://favicon.link/icon?url=${domain}`,
+          `https://icon.horse/icon/${domain}`,
+          
+          // 国外服务（备用）
+          `https://www.google.com/s2/favicons?domain=${domain}&sz=32`,
+          `https://favicon.yandex.net/favicon/v2/${domain}?size=32`,
+          
+          // 直接尝试网站根目录
+          `https://${domain}/favicon.ico`
+        ]
+        
+        // 返回第一个服务作为主要选择
+        return faviconServices[0]
       } catch {
         return ''
       }
@@ -134,9 +157,42 @@ export default {
     },
     
     handleIconError(event) {
-      // 如果favicon加载失败，隐藏图片并显示默认图标
-      event.target.style.display = 'none'
-      const parent = event.target.parentElement
+      const img = event.target
+      const parent = img.parentElement
+      
+      // 获取当前使用的URL
+      const currentSrc = img.src
+      
+      // 获取备用favicon服务列表
+      const url = img.alt || img.dataset.originalUrl
+      if (url) {
+        const domain = new URL(url).hostname
+        const backupServices = [
+          `https://favicon.link/icon?url=${domain}`,
+          `https://icon.horse/icon/${domain}`,
+          `https://www.google.com/s2/favicons?domain=${domain}&sz=32`,
+          `https://favicon.yandex.net/favicon/v2/${domain}?size=32`,
+          `https://${domain}/favicon.ico`
+        ]
+        
+        // 找到下一个备用服务
+        const currentIndex = backupServices.findIndex(service => currentSrc.includes(service.split('/')[2]))
+        const nextService = backupServices[currentIndex + 1]
+        
+        if (nextService && !img.dataset.tried) {
+          // 标记已尝试，避免无限循环
+          img.dataset.tried = (parseInt(img.dataset.tried || '0') + 1).toString()
+          
+          // 如果尝试次数少于3次，继续尝试下一个服务
+          if (parseInt(img.dataset.tried) < 3) {
+            img.src = nextService
+            return
+          }
+        }
+      }
+      
+      // 所有服务都失败了，显示默认图标
+      img.style.display = 'none'
       if (parent && !parent.querySelector('.fallback-icon')) {
         const fallback = document.createElement('span')
         fallback.className = 'fallback-icon'

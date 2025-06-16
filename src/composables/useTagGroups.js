@@ -173,6 +173,11 @@ export function useTagGroups() {
         backgroundColor: tagData.backgroundColor || '#667eea'
       }
       
+      // 如果有验证过的favicon URL，保存它
+      if (tagData.validFaviconUrl) {
+        newTag.validFaviconUrl = tagData.validFaviconUrl
+      }
+      
       // 确保URL格式正确
       if (!newTag.url.startsWith('http://') && !newTag.url.startsWith('https://')) {
         newTag.url = 'https://' + newTag.url
@@ -191,6 +196,12 @@ export function useTagGroups() {
       const tag = group.tags.find(t => t.id === tagId)
       if (tag) {
         Object.assign(tag, updates)
+        
+        // 如果URL变化了且是favicon类型，清除旧的validFaviconUrl
+        if (updates.url && tag.iconType === 'favicon' && !updates.validFaviconUrl) {
+          delete tag.validFaviconUrl
+        }
+        
         await saveTagGroups()
       }
     }
@@ -209,10 +220,41 @@ export function useTagGroups() {
   const getFaviconUrl = (url) => {
     try {
       const domain = new URL(url).hostname
-      return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`
+      
+      // 国内外favicon服务列表（按优先级排序）
+      const faviconServices = [
+        // 国内服务（速度更快）
+        `https://api.iowen.cn/favicon/${domain}.png`, // iowen API
+        `https://favicon.link/icon?url=${domain}`, // favicon.link
+        `https://icon.horse/icon/${domain}`, // icon.horse
+        
+        // 国外服务（备用）
+        `https://www.google.com/s2/favicons?domain=${domain}&sz=32`,
+        `https://favicon.yandex.net/favicon/v2/${domain}?size=32`,
+        `https://s2.googleusercontent.com/s2/favicons?domain_url=${domain}`,
+        
+        // 直接尝试网站根目录
+        `https://${domain}/favicon.ico`,
+        `https://${domain}/favicon.png`
+      ]
+      
+      // 返回第一个服务作为主要选择，其他作为备用
+      return {
+        primary: faviconServices[0],
+        fallbacks: faviconServices.slice(1)
+      }
     } catch {
-      return ''
+      return {
+        primary: '',
+        fallbacks: []
+      }
     }
+  }
+  
+  // 获取favicon URL（简化版本，兼容现有代码）
+  const getFaviconUrlSimple = (url) => {
+    const result = getFaviconUrl(url)
+    return result.primary || ''
   }
 
   // 生成标签图标
@@ -272,6 +314,7 @@ export function useTagGroups() {
     
     // 工具函数
     getFaviconUrl,
+    getFaviconUrlSimple, // 简化版本，兼容现有代码
     generateTagIcon,
     getTagEmojiRecommendations,
     searchEmojis,

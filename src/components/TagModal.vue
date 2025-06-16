@@ -93,6 +93,28 @@
           />
         </div>
         
+        <!-- Favicon选择器 -->
+        <div v-if="formData.iconType === 'favicon' && showFaviconSelector && availableFavicons.length > 1" class="form-group">
+          <label class="form-label">选择图标源 (找到 {{ availableFavicons.length }} 个可用图标)</label>
+          <div class="favicon-selector">
+            <div 
+              v-for="favicon in availableFavicons" 
+              :key="favicon.url"
+              @click="selectFavicon(favicon)"
+              :class="['favicon-option', { selected: currentFaviconUrl === favicon.validUrl }]"
+            >
+              <div class="favicon-preview">
+                <img 
+                  :src="favicon.validUrl" 
+                  :alt="favicon.name"
+                  @error="(e) => e.target.style.display = 'none'"
+                />
+              </div>
+              <span class="favicon-source">{{ favicon.name }}</span>
+            </div>
+          </div>
+        </div>
+        
         <div class="form-group">
           <label class="form-label">背景颜色</label>
           <div class="color-grid">
@@ -115,12 +137,18 @@
             >
               <span v-if="formData.iconType === 'emoji'">{{ formData.iconValue || '🔗' }}</span>
               <span v-else-if="formData.iconType === 'text'">{{ formData.iconValue || formData.name.charAt(0).toUpperCase() }}</span>
-              <img 
-                v-else-if="formData.iconType === 'favicon' && formData.url"
-                :src="getFaviconUrl(formData.url)"
-                :alt="formData.name"
-                @error="handleFaviconError"
-              />
+              <div v-else-if="formData.iconType === 'favicon'" class="favicon-container">
+                <div v-if="faviconLoading" class="favicon-loading">
+                  <div class="loading-spinner"></div>
+                </div>
+                <img 
+                  v-else-if="currentFaviconUrl"
+                  :src="currentFaviconUrl"
+                  :alt="formData.name"
+                  @error="handleFaviconError"
+                />
+                <span v-else class="favicon-fallback">🔗</span>
+              </div>
               <span v-else>🔗</span>
             </div>
             <span class="preview-name">{{ formData.name || '标签名称' }}</span>
@@ -179,6 +207,10 @@ export default {
     
     const nameInput = ref(null)
     const isEditing = ref(false)
+    const currentFaviconUrl = ref('')
+    const faviconLoading = ref(false)
+    const availableFavicons = ref([])
+    const showFaviconSelector = ref(false)
     
     // 监听 props 变化，初始化表单数据
     watch(() => props.tag, (newTag) => {
@@ -191,6 +223,15 @@ export default {
           iconValue: newTag.iconValue || '',
           backgroundColor: newTag.backgroundColor || '#667eea'
         }
+        
+        // 如果是favicon类型，加载现有的图标或重新获取
+        if (formData.value.iconType === 'favicon') {
+          if (newTag.validFaviconUrl) {
+            currentFaviconUrl.value = newTag.validFaviconUrl
+          } else {
+            updateFavicon()
+          }
+        }
       } else {
         isEditing.value = false
         formData.value = {
@@ -200,6 +241,7 @@ export default {
           iconValue: '',
           backgroundColor: '#667eea'
         }
+        currentFaviconUrl.value = ''
       }
     }, { immediate: true })
     
@@ -209,6 +251,26 @@ export default {
         nextTick(() => {
           nameInput.value?.focus()
         })
+      }
+    })
+    
+    // 监听URL变化，自动更新favicon
+    watch(() => formData.value.url, (newUrl, oldUrl) => {
+      if (newUrl !== oldUrl && formData.value.iconType === 'favicon') {
+        // 延迟执行，避免频繁请求
+        if (updateFavicon.timeoutId) {
+          clearTimeout(updateFavicon.timeoutId)
+        }
+        updateFavicon.timeoutId = setTimeout(() => {
+          updateFavicon()
+        }, 500)
+      }
+    })
+    
+    // 监听图标类型变化，如果切换到favicon则更新图标
+    watch(() => formData.value.iconType, (newType) => {
+      if (newType === 'favicon' && formData.value.url) {
+        updateFavicon()
       }
     })
     
@@ -235,6 +297,11 @@ export default {
         tagData.iconValue = tagData.name.charAt(0).toUpperCase()
       }
       
+      // 如果是favicon类型，保存验证过的URL
+      if (tagData.iconType === 'favicon' && currentFaviconUrl.value) {
+        tagData.validFaviconUrl = currentFaviconUrl.value
+      }
+      
       if (isEditing.value) {
         tagData.id = props.tag.id
       }
@@ -246,10 +313,132 @@ export default {
     const getFaviconUrl = (url) => {
       try {
         const domain = new URL(url).hostname
-        return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`
+        
+        // 国内外favicon服务列表（按优先级排序）
+        const faviconServices = [
+          // 国内服务（速度更快）
+          `https://api.iowen.cn/favicon/${domain}.png`,
+          `https://favicon.link/icon?url=${domain}`,
+          `https://icon.horse/icon/${domain}`,
+          
+          // 国外服务（备用）
+          `https://www.google.com/s2/favicons?domain=${domain}&sz=32`,
+          `https://favicon.yandex.net/favicon/v2/${domain}?size=32`,
+          
+          // 直接尝试网站根目录
+          `https://${domain}/favicon.ico`
+        ]
+        
+        // 返回第一个服务作为主要选择
+        return faviconServices[0]
       } catch {
         return ''
       }
+    }
+    
+    // 验证favicon URL是否有效
+    const validateFaviconUrl = (url) => {
+      return new Promise((resolve) => {
+        const img = new Image()
+        img.onload = () => resolve(url)
+        img.onerror = () => resolve(null)
+        img.src = url
+        
+        // 设置超时，避免无限等待
+        setTimeout(() => resolve(null), 5000)
+      })
+    }
+    
+    // 获取可用的favicon URL
+    const getValidFaviconUrl = async (siteUrl) => {
+      try {
+        const domain = new URL(siteUrl).hostname
+        
+        const faviconServices = [
+          { name: 'iowen API', url: `https://api.iowen.cn/favicon/${domain}.png` },
+          { name: 'favicon.link', url: `https://favicon.link/icon?url=${domain}` },
+          { name: 'icon.horse', url: `https://icon.horse/icon/${domain}` },
+          { name: 'Google', url: `https://www.google.com/s2/favicons?domain=${domain}&sz=32` },
+          { name: 'Yandex', url: `https://favicon.yandex.net/favicon/v2/${domain}?size=32` },
+          { name: '网站根目录', url: `https://${domain}/favicon.ico` }
+        ]
+        
+        const validFavicons = []
+        
+        // 并发获取所有favicon
+        const promises = faviconServices.map(async (service) => {
+          const isValid = await validateFaviconUrl(service.url)
+          if (isValid) {
+            return {
+              ...service,
+              validUrl: service.url
+            }
+          }
+          return null
+        })
+        
+        const results = await Promise.all(promises)
+        
+        // 过滤掉失败的请求
+        results.forEach(result => {
+          if (result) {
+            validFavicons.push(result)
+          }
+        })
+        
+        return validFavicons
+      } catch {
+        return []
+      }
+    }
+    
+    // 更新favicon
+    const updateFavicon = async () => {
+      if (formData.value.iconType === 'favicon' && formData.value.url) {
+        faviconLoading.value = true
+        availableFavicons.value = []
+        showFaviconSelector.value = false
+        
+        try {
+          // 确保URL格式正确
+          let url = formData.value.url.trim()
+          if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            url = 'https://' + url
+          }
+          
+          const validFavicons = await getValidFaviconUrl(url)
+          availableFavicons.value = validFavicons
+          
+          if (validFavicons.length > 0) {
+            // 如果只有一个可用图标，直接使用
+            if (validFavicons.length === 1) {
+              currentFaviconUrl.value = validFavicons[0].validUrl
+            } else {
+              // 多个图标可用，显示选择器
+              showFaviconSelector.value = true
+              // 默认选择第一个
+              currentFaviconUrl.value = validFavicons[0].validUrl
+            }
+          } else {
+            currentFaviconUrl.value = ''
+          }
+        } catch (error) {
+          console.warn('获取favicon失败:', error)
+          currentFaviconUrl.value = ''
+          availableFavicons.value = []
+        } finally {
+          faviconLoading.value = false
+        }
+      } else {
+        currentFaviconUrl.value = ''
+        availableFavicons.value = []
+        showFaviconSelector.value = false
+      }
+    }
+    
+    // 选择favicon
+    const selectFavicon = (favicon) => {
+      currentFaviconUrl.value = favicon.validUrl
     }
     
     const handleFaviconError = (event) => {
@@ -280,12 +469,18 @@ export default {
       formData,
       nameInput,
       isEditing,
+      currentFaviconUrl,
+      faviconLoading,
+      availableFavicons,
+      showFaviconSelector,
       // 方法
       handleOverlayClick,
       handleSubmit,
       getFaviconUrl,
       handleFaviconError,
-      handleEmojiSelect
+      handleEmojiSelect,
+      updateFavicon,
+      selectFavicon
     }
   }
 }
@@ -570,6 +765,42 @@ export default {
   border-radius: 4px;
 }
 
+.favicon-container {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.favicon-loading {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.favicon-fallback {
+  font-size: 16px;
+  color: white;
+}
+
 .preview-name {
   color: var(--text-color, white);
   font-size: 0.875rem;
@@ -635,6 +866,75 @@ export default {
   background: var(--scrollbar-thumb-hover, rgba(255, 255, 255, 0.5));
 }
 
+/* Favicon 选择器样式 */
+.favicon-selector {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--grid-bg, rgba(255, 255, 255, 0.05));
+  border-radius: 8px;
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.favicon-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--button-bg, rgba(255, 255, 255, 0.1));
+  border: 2px solid var(--border-color, rgba(255, 255, 255, 0.2));
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.favicon-option:hover {
+  background: var(--button-hover-bg, rgba(255, 255, 255, 0.2));
+  border-color: var(--border-hover-color, rgba(255, 255, 255, 0.4));
+  transform: translateY(-2px);
+}
+
+.favicon-option.selected {
+  background: rgba(100, 200, 255, 0.3);
+  border-color: rgba(100, 200, 255, 0.6);
+  box-shadow: 0 0 0 2px rgba(100, 200, 255, 0.3);
+}
+
+.favicon-preview {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.favicon-preview img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  border-radius: 2px;
+}
+
+.favicon-source {
+  font-size: 0.75rem;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.8));
+  line-height: 1.2;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.favicon-option.selected .favicon-source {
+  color: var(--text-color, white);
+  font-weight: 500;
+}
+
 @media (max-width: 768px) {
   .modal-content {
     width: 95%;
@@ -657,6 +957,21 @@ export default {
   
   .emoji-grid, .color-grid {
     grid-template-columns: repeat(6, 1fr);
+  }
+  
+  .favicon-selector {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+  
+  .favicon-option {
+    padding: 0.5rem;
+    gap: 0.25rem;
+  }
+  
+  .favicon-source {
+    font-size: 0.7rem;
   }
 }
 </style>
