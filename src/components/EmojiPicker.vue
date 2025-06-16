@@ -188,6 +188,12 @@ export default {
       loadRecentEmojis()
     })
     
+    // 暴露方法给父组件
+    defineExpose({
+      reset,
+      loadRecentEmojis
+    })
+    
     return {
       emojiSearchQuery,
       selectedEmojiCategory,
