@@ -1,5 +1,5 @@
 import { ref, onMounted } from 'vue'
-import { emojiUtils } from '../utils/emojiUtils'
+import { enhancedEmojiUtils, emojiLibrary } from '../utils/emojiLibrary'
 
 export function useTagGroups() {
   const tagGroups = ref([])
@@ -66,9 +66,9 @@ export function useTagGroups() {
     ]
   }
 
-  // 使用emoji工具获取emoji选项
-  const emojiOptions = emojiUtils.getAllEmojis()
-  const emojiCategories = emojiUtils.getCategorizedEmojis()
+  // 使用增强版emoji工具获取emoji选项
+  const emojiOptions = enhancedEmojiUtils.getAllEmojis()
+  const emojiCategories = enhancedEmojiUtils.getCategorizedEmojis()
 
   // 预设主题颜色
   const themeColors = [
@@ -197,13 +197,29 @@ export function useTagGroups() {
   const generateTagIcon = (tag) => {
     switch (tag.iconType) {
       case 'emoji':
-        return tag.iconValue || '🔗'
+        // 验证emoji是否有效
+        if (tag.iconValue && enhancedEmojiUtils.isValidEmoji(tag.iconValue)) {
+          return tag.iconValue
+        }
+        // 如果无效，尝试智能推荐
+        const recommendations = enhancedEmojiUtils.getSmartRecommendations(tag.name, tag.url)
+        return recommendations.length > 0 ? recommendations[0] : '🔗'
       case 'text':
         return tag.iconValue || tag.name.charAt(0).toUpperCase()
       case 'favicon':
       default:
         return '' // 返回空字符串，组件中会显示img标签
     }
+  }
+
+  // 获取标签的智能emoji推荐
+  const getTagEmojiRecommendations = (tagName, tagUrl) => {
+    return enhancedEmojiUtils.getSmartRecommendations(tagName, tagUrl)
+  }
+
+  // 搜索emoji
+  const searchEmojis = (query) => {
+    return enhancedEmojiUtils.searchEmojis(query)
   }
 
   onMounted(() => {
@@ -229,6 +245,11 @@ export function useTagGroups() {
     // 工具函数
     getFaviconUrl,
     generateTagIcon,
-    saveTagGroups
+    getTagEmojiRecommendations,
+    searchEmojis,
+    saveTagGroups,
+    
+    // Emoji相关
+    emojiLibrary: enhancedEmojiUtils
   }
 }

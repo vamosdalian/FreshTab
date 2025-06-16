@@ -105,7 +105,10 @@ export default {
       themeColors, 
       addTag, 
       editTag, 
-      deleteTag 
+      deleteTag,
+      getTagEmojiRecommendations,
+      searchEmojis,
+      emojiLibrary
     } = useTagGroups()
     const { settings, saveSettings, updateTheme, resetSettings } = useSettings()
     const { currentTime, greeting } = useTime()
