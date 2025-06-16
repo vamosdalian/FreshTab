@@ -184,9 +184,9 @@ export default {
 }
 
 .group-title h3 {
-  color: var(--text-color, white);
+  color: var(--title-color, white);
   font-size: 1.5rem;
-  font-weight: 300;
+  font-weight: 400;
   margin: 0;
   transition: color 0.3s ease;
 }
@@ -450,9 +450,9 @@ export default {
 }
 
 .global-empty-state h3 {
-  color: var(--text-color, white);
+  color: var(--title-color, white);
   font-size: 1.5rem;
-  font-weight: 300;
+  font-weight: 500;
   margin-bottom: 0.5rem;
   transition: color 0.3s ease;
 }

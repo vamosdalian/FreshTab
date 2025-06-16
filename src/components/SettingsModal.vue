@@ -261,7 +261,7 @@
           </div>
           
           <div class="form-group">
-            <label>选择Emoji</label>
+            <label>选择图标</label>
             <EmojiPicker 
               :selected-emoji="groupForm.emoji"
               @select-emoji="handleSelectGroupEmoji"

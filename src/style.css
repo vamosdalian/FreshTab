@@ -19,6 +19,7 @@
     --button-bg: rgba(0, 0, 0, 0.05);
     --button-hover-bg: rgba(240, 240, 240, 0.8);
     --icon-filter: brightness(0) invert(0.4);
+    --title-color: #1a1a1a;
 }
 
 [data-theme="dark"] {
@@ -34,6 +35,7 @@
     --button-bg: rgba(255, 255, 255, 0.1);
     --button-hover-bg: rgba(255, 255, 255, 0.2);
     --icon-filter: brightness(0) invert(1);
+    --title-color: #ffffff;
 }
 
 body {
