@@ -72,13 +72,16 @@
         <!-- Emoji选择器 -->
         <div v-if="formData.iconType === 'emoji'" class="form-group">
           <label class="form-label">选择Emoji</label>
-          <EmojiPicker 
-            :selected-emoji="formData.iconValue"
-            :show-smart-recommendations="true"
-            :site-name="formData.name"
-            :site-url="formData.url"
-            @select-emoji="handleEmojiSelect"
-          />
+          <div class="emoji-selector">
+            <button 
+              type="button"
+              @click="showEmojiPicker = true"
+              class="emoji-select-button"
+            >
+              <span class="emoji-preview">{{ formData.iconValue || '🔗' }}</span>
+              <span class="emoji-select-text">点击选择 Emoji</span>
+            </button>
+          </div>
         </div>
         
         <!-- 文字输入 -->
@@ -166,6 +169,16 @@
       </form>
     </div>
   </div>
+
+  <!-- Emoji选择弹窗 -->
+  <EmojiPicker
+    v-if="showEmojiPicker"
+    :site-name="formData.name"
+    :site-url="formData.url"
+    :show-smart-recommendations="true"
+    @select-emoji="handleEmojiSelect"
+    @close="showEmojiPicker = false"
+  />
 </template>
 
 <script>
@@ -211,6 +224,7 @@ export default {
     const faviconLoading = ref(false)
     const availableFavicons = ref([])
     const showFaviconSelector = ref(false)
+    const showEmojiPicker = ref(false)
     
     // 监听 props 变化，初始化表单数据
     watch(() => props.tag, (newTag) => {
@@ -448,6 +462,7 @@ export default {
     // emoji选择处理
     const handleEmojiSelect = (emoji) => {
       formData.value.iconValue = emoji
+      showEmojiPicker.value = false
     }
     
     // 初始化数据
@@ -473,6 +488,7 @@ export default {
       faviconLoading,
       availableFavicons,
       showFaviconSelector,
+      showEmojiPicker,
       // 方法
       handleOverlayClick,
       handleSubmit,
@@ -973,5 +989,46 @@ export default {
   .favicon-source {
     font-size: 0.7rem;
   }
+}
+
+/* Emoji选择器样式 */
+.emoji-selector {
+  margin-top: 0.5rem;
+}
+
+.emoji-select-button {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--button-bg, #f8f9fa);
+  border: 1px solid var(--border-color, #dee2e6);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: left;
+}
+
+.emoji-select-button:hover {
+  background: var(--button-hover-bg, #e9ecef);
+  border-color: var(--primary-color, #007bff);
+}
+
+.emoji-preview {
+  font-size: 1.5rem;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--emoji-preview-bg, white);
+  border-radius: 6px;
+  border: 1px solid var(--border-color, #dee2e6);
+}
+
+.emoji-select-text {
+  color: var(--text-color, #495057);
+  font-size: 0.9rem;
 }
 </style>

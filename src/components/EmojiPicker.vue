@@ -1,91 +1,47 @@
 <template>
-  <div class="emoji-picker">
-    <!-- Emoji搜索框 -->
-    <div class="emoji-search">
-      <input
-        v-model="emojiSearchQuery"
-        type="text"
-        placeholder="搜索emoji..."
-        class="emoji-search-input"
-        @input="onEmojiSearch"
-      />
-    </div>
-
-    <!-- 智能推荐 -->
-    <div v-if="smartRecommendations.length > 0" class="emoji-recommendations">
-      <div class="recommendations-label">智能推荐</div>
-      <div class="emoji-grid-small">
-        <div 
-          v-for="emoji in smartRecommendations" 
-          :key="'rec-' + emoji"
-          @click="selectEmoji(emoji)"
-          :class="['emoji-item', { selected: selectedEmoji === emoji }]"
-          :title="getEmojiName(emoji)"
-        >
-          {{ emoji }}
-        </div>
+  <div class="emoji-picker-overlay" @click="handleOverlayClick">
+    <div class="emoji-picker-modal" @click.stop>
+      <div class="emoji-picker-header">
+        <h3>选择 Emoji</h3>
+        <button @click="$emit('close')" class="close-button">×</button>
       </div>
-    </div>
-
-    <!-- 最近使用 -->
-    <div v-if="recentEmojis.length > 0" class="emoji-recent">
-      <div class="recent-label">最近使用</div>
-      <div class="emoji-grid-small">
-        <div 
-          v-for="emoji in recentEmojis" 
-          :key="'recent-' + emoji"
-          @click="selectEmoji(emoji)"
-          :class="['emoji-item', { selected: selectedEmoji === emoji }]"
-          :title="getEmojiName(emoji)"
-        >
-          {{ emoji }}
-        </div>
-      </div>
-    </div>
-
-    <!-- Emoji分类标签 -->
-    <div class="emoji-categories">
-      <button
-        v-for="(emojis, category) in displayEmojiCategories"
-        :key="category"
-        @click="selectedEmojiCategory = category"
-        :class="['category-btn', { active: selectedEmojiCategory === category }]"
-        type="button"
-      >
-        {{ category }}
-      </button>
-    </div>
-
-    <!-- Emoji网格 -->
-    <div class="emoji-grid">
-      <div 
-        v-for="emoji in displayEmojis" 
-        :key="emoji"
-        @click="selectEmoji(emoji)"
-        :class="['emoji-item', { selected: selectedEmoji === emoji }]"
-        :title="getEmojiName(emoji)"
-      >
-        {{ emoji }}
+      
+      <div class="emoji-picker-content">
+        <!-- Emoji Mart 选择器 -->
+        <Picker
+          v-if="emojiIndex"
+          :data="emojiIndex"
+          set="apple"
+          :emoji-size="24"
+          :per-line="9"
+          :show-preview="true"
+          :show-search="true"
+          :show-categories="true"
+          :show-skin-tones="true"
+          :i18n="i18nData"
+          :title="'选择一个 Emoji'"
+          :emoji="'point_up'"
+          :color="'#ae65c5'"
+          :native="true"
+          @select="selectEmoji"
+          @skin-change="onSkinChange"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { ref, computed, watch, onMounted, defineExpose } from 'vue'
-import { emojiLibrary, enhancedEmojiUtils } from '../utils/emojiLibrary'
+import { ref, onMounted } from 'vue'
+import { Picker, EmojiIndex } from 'emoji-mart-vue-fast/src'
+import data from 'emoji-mart-vue-fast/data/apple.json'
 
 export default {
-  name: 'EmojiPicker',
+  name: 'EmojiPickerNew',
+  components: {
+    Picker
+  },
   props: {
-    selectedEmoji: {
-      type: String,
-      default: ''
-    },
-    showSmartRecommendations: {
-      type: Boolean,
-      default: false
-    },
     siteName: {
       type: String,
       default: ''
@@ -95,295 +51,172 @@ export default {
       default: ''
     }
   },
-  emits: ['select-emoji'],
+  emits: ['select-emoji', 'close'],
   setup(props, { emit }) {
-    // 响应式数据
-    const emojiSearchQuery = ref('')
-    const searchResults = ref([])
-    const recentEmojis = ref([])
-    const smartRecommendations = ref([])
-    
-    // 获取emoji分类数据
-    const emojiCategories = computed(() => {
-      return enhancedEmojiUtils.getCategorizedEmojis()
-    })
-    
-    // 动态设置初始分类
-    const selectedEmojiCategory = ref('')
-    
-    // 初始化选择的分类
-    watch(emojiCategories, (categories) => {
-      if (categories && Object.keys(categories).length > 0) {
-        const availableCategories = Object.keys(categories)
-        if (!selectedEmojiCategory.value || !availableCategories.includes(selectedEmojiCategory.value)) {
-          selectedEmojiCategory.value = availableCategories[0]
-        }
-      }
-    }, { immediate: true })
-    
-    // 根据搜索和分类显示的emoji
-    const displayEmojiCategories = computed(() => {
-      if (emojiSearchQuery.value) {
-        return { '搜索结果': searchResults.value }
-      }
-      return emojiCategories.value
-    })
-    
-    const displayEmojis = computed(() => {
-      if (emojiSearchQuery.value) {
-        return searchResults.value
-      }
-      return emojiCategories.value[selectedEmojiCategory.value] || []
-    })
-    
-    // 监听props变化，更新智能推荐
-    watch([() => props.siteName, () => props.siteUrl], ([name, url]) => {
-      if (props.showSmartRecommendations && (name || url)) {
-        smartRecommendations.value = enhancedEmojiUtils.getSmartRecommendations(name, url)
-      } else {
-        smartRecommendations.value = []
-      }
-    }, { immediate: true })
-    
-    // 加载最近使用的emoji
-    const loadRecentEmojis = () => {
-      recentEmojis.value = enhancedEmojiUtils.getRecentEmojis()
-    }
-    
-    // emoji搜索处理
-    const onEmojiSearch = () => {
-      if (emojiSearchQuery.value.trim()) {
-        searchResults.value = enhancedEmojiUtils.searchEmojis(emojiSearchQuery.value.trim())
-      } else {
-        searchResults.value = []
+    const emojiIndex = ref(null)
+
+    // 中文本地化数据
+    const i18nData = {
+      search: '搜索',
+      clear: '清除',
+      notfound: '没找到 Emoji',
+      skintext: '选择默认肤色',
+      categories: {
+        search: '搜索结果',
+        recent: '最近使用',
+        smileys: '笑脸表情',
+        people: '人物',
+        nature: '动物自然',
+        foods: '食物饮料',
+        activity: '活动',
+        places: '旅行地点',
+        objects: '物体',
+        symbols: '符号',
+        flags: '旗帜',
+        custom: '自定义'
+      },
+      categorieslabel: 'Emoji 类别',
+      skintones: {
+        1: '默认肤色',
+        2: '浅肤色',
+        3: '中浅肤色',
+        4: '中等肤色',
+        5: '中深肤色',
+        6: '深肤色'
       }
     }
-    
+
     // 选择emoji
     const selectEmoji = (emoji) => {
-      // 保存到最近使用
-      enhancedEmojiUtils.saveRecentEmoji(emoji)
-      loadRecentEmojis()
-      // 触发事件
-      emit('select-emoji', emoji)
+      console.log('Selected emoji:', emoji)
+      emit('select-emoji', emoji.native || emoji.colons || emoji)
+      emit('close')
     }
-    
-    // 获取emoji名称
-    const getEmojiName = (emoji) => {
-      return emojiLibrary.getEmojiName ? emojiLibrary.getEmojiName(emoji) : emoji
+
+    // 肤色变化
+    const onSkinChange = (skin) => {
+      console.log('Skin changed:', skin)
     }
-    
-    // 重置状态
-    const reset = () => {
-      emojiSearchQuery.value = ''
-      searchResults.value = []
-      const categories = Object.keys(emojiCategories.value)
-      if (categories.length > 0) {
-        selectedEmojiCategory.value = categories[0]
-      }
+
+    // 处理遮罩层点击
+    const handleOverlayClick = () => {
+      emit('close')
     }
-    
+
     // 初始化
     onMounted(() => {
-      loadRecentEmojis()
+      try {
+        emojiIndex.value = new EmojiIndex(data)
+      } catch (error) {
+        console.error('Error creating emoji index:', error)
+      }
     })
-    
-    // 暴露方法给父组件
-    defineExpose({
-      reset,
-      loadRecentEmojis
-    })
-    
+
     return {
-      emojiSearchQuery,
-      selectedEmojiCategory,
-      displayEmojiCategories,
-      displayEmojis,
-      recentEmojis,
-      smartRecommendations,
-      onEmojiSearch,
+      emojiIndex,
+      i18nData,
       selectEmoji,
-      getEmojiName,
-      loadRecentEmojis,
-      reset
+      onSkinChange,
+      handleOverlayClick
     }
   }
 }
 </script>
 
 <style scoped>
-.emoji-picker {
-  width: 100%;
-}
-
-/* Emoji搜索框 */
-.emoji-search {
-  margin-bottom: 16px;
-}
-
-.emoji-search-input {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid var(--border-color, #dee2e6);
-  border-radius: 6px;
-  font-size: 14px;
-  outline: none;
-  transition: border-color 0.2s ease;
-  background: var(--input-bg, white);
-  color: var(--text-color, #495057);
-  box-sizing: border-box;
-}
-
-.emoji-search-input:focus {
-  border-color: var(--primary-color, #007bff);
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-}
-
-.emoji-search-input::placeholder {
-  color: var(--placeholder-color, #6c757d);
-}
-
-/* 智能推荐 */
-.emoji-recommendations {
-  margin-bottom: 16px;
-}
-
-.recommendations-label {
-  font-size: 12px;
-  color: var(--text-secondary, #6c757d);
-  margin-bottom: 8px;
-  font-weight: 500;
-}
-
-/* 最近使用 */
-.emoji-recent {
-  margin-bottom: 16px;
-}
-
-.recent-label {
-  font-size: 12px;
-  color: var(--text-secondary, #6c757d);
-  margin-bottom: 8px;
-  font-weight: 500;
-}
-
-.emoji-grid-small {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(32px, 1fr));
-  gap: 4px;
-  max-height: 80px;
-  overflow-y: auto;
-}
-
-.emoji-grid-small .emoji-item {
-  width: 32px;
-  height: 32px;
-  font-size: 16px;
-  min-width: 32px;
-}
-
-/* 分类标签 */
-.emoji-categories {
+.emoji-picker-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
-  gap: 4px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
 }
 
-.category-btn {
-  padding: 4px 8px;
-  background: var(--button-bg, #f8f9fa);
-  border: 1px solid var(--border-color, #dee2e6);
-  border-radius: 4px;
-  color: var(--text-color, #495057);
+.emoji-picker-modal {
+  background: var(--modal-bg, white);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  width: 90vw;
+  max-width: 420px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.emoji-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color, #e9ecef);
+  background: var(--header-bg, #f8f9fa);
+}
+
+.emoji-picker-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-color, #333);
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
   cursor: pointer;
-  font-size: 12px;
-  transition: all 0.2s ease;
-}
-
-.category-btn:hover {
-  background: var(--button-hover-bg, #e9ecef);
-}
-
-.category-btn.active {
-  background: var(--primary-color, #007bff);
-  border-color: var(--primary-color, #007bff);
-  color: white;
-}
-
-/* Emoji网格 */
-.emoji-grid {
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  gap: 4px;
-  max-height: 200px;
-  overflow-y: auto;
-  padding: 8px;
-  background: var(--grid-bg, #f8f9fa);
-  border-radius: 6px;
-  border: 1px solid var(--border-color, #dee2e6);
-}
-
-.emoji-item {
+  color: var(--text-secondary, #666);
+  padding: 0;
   width: 32px;
   height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  border-radius: 4px;
+  border-radius: 6px;
   transition: all 0.2s ease;
-  border: 2px solid transparent;
-  font-size: 16px;
-  background: var(--item-bg, white);
 }
 
-.emoji-item:hover {
-  background: var(--item-hover-bg, #e9ecef);
-  transform: scale(1.1);
+.close-button:hover {
+  background: var(--button-hover-bg, #e9ecef);
+  color: var(--text-color, #333);
 }
 
-.emoji-item.selected {
-  border-color: var(--primary-color, #007bff);
-  background: var(--item-selected-bg, rgba(0, 123, 255, 0.1));
+.emoji-picker-content {
+  flex: 1;
+  overflow: hidden;
 }
 
-/* 自定义滚动条 */
-.emoji-grid::-webkit-scrollbar,
-.emoji-grid-small::-webkit-scrollbar {
-  width: 6px;
+/* 主题适配 */
+[data-theme="dark"] .emoji-picker-modal {
+  background: var(--modal-bg, #2d3748);
 }
 
-.emoji-grid::-webkit-scrollbar-track,
-.emoji-grid-small::-webkit-scrollbar-track {
-  background: var(--scrollbar-track, #f1f1f1);
-  border-radius: 3px;
+[data-theme="dark"] .emoji-picker-header {
+  background: var(--header-bg, #4a5568);
+  border-bottom-color: var(--border-color, #718096);
 }
 
-.emoji-grid::-webkit-scrollbar-thumb,
-.emoji-grid-small::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb, #c1c1c1);
-  border-radius: 3px;
+[data-theme="dark"] .emoji-picker-header h3 {
+  color: var(--text-color, #f7fafc);
 }
 
-.emoji-grid::-webkit-scrollbar-thumb:hover,
-.emoji-grid-small::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover, #a8a8a8);
+[data-theme="dark"] .close-button {
+  color: var(--text-secondary, #a0aec0);
 }
 
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .emoji-grid {
-    grid-template-columns: repeat(6, 1fr);
-  }
-  
-  .emoji-categories {
-    justify-content: center;
-  }
-  
-  .category-btn {
-    font-size: 11px;
-    padding: 3px 6px;
-  }
+[data-theme="dark"] .close-button:hover {
+  background: var(--button-hover-bg, #718096);
+  color: var(--text-color, #f7fafc);
 }
+</style>
+
+<!-- 导入emoji-mart默认样式 -->
+<style>
+@import 'emoji-mart-vue-fast/css/emoji-mart.css';
 </style>

@@ -262,10 +262,14 @@
           
           <div class="form-group">
             <label>选择图标</label>
-            <EmojiPicker 
-              :selected-emoji="groupForm.emoji"
-              @select-emoji="handleSelectGroupEmoji"
-            />
+            <button 
+              type="button"
+              @click="showEmojiPicker = true"
+              class="emoji-select-button"
+            >
+              <span class="emoji-preview">{{ groupForm.emoji || '📁' }}</span>
+              <span class="emoji-select-text">点击选择 Emoji</span>
+            </button>
           </div>
           
           <div class="form-group">
@@ -289,6 +293,15 @@
       </div>
     </div>
   </div>
+
+  <!-- Emoji选择弹窗 -->
+  <EmojiPicker
+    v-if="showEmojiPicker"
+    :site-name="groupForm.name"
+    :site-url="''"
+    @select-emoji="handleSelectGroupEmoji"
+    @close="showEmojiPicker = false"
+  />
 </template>
 
 <script>
@@ -337,6 +350,7 @@ export default {
       activeMenu: 'settings',
       showAddGroupModal: false,
       showEditGroupModal: false,
+      showEmojiPicker: false,
       editingGroupId: null,
       windowWidth: window.innerWidth, // 添加窗口宽度跟踪
       groupForm: {
@@ -406,6 +420,7 @@ export default {
     closeGroupModal() {
       this.showAddGroupModal = false
       this.showEditGroupModal = false
+      this.showEmojiPicker = false
       this.editingGroupId = null
       this.groupForm = {
         name: '',
@@ -440,6 +455,7 @@ export default {
     // emoji相关方法
     handleSelectGroupEmoji(emoji) {
       this.groupForm.emoji = emoji
+      this.showEmojiPicker = false
     },
     
     // 宽度设置方法
@@ -1173,5 +1189,42 @@ export default {
 
 .save-btn:hover {
   background: #0056b3;
+}
+
+/* Emoji选择器样式 */
+.emoji-select-button {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: left;
+}
+
+.emoji-select-button:hover {
+  background: #e9ecef;
+  border-color: #007bff;
+}
+
+.emoji-preview {
+  font-size: 1.5rem;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+}
+
+.emoji-select-text {
+  color: #495057;
+  font-size: 0.9rem;
 }
 </style>
