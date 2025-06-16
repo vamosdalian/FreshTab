@@ -258,15 +258,13 @@ export default {
 }
 
 .search-button:hover {
-  background: var(--button-hover-bg, rgba(255, 255, 255, 0.15));
-  color: var(--text-color, white);
   transform: scale(1.05);
 }
 
 .search-icon {
   width: 20px;
   height: 20px;
-  filter: brightness(0) invert(1);
+  filter: var(--icon-filter, brightness(0) invert(0.5));
   opacity: 0.7;
   transition: all 0.3s ease;
 }
