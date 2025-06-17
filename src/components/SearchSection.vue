@@ -21,7 +21,9 @@
         <input
           :value="searchQuery"
           @input="$emit('update:searchQuery', $event.target.value)"
-          @keyup.enter="handleSearch"
+          @keydown="handleKeydown"
+          @compositionstart="handleCompositionStart"
+          @compositionend="handleCompositionEnd"
           type="text"
           placeholder="搜索或输入网址..."
           class="search-input"
@@ -81,9 +83,31 @@ export default {
     const iconError = ref(false)
     const engineBtn = ref(null)
     const dropdown = ref(null)
+    const isComposing = ref(false)
 
     const handleSearch = () => {
       emit('search')
+    }
+
+    const handleKeydown = (event) => {
+      // 只有在不是输入法组合状态且按下回车键时才触发搜索
+      if (event.key === 'Enter' && !isComposing.value) {
+        event.preventDefault() // 防止表单提交或其他默认行为
+        handleSearch()
+      }
+    }
+
+    const handleCompositionStart = () => {
+      isComposing.value = true
+    }
+
+    const handleCompositionEnd = (event) => {
+      isComposing.value = false
+      // 在某些浏览器中，compositionend 可能在 keydown 之后触发
+      // 所以我们需要在下一个事件循环中重置状态
+      setTimeout(() => {
+        isComposing.value = false
+      }, 0)
     }
 
     const setSearchEngine = (engine) => {
@@ -132,7 +156,11 @@ export default {
       iconError,
       engineBtn,
       dropdown,
+      isComposing,
       handleSearch,
+      handleKeydown,
+      handleCompositionStart,
+      handleCompositionEnd,
       setSearchEngine,
       toggleEngineDropdown,
       selectSearchEngine,
