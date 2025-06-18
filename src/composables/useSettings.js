@@ -4,7 +4,7 @@ export function useSettings() {
   const settings = reactive({
     columnsPerRow: 6,
     bookmarkSize: 'medium',
-    searchEngine: 'google',
+    searchEngine: 'chrome-default', // 使用Chrome默认搜索引擎作为首选
     showTime: true,
     showSearch: true,
     showBookmarks: true,

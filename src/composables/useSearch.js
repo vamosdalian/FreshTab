@@ -4,6 +4,13 @@ export function useSearch(settings, saveSettings) {
   const searchQuery = ref('')
   const searchEngines = ref([
     { 
+      id: 'chrome-default', 
+      name: '默认搜索引擎', 
+      url: null, // 特殊标识，使用Chrome API
+      icon: '',
+      fallbackIcon: '🔍'
+    },
+    { 
       id: 'google', 
       name: 'Google', 
       url: 'https://www.google.com/search?q=', 
@@ -55,15 +62,36 @@ export function useSearch(settings, saveSettings) {
   }
 
   // 执行搜索
-  const performSearch = (query = searchQuery.value) => {
+  const performSearch = async (query = searchQuery.value) => {
     if (!query.trim()) return
     
     // 检查是否是URL
     if (isURL(query)) {
       // 如果是URL，直接打开
       window.location.href = query.startsWith('http') ? query : `https://${query}`
+      return
+    }
+
+    // 检查是否使用Chrome默认搜索引擎
+    if (currentEngine.value.id === 'chrome-default') {
+      try {
+        // 使用Chrome搜索API
+        if (chrome && chrome.search && chrome.search.query) {
+          await chrome.search.query({
+            text: query,
+            disposition: 'CURRENT_TAB'
+          })
+        } else {
+          // 如果Chrome API不可用，回退到Google搜索
+          window.location.href = `https://www.google.com/search?q=${encodeURIComponent(query)}`
+        }
+      } catch (error) {
+        console.warn('Chrome search API failed, falling back to Google:', error)
+        // 回退到Google搜索
+        window.location.href = `https://www.google.com/search?q=${encodeURIComponent(query)}`
+      }
     } else {
-      // 否则使用搜索引擎搜索
+      // 使用指定的搜索引擎
       const searchURL = currentEngine.value.url + encodeURIComponent(query)
       window.location.href = searchURL
     }

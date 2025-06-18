@@ -1,13 +1,14 @@
 {
   "name": "FreshTab",
   "description": "基于 Vue.js 的美观且功能丰富的新标签页替换扩展",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "manifest_version": 3,
   "chrome_url_overrides": {
     "newtab": "newtab.html"
   },
   "permissions": [
-    "storage"
+    "storage",
+    "search"
   ],
   "icons": {
     "16": "icons/icon-16.png",
