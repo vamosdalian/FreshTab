@@ -1,69 +1,78 @@
 import { ref, onMounted } from 'vue'
 import { enhancedEmojiUtils, emojiLibrary } from '../utils/emojiLibrary'
+import { useToast } from './useToast'
 
 export function useTagGroups() {
   const tagGroups = ref([])
+  const { error, warning, log } = useToast()
+
+  // 当前数据版本
+  const CURRENT_VERSION = '1'
 
   // 获取默认标签分组
   const getDefaultTagGroups = () => {
-    return [
-      {
-        id: 'default',
-        name: '常用网站',
-        emoji: '🌟',
-        themeColor: '#667eea', // 使用默认主题颜色
-        tags: [
-          { 
-            id: 'tag_1', 
-            name: 'Google', 
-            url: 'https://www.google.com',
-            iconType: 'emoji', // favicon, emoji, text
-            iconValue: '🔍', // 搜索图标
-            backgroundColor: '#4285f4'
-          },
-          { 
-            id: 'tag_2', 
-            name: 'GitHub', 
-            url: 'https://github.com',
-            iconType: 'emoji',
-            iconValue: '🐱',
-            backgroundColor: '#333'
-          },
-          { 
-            id: 'tag_3', 
-            name: '知乎', 
-            url: 'https://www.zhihu.com',
-            iconType: 'text',
-            iconValue: '知',
-            backgroundColor: '#0084ff'
-          },
-          { 
-            id: 'tag_4', 
-            name: '微博', 
-            url: 'https://weibo.com',
-            iconType: 'emoji',
-            iconValue: '📝',
-            backgroundColor: '#e6162d'
-          },
-          { 
-            id: 'tag_5', 
-            name: 'YouTube', 
-            url: 'https://www.youtube.com',
-            iconType: 'emoji',
-            iconValue: '📺',
-            backgroundColor: '#ff0000'
-          },
-          { 
-            id: 'tag_6', 
-            name: 'Netflix', 
-            url: 'https://www.netflix.com',
-            iconType: 'emoji',
-            iconValue: '🎬',
-            backgroundColor: '#e50914'
-          }
-        ]
-      }
-    ]
+    return {
+      version: CURRENT_VERSION,
+      lastModified: new Date().toISOString(),
+      groups: [
+        {
+          id: 'default',
+          name: '常用网站',
+          emoji: '🌟',
+          themeColor: '#667eea', // 使用默认主题颜色
+          tags: [
+            { 
+              id: 'tag_1', 
+              name: 'Google', 
+              url: 'https://www.google.com',
+              iconType: 'emoji', // favicon, emoji, text
+              iconValue: '🔍', // 搜索图标
+              backgroundColor: '#4285f4'
+            },
+            { 
+              id: 'tag_2', 
+              name: 'GitHub', 
+              url: 'https://github.com',
+              iconType: 'emoji',
+              iconValue: '🐱',
+              backgroundColor: '#333'
+            },
+            { 
+              id: 'tag_3', 
+              name: '知乎', 
+              url: 'https://www.zhihu.com',
+              iconType: 'text',
+              iconValue: '知',
+              backgroundColor: '#0084ff'
+            },
+            { 
+              id: 'tag_4', 
+              name: '微博', 
+              url: 'https://weibo.com',
+              iconType: 'emoji',
+              iconValue: '📝',
+              backgroundColor: '#e6162d'
+            },
+            { 
+              id: 'tag_5', 
+              name: 'YouTube', 
+              url: 'https://www.youtube.com',
+              iconType: 'emoji',
+              iconValue: '📺',
+              backgroundColor: '#ff0000'
+            },
+            { 
+              id: 'tag_6', 
+              name: 'Netflix', 
+              url: 'https://www.netflix.com',
+              iconType: 'emoji',
+              iconValue: '🎬',
+              backgroundColor: '#e50914'
+            }
+          ]
+        }
+      ]
+    }
   }
 
   // 使用增强版emoji工具获取emoji选项
@@ -77,48 +86,70 @@ export function useTagGroups() {
     '#26a69a', '#66bb6a', '#ffa726', '#ff8a65', '#8d6e63', '#78909c'
   ]
 
+  // 数据迁移函数
+  const migrateData = (data) => {
+    // 如果是旧版本数组格式，迁移到新版本
+    if (Array.isArray(data)) {
+      log('检测到旧版本数据，正在迁移...')
+      return {
+        version: CURRENT_VERSION,
+        lastModified: new Date().toISOString(),
+        groups: data
+      }
+    }
+    
+    // 如果是新版本但版本号不匹配，可以在这里添加版本间的迁移逻辑
+    if (data.version !== CURRENT_VERSION) {
+      log(`数据版本从 ${data.version} 迁移到 ${CURRENT_VERSION}`)
+      // 未来可以在这里添加具体的迁移逻辑
+      data.version = CURRENT_VERSION
+      data.lastModified = new Date().toISOString()
+    }
+    
+    return data
+  }
+
   // 加载标签分组
   const loadTagGroups = async () => {
     try {
-      // 尝试从Chrome存储中加载
+      // 从Chrome存储中加载
       const result = await chrome.storage.sync.get(['tagGroups'])
-      const loadedGroups = result.tagGroups || getDefaultTagGroups()
+      const loadedData = result.tagGroups || getDefaultTagGroups()
       
-      // 验证和修复数据结构
-      tagGroups.value = validateAndFixTagGroups(loadedGroups)
-    } catch (error) {
-      console.log('Chrome API不可用，使用localStorage')
-      const saved = localStorage.getItem('freshtab-tag-groups')
-      const loadedGroups = saved ? JSON.parse(saved) : getDefaultTagGroups()
+      // 迁移数据到最新版本
+      const migratedData = migrateData(loadedData)
       
-      // 验证和修复数据结构
-      tagGroups.value = validateAndFixTagGroups(loadedGroups)
-    }
-  }
-
-  // 验证和修复标签分组数据结构
-  const validateAndFixTagGroups = (groups) => {
-    if (!Array.isArray(groups)) return getDefaultTagGroups()
-    
-    return groups.map(group => {
-      // 确保每个分组都有必要的属性
-      return {
-        id: group.id || 'group_' + Date.now(),
-        name: group.name || '未命名分组',
-        emoji: group.emoji || '📁',
-        themeColor: group.themeColor || '#667eea',
-        tags: Array.isArray(group.tags) ? group.tags : [] // 确保tags是数组
+      // 基本类型检查
+      if (migratedData.groups && Array.isArray(migratedData.groups)) {
+        tagGroups.value = migratedData.groups
+        
+        // 如果数据被迁移过，保存新版本
+        if (migratedData !== loadedData) {
+          await saveTagGroups()
+        }
+      } else {
+        tagGroups.value = getDefaultTagGroups().groups
       }
-    })
+    } catch (chromeError) {
+      error('Chrome存储不可用，加载标签分组失败')
+      throw chromeError
+    }
   }
 
   // 保存标签分组
   const saveTagGroups = async () => {
     try {
-      await chrome.storage.sync.set({ tagGroups: tagGroups.value })
-    } catch (error) {
-      console.log('无法保存到Chrome存储，使用localStorage')
-      localStorage.setItem('freshtab-tag-groups', JSON.stringify(tagGroups.value))
+      const dataToSave = {
+        version: CURRENT_VERSION,
+        lastModified: new Date().toISOString(),
+        groups: tagGroups.value
+      }
+      
+      await chrome.storage.sync.set({ tagGroups: dataToSave })
+      log('设置已保存')
+    } catch (chromeError) {
+      error('Chrome存储不可用，保存失败')
+      throw chromeError
     }
   }
 
@@ -148,13 +179,14 @@ export function useTagGroups() {
   // 删除分组
   const deleteGroup = async (groupId) => {
     if (groupId === 'default') {
-      alert('无法删除默认分组')
+      warning('无法删除默认分组')
       return false
     }
     
     if (confirm('确定要删除这个分组吗？分组内的所有标签也将被删除。')) {
       tagGroups.value = tagGroups.value.filter(g => g.id !== groupId)
       await saveTagGroups()
+      log('分组已删除')
       return true
     }
     return false
@@ -181,10 +213,12 @@ export function useTagGroups() {
       // 确保URL格式正确
       if (!newTag.url.startsWith('http://') && !newTag.url.startsWith('https://')) {
         newTag.url = 'https://' + newTag.url
+        log(`已为网址添加 https:// 前缀`)
       }
       
       group.tags.push(newTag)
       await saveTagGroups()
+      log(`标签 "${newTag.name}" 已添加`)
       return newTag
     }
   }
@@ -203,6 +237,7 @@ export function useTagGroups() {
         }
         
         await saveTagGroups()
+        log('标签已更新')
       }
     }
   }
@@ -213,6 +248,7 @@ export function useTagGroups() {
     if (group) {
       group.tags = group.tags.filter(t => t.id !== tagId)
       await saveTagGroups()
+      log('标签已删除')
     }
   }
 
@@ -288,8 +324,10 @@ export function useTagGroups() {
 
   // 重置为默认数据（用于修复损坏的数据）
   const resetToDefault = async () => {
-    tagGroups.value = getDefaultTagGroups()
+    const defaultData = getDefaultTagGroups()
+    tagGroups.value = defaultData.groups
     await saveTagGroups()
+    warning('已重置为默认标签分组')
   }
 
   onMounted(() => {
