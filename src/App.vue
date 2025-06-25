@@ -63,12 +63,14 @@
         v-if="showTagModal"
         :isOpen="showTagModal"
         :tag="currentEditingTag"
-        :emojiOptions="emojiOptions"
         :themeColors="themeColors"
         @close="closeTagModal"
         @save="saveTag"
       />
     </Transition>
+
+    <!-- 提示组件 -->
+    <ToastContainer />
   </div>
 </template>
 
@@ -81,6 +83,7 @@ import SettingsButton from './components/SettingsButton.vue'
 import ThemeToggleButton from './components/ThemeToggleButton.vue'
 import SettingsModal from './components/SettingsModal.vue'
 import TagModal from './components/TagModal.vue'
+import ToastContainer from './components/ToastContainer.vue'
 
 import { useTagGroups } from './composables/useTagGroups'
 import { useSettings } from './composables/useSettings'
@@ -96,13 +99,13 @@ export default {
     SettingsButton,
     ThemeToggleButton,
     SettingsModal,
-    TagModal
+    TagModal,
+    ToastContainer
   },
   setup() {
     // 使用组合式函数
     const { 
       tagGroups, 
-      emojiOptions, 
       themeColors, 
       addTag, 
       editTag, 
@@ -180,7 +183,6 @@ export default {
     return {
       // 数据
       tagGroups,
-      emojiOptions,
       themeColors,
       settings,
       currentTime,

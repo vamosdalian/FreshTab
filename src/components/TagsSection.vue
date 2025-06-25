@@ -62,7 +62,6 @@
       
       <!-- 空状态 -->
       <div v-if="!Array.isArray(group.tags) || group.tags.length === 0" class="empty-state">
-        <p>这个分组还没有标签</p>
         <button @click="$emit('addTag', group.id)" class="add-first-btn">
           添加第一个标签
         </button>
@@ -72,8 +71,6 @@
     <!-- 全局空状态 -->
     <div v-if="tagGroups.length === 0" class="global-empty-state">
       <div class="empty-icon">📁</div>
-      <h3>还没有任何分组</h3>
-      <p>在设置中创建分组来管理你的标签</p>
       <button @click="$emit('openSettings')" class="settings-btn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="3"></circle>
