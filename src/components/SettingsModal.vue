@@ -341,10 +341,137 @@
           <!-- 内容保持不变 -->
         </div>
         
-        <!-- 背景页面 -->
-        <div v-if="activeMenu === 'background'" class="content-section">
-          <h3>背景设置</h3>
-          <!-- 内容保持不变 -->
+        <!-- 壁纸页面 -->
+        <div v-if="activeMenu === 'wallpaper'" class="content-section">
+          <div class="settings-group">
+            <h3>壁纸设置</h3>
+            <div class="setting-row">
+              <span class="setting-label">壁纸模式</span>
+              <select 
+                class="setting-select"
+                :value="settings.wallpaperMode"
+                @change="updateSetting('wallpaperMode', $event.target.value)"
+              >
+                <option value="bing">Bing每日一图</option>
+                <option value="fixed">固定壁纸</option>
+                <option value="local">本地上传</option>
+              </select>
+            </div>
+            
+            <!-- Bing每日一图模式 -->
+            <div v-if="settings.wallpaperMode === 'bing'" class="wallpaper-mode-content">
+              <div class="setting-row">
+                <span class="setting-label">自动更新</span>
+                <span class="setting-desc">每天自动获取Bing精美壁纸</span>
+              </div>
+              <div class="wallpaper-actions">
+                <button 
+                  @click="getBingDailyWallpaper" 
+                  class="action-btn primary"
+                  :disabled="wallpaperLoading"
+                >
+                  <svg v-if="!wallpaperLoading" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+                    <path d="M21 3v5h-5"></path>
+                    <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+                    <path d="M3 21v-5h5"></path>
+                  </svg>
+                  <span v-if="wallpaperLoading" class="loading-spinner"></span>
+                  {{ wallpaperLoading ? '获取中...' : '立即更新' }}
+                </button>
+              </div>
+            </div>
+            
+            <!-- 固定壁纸模式 -->
+            <div v-if="settings.wallpaperMode === 'fixed'" class="wallpaper-mode-content">
+              <div class="setting-row">
+                <span class="setting-label">选择壁纸</span>
+                <span class="setting-desc">从历史Bing壁纸中选择喜欢的图片</span>
+              </div>
+              <div class="wallpaper-grid" v-if="fixedWallpapers.length > 0">
+                <div 
+                  v-for="wallpaper in fixedWallpapers" 
+                  :key="wallpaper.date"
+                  class="wallpaper-item"
+                  :class="{ active: settings.fixedWallpaperDate === wallpaper.date }"
+                  @click="selectFixedWallpaper(wallpaper)"
+                >
+                  <img 
+                    :src="wallpaper.previewUrl" 
+                    :alt="wallpaper.displayDate"
+                    @error="$event.target.style.display='none'"
+                  />
+                  <div class="wallpaper-date">{{ wallpaper.displayDate }}</div>
+                </div>
+              </div>
+              <div v-else-if="!wallpaperLoading" class="empty-state">
+                <p>暂无壁纸列表，点击下方按钮加载</p>
+              </div>
+              <div class="wallpaper-actions">
+                <button 
+                  @click="getFixedWallpapers(0)" 
+                  class="action-btn"
+                  :disabled="wallpaperLoading"
+                >
+                  {{ wallpaperLoading ? '加载中...' : (fixedWallpapers.length > 0 ? '刷新列表' : '加载列表') }}
+                </button>
+                <button 
+                  v-if="fixedWallpapers.length > 0 && currentPage >= 0"
+                  @click="loadMoreWallpapers" 
+                  class="action-btn"
+                  :disabled="wallpaperLoading"
+                >
+                  {{ wallpaperLoading ? '加载中...' : '加载更多' }}
+                </button>
+              </div>
+            </div>
+            
+            <!-- 本地上传模式 -->
+            <div v-if="settings.wallpaperMode === 'local'" class="wallpaper-mode-content">
+              <div class="setting-row">
+                <span class="setting-label">上传图片</span>
+                <span class="setting-desc">选择本地图片作为壁纸（建议4K分辨率，最大5MB）</span>
+              </div>
+              <div class="upload-area">
+                <input 
+                  ref="fileInput"
+                  type="file" 
+                  accept="image/*"
+                  @change="handleFileUpload"
+                  style="display: none"
+                />
+                <div 
+                  class="upload-box"
+                  @click="$refs.fileInput?.click()"
+                  @dragover.prevent
+                  @drop.prevent="handleFileDrop"
+                >
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="9" cy="9" r="2"></circle>
+                    <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path>
+                  </svg>
+                  <p v-if="!wallpaperLoading">点击选择图片或拖拽到此处</p>
+                  <p v-else>上传中...</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 壁纸预览 -->
+            <div v-if="currentWallpaper" class="wallpaper-preview">
+              <div class="setting-row">
+                <span class="setting-label">当前壁纸预览</span>
+              </div>
+              <div class="preview-container">
+                <img 
+                  :src="currentWallpaper" 
+                  alt="当前壁纸"
+                  class="preview-image"
+                  @error="$event.target.style.display='none'"
+                />
+              </div>
+            </div>
+          </div>
         </div>
         
         <!-- 关于页面 -->
@@ -559,6 +686,7 @@
 
 <script>
 import { useTagGroups } from '../composables/useTagGroups'
+import { useWallpaper } from '../composables/useWallpaper'
 import EmojiPicker from './EmojiPicker.vue'
 import TagModal from './TagModal.vue'
 
@@ -579,7 +707,7 @@ export default {
     }
   },
   emits: ['close', 'updateSetting', 'resetSettings'],
-  setup() {
+  setup(props) {
     const { 
       tagGroups, 
       themeColors, 
@@ -592,6 +720,19 @@ export default {
       getFaviconUrl 
     } = useTagGroups()
     
+    const {
+      currentWallpaper,
+      wallpaperLoading,
+      fixedWallpapers,
+      currentPage,
+      getBingDailyWallpaper,
+      getFixedWallpapers,
+      selectFixedWallpaper,
+      uploadLocalWallpaper,
+      loadMoreWallpapers,
+      initializeWallpaper
+    } = useWallpaper(props.settings)
+    
     return {
       tagGroups,
       themeColors,
@@ -601,7 +742,17 @@ export default {
       addTag,
       editTag,
       deleteTag,
-      getFaviconUrl
+      getFaviconUrl,
+      currentWallpaper,
+      wallpaperLoading,
+      fixedWallpapers,
+      currentPage,
+      getBingDailyWallpaper,
+      getFixedWallpapers,
+      selectFixedWallpaper,
+      uploadLocalWallpaper,
+      loadMoreWallpapers,
+      initializeWallpaper
     }
   },
   data() {
@@ -631,11 +782,11 @@ export default {
           name: '分组管理',
           icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M7 2v4"></path><path d="M17 2v4"></path><path d="M14 14l-1-1"></path><circle cx="12" cy="12" r="2"></circle></svg>'
         },
-        // {
-        //   id: 'wallpaper',
-        //   name: '壁纸',
-        //   icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path></svg>'
-        // },
+        {
+          id: 'wallpaper',
+          name: '壁纸',
+          icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path></svg>'
+        },
         {
           id: 'about',
           name: '关于我们',
@@ -809,6 +960,21 @@ export default {
         return '浅色模式'
       } else {
         return '深色模式'
+      }
+    },
+    
+    // 壁纸相关方法
+    handleFileUpload(event) {
+      const file = event.target.files[0]
+      if (file) {
+        this.uploadLocalWallpaper(file)
+      }
+    },
+    
+    handleFileDrop(event) {
+      const files = event.dataTransfer.files
+      if (files.length > 0) {
+        this.uploadLocalWallpaper(files[0])
       }
     }
   }
@@ -2067,5 +2233,179 @@ export default {
     min-width: auto;
     font-weight: 600;
   }
+}
+
+/* 壁纸设置样式 */
+.wallpaper-mode-content {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f3f4;
+}
+
+.setting-desc {
+  font-size: 12px;
+  color: #6c757d;
+  margin-top: 4px;
+  display: block;
+}
+
+.wallpaper-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid #007bff;
+  background: white;
+  color: #007bff;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.action-btn:hover:not(:disabled) {
+  background: #007bff;
+  color: white;
+}
+
+.action-btn.primary {
+  background: #007bff;
+  color: white;
+}
+
+.action-btn.primary:hover:not(:disabled) {
+  background: #0056b3;
+}
+
+.action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.wallpaper-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.wallpaper-item {
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  background: #f8f9fa;
+}
+
+.wallpaper-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.wallpaper-item.active {
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.wallpaper-item img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  display: block;
+}
+
+.wallpaper-date {
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #495057;
+  background: #f8f9fa;
+  text-align: center;
+}
+
+.wallpaper-item.active .wallpaper-date {
+  background: #e3f2fd;
+  color: #007bff;
+  font-weight: 500;
+}
+
+.upload-area {
+  margin-top: 16px;
+}
+
+.upload-box {
+  border: 2px dashed #dee2e6;
+  border-radius: 8px;
+  padding: 32px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #f8f9fa;
+}
+
+.upload-box:hover {
+  border-color: #007bff;
+  background: #f0f8ff;
+}
+
+.upload-box svg {
+  color: #6c757d;
+  margin-bottom: 12px;
+}
+
+.upload-box p {
+  margin: 0;
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.wallpaper-preview {
+  margin-top: 24px;
+  border-top: 1px solid #f1f3f4;
+  padding-top: 24px;
+}
+
+.preview-container {
+  margin-top: 16px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f8f9fa;
+}
+
+.preview-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  display: block;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 32px 16px;
+  color: #6c757d;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 14px;
 }
 </style>

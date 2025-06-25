@@ -27,7 +27,13 @@ export function useSettings() {
     timeFormat: '24h',
     showDate: true,
     showSeconds: false,
-    displayWidth: 800
+    displayWidth: 800,
+    // 壁纸设置
+    wallpaperMode: 'bing', // 'bing', 'fixed', 'local'
+    wallpaperUrl: '',
+    wallpaperDate: '',
+    wallpaperLocalPath: '',
+    fixedWallpaperDate: ''
   })
 
   const settings = reactive(getDefaultSettings())

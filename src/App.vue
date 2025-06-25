@@ -1,7 +1,15 @@
 <template>
   <div class="container">
     <!-- 背景装饰 -->
-    <div class="background-gradient"></div>
+    <div 
+      class="background-gradient" 
+      :style="currentWallpaper ? { 
+        backgroundImage: `url(${currentWallpaper})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      } : {}"
+    ></div>
     
     <!-- 主要内容区域 -->
     <main class="main-content" :style="{ maxWidth: settings.displayWidth + 'px' }">
@@ -89,6 +97,7 @@ import { useTagGroups } from './composables/useTagGroups'
 import { useSettings } from './composables/useSettings'
 import { useTime } from './composables/useTime'
 import { useSearch } from './composables/useSearch'
+import { useWallpaper } from './composables/useWallpaper'
 
 export default {
   name: 'App',
@@ -117,6 +126,7 @@ export default {
     const { settings, saveSettings, updateTheme, resetSettings } = useSettings()
     const { currentTime, greeting } = useTime()
     const { searchQuery, searchEngines, currentEngine, performSearch, setSearchEngine } = useSearch(settings, saveSettings)
+    const { currentWallpaper, initializeWallpaper } = useWallpaper(settings)
 
     // 模态框状态
     const showSettingsModal = ref(false)
@@ -193,6 +203,7 @@ export default {
       showSettingsModal,
       showTagModal,
       currentEditingTag,
+      currentWallpaper,
       
       // 方法
       performSearch,
