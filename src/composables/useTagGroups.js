@@ -150,7 +150,6 @@ export function useTagGroups() {
       }
       
       await chrome.storage.sync.set({ tagGroups: dataToSave })
-      log('设置已保存')
     } catch (chromeError) {
       error('Chrome存储不可用，保存失败')
       throw chromeError
