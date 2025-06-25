@@ -1,4 +1,4 @@
-import { reactive, onMounted, watch } from 'vue'
+import { reactive, onMounted, watch, ref } from 'vue'
 import { useToast } from './useToast'
 
 export function useSettings() {
@@ -6,6 +6,9 @@ export function useSettings() {
   
   // 当前数据版本
   const CURRENT_VERSION = '1'
+  
+  // 加载状态
+  const isLoaded = ref(false)
   
   // 检测系统主题偏好
   const detectSystemTheme = () => {
@@ -27,13 +30,7 @@ export function useSettings() {
     timeFormat: '24h',
     showDate: true,
     showSeconds: false,
-    displayWidth: 800,
-    // 壁纸设置
-    wallpaperMode: 'bing', // 'bing', 'fixed', 'local'
-    wallpaperUrl: '',
-    wallpaperDate: '',
-    wallpaperLocalPath: '',
-    fixedWallpaperDate: ''
+    displayWidth: 800
   })
 
   const settings = reactive(getDefaultSettings())
@@ -85,6 +82,8 @@ export function useSettings() {
       } else {
         Object.assign(settings, loadedData)
       }
+      
+      isLoaded.value = true
     } catch (chromeError) {
       error('Chrome存储不可用，加载设置失败')
       throw chromeError
@@ -143,6 +142,7 @@ export function useSettings() {
 
   return {
     settings,
+    isLoaded,
     saveSettings,
     updateTheme,
     resetSettings

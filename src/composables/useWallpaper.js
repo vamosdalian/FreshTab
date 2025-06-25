@@ -1,14 +1,50 @@
-import { ref, onMounted, watch } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { useToast } from './useToast'
 
-export function useWallpaper(settings) {
+export function useWallpaper() {
   const { error, warning, log } = useToast()
   
+  // 壁纸配置的默认值
+  const getDefaultWallpaperSettings = () => ({
+    wallpaperMode: 'bing', // 'bing', 'fixed', 'local'
+    wallpaperUrl: '',
+    wallpaperDate: '',
+    wallpaperLocalPath: '',
+    fixedWallpaperDate: ''
+  })
+  
+  const wallpaperSettings = reactive(getDefaultWallpaperSettings())
+  const isWallpaperLoaded = ref(false)
   const currentWallpaper = ref('')
   const wallpaperLoading = ref(false)
   const fixedWallpapers = ref([])
   const currentPage = ref(0)
   const wallpapersPerPage = 10
+  
+  // 加载壁纸设置
+  const loadWallpaperSettings = async () => {
+    try {
+      const result = await chrome.storage.sync.get(['wallpaperSettings'])
+      const loadedData = result.wallpaperSettings || getDefaultWallpaperSettings()
+      
+      Object.assign(wallpaperSettings, loadedData)
+      isWallpaperLoaded.value = true
+    } catch (chromeError) {
+      error('加载壁纸设置失败，使用默认设置')
+      Object.assign(wallpaperSettings, getDefaultWallpaperSettings())
+      isWallpaperLoaded.value = true
+    }
+  }
+  
+  // 保存壁纸设置
+  const saveWallpaperSettings = async () => {
+    try {
+      await chrome.storage.sync.set({ wallpaperSettings: { ...wallpaperSettings } })
+      log('壁纸设置已保存')
+    } catch (chromeError) {
+      error('保存壁纸设置失败')
+    }
+  }
   
   // 获取Bing每日一图
   const getBingDailyWallpaper = async () => {
@@ -17,18 +53,18 @@ export function useWallpaper(settings) {
       const today = new Date().toISOString().split('T')[0].replace(/-/g, '')
       
       // 检查缓存
-      if (settings.wallpaperDate === today && settings.wallpaperUrl) {
+      if (wallpaperSettings.wallpaperDate === today && wallpaperSettings.wallpaperUrl) {
         // 检查URL是否可访问（可能已被浏览器缓存）
         const img = new Image()
         img.onload = () => {
-          currentWallpaper.value = settings.wallpaperUrl
+          currentWallpaper.value = wallpaperSettings.wallpaperUrl
           wallpaperLoading.value = false
         }
         img.onerror = () => {
           // 如果缓存的URL不可用，重新获取
           fetchBingWallpaper(today)
         }
-        img.src = settings.wallpaperUrl
+        img.src = wallpaperSettings.wallpaperUrl
       } else {
         // 获取新的壁纸
         await fetchBingWallpaper(today)
@@ -46,9 +82,10 @@ export function useWallpaper(settings) {
       const data = await response.json()
       
       if (data && data.imgurl) {
-        settings.wallpaperUrl = data.imgurl
-        settings.wallpaperDate = date
+        wallpaperSettings.wallpaperUrl = data.imgurl
+        wallpaperSettings.wallpaperDate = date
         currentWallpaper.value = data.imgurl
+        await saveWallpaperSettings()
         log('Bing每日壁纸已更新')
       }
     } catch (err) {
@@ -96,10 +133,11 @@ export function useWallpaper(settings) {
   // 选择固定壁纸
   const selectFixedWallpaper = async (wallpaper) => {
     try {
-      settings.wallpaperMode = 'fixed'
-      settings.fixedWallpaperDate = wallpaper.date
-      settings.wallpaperUrl = wallpaper.fullUrl
+      wallpaperSettings.wallpaperMode = 'fixed'
+      wallpaperSettings.fixedWallpaperDate = wallpaper.date
+      wallpaperSettings.wallpaperUrl = wallpaper.fullUrl
       currentWallpaper.value = wallpaper.fullUrl
+      await saveWallpaperSettings()
       log(`已选择 ${wallpaper.displayDate} 的壁纸`)
     } catch (err) {
       error('设置固定壁纸失败')
@@ -124,12 +162,13 @@ export function useWallpaper(settings) {
       
       // 转换为base64存储
       const reader = new FileReader()
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         const base64Data = e.target.result
-        settings.wallpaperMode = 'local'
-        settings.wallpaperLocalPath = base64Data
-        settings.wallpaperUrl = base64Data
+        wallpaperSettings.wallpaperMode = 'local'
+        wallpaperSettings.wallpaperLocalPath = base64Data
+        wallpaperSettings.wallpaperUrl = base64Data
         currentWallpaper.value = base64Data
+        await saveWallpaperSettings()
         wallpaperLoading.value = false
         log('本地壁纸已上传')
       }
@@ -153,64 +192,93 @@ export function useWallpaper(settings) {
   
   // 初始化壁纸
   const initializeWallpaper = async () => {
-    switch (settings.wallpaperMode) {
+    switch (wallpaperSettings.wallpaperMode) {
       case 'bing':
         await getBingDailyWallpaper()
         break
       case 'fixed':
-        if (settings.wallpaperUrl) {
-          currentWallpaper.value = settings.wallpaperUrl
+        // 如果已有选中的壁纸，直接使用
+        if (wallpaperSettings.wallpaperUrl && wallpaperSettings.fixedWallpaperDate) {
+          currentWallpaper.value = wallpaperSettings.wallpaperUrl
+        } else {
+          // 如果没有选中的壁纸，则加载壁纸列表
+          await getFixedWallpapers(0)
         }
         break
       case 'local':
-        if (settings.wallpaperLocalPath) {
-          currentWallpaper.value = settings.wallpaperLocalPath
+        if (wallpaperSettings.wallpaperLocalPath) {
+          currentWallpaper.value = wallpaperSettings.wallpaperLocalPath
         }
         break
     }
   }
   
   // 监听壁纸模式变化
-  watch(() => settings.wallpaperMode, (newMode) => {
+  watch(() => wallpaperSettings.wallpaperMode, async (newMode) => {
+    // 只在设置加载完成后才响应模式变化
+    if (!isWallpaperLoaded.value) return
+    
     switch (newMode) {
       case 'bing':
-        getBingDailyWallpaper()
+        await getBingDailyWallpaper()
         break
       case 'fixed':
-        getFixedWallpapers(0)
+        // 如果已有选中的壁纸，直接使用，否则加载列表
+        if (wallpaperSettings.wallpaperUrl && wallpaperSettings.fixedWallpaperDate) {
+          currentWallpaper.value = wallpaperSettings.wallpaperUrl
+        } else {
+          await getFixedWallpapers(0)
+        }
         break
       case 'local':
         // 保持当前本地壁纸
+        if (wallpaperSettings.wallpaperLocalPath) {
+          currentWallpaper.value = wallpaperSettings.wallpaperLocalPath
+        }
         break
     }
+    await saveWallpaperSettings()
   })
   
   // 监听壁纸URL变化
-  watch(() => settings.wallpaperUrl, (newUrl) => {
+  watch(() => wallpaperSettings.wallpaperUrl, (newUrl) => {
     if (newUrl) {
       currentWallpaper.value = newUrl
     }
   })
   
   // 监听本地壁纸路径变化
-  watch(() => settings.wallpaperLocalPath, (newPath) => {
-    if (newPath && settings.wallpaperMode === 'local') {
+  watch(() => wallpaperSettings.wallpaperLocalPath, (newPath) => {
+    if (newPath && wallpaperSettings.wallpaperMode === 'local') {
       currentWallpaper.value = newPath
     }
   })
   
   // 监听固定壁纸日期变化
-  watch(() => settings.fixedWallpaperDate, (newDate) => {
-    if (newDate && settings.wallpaperMode === 'fixed' && settings.wallpaperUrl) {
-      currentWallpaper.value = settings.wallpaperUrl
+  watch(() => wallpaperSettings.fixedWallpaperDate, (newDate) => {
+    if (newDate && wallpaperSettings.wallpaperMode === 'fixed' && wallpaperSettings.wallpaperUrl) {
+      currentWallpaper.value = wallpaperSettings.wallpaperUrl
     }
   })
   
-  onMounted(() => {
-    initializeWallpaper()
+  // 监听设置加载完成
+  watch(isWallpaperLoaded, (loaded) => {
+    if (loaded) {
+      initializeWallpaper()
+    }
+  })
+
+  onMounted(async () => {
+    await loadWallpaperSettings()
+    // 如果已经加载完成，立即初始化
+    if (isWallpaperLoaded.value) {
+      initializeWallpaper()
+    }
   })
   
   return {
+    wallpaperSettings,
+    isWallpaperLoaded,
     currentWallpaper,
     wallpaperLoading,
     fixedWallpapers,
@@ -220,6 +288,7 @@ export function useWallpaper(settings) {
     selectFixedWallpaper,
     uploadLocalWallpaper,
     loadMoreWallpapers,
-    initializeWallpaper
+    initializeWallpaper,
+    saveWallpaperSettings
   }
 }

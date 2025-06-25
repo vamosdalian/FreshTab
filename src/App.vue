@@ -59,6 +59,7 @@
         v-if="showSettingsModal"
         :isOpen="showSettingsModal"
         :settings="settings"
+        :wallpaperState="wallpaperState"
         @close="showSettingsModal = false"
         @updateSetting="handleSettingUpdate"
         @resetSettings="resetSettings"
@@ -123,10 +124,11 @@ export default {
       searchEmojis,
       emojiLibrary
     } = useTagGroups()
-    const { settings, saveSettings, updateTheme, resetSettings } = useSettings()
+    const { settings, isLoaded, saveSettings, updateTheme, resetSettings } = useSettings()
     const { currentTime, greeting } = useTime()
     const { searchQuery, searchEngines, currentEngine, performSearch, setSearchEngine } = useSearch(settings, saveSettings)
-    const { currentWallpaper, initializeWallpaper } = useWallpaper(settings)
+    const wallpaperState = useWallpaper()
+    const { currentWallpaper } = wallpaperState
 
     // 模态框状态
     const showSettingsModal = ref(false)
@@ -204,6 +206,7 @@ export default {
       showTagModal,
       currentEditingTag,
       currentWallpaper,
+      wallpaperState,
       
       // 方法
       performSearch,

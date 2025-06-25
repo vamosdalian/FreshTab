@@ -349,8 +349,8 @@
               <span class="setting-label">壁纸模式</span>
               <select 
                 class="setting-select"
-                :value="settings.wallpaperMode"
-                @change="updateSetting('wallpaperMode', $event.target.value)"
+                :value="wallpaperSettings.wallpaperMode"
+                @change="updateWallpaperSetting('wallpaperMode', $event.target.value)"
               >
                 <option value="bing">Bing每日一图</option>
                 <option value="fixed">固定壁纸</option>
@@ -359,7 +359,7 @@
             </div>
             
             <!-- Bing每日一图模式 -->
-            <div v-if="settings.wallpaperMode === 'bing'" class="wallpaper-mode-content">
+            <div v-if="wallpaperSettings.wallpaperMode === 'bing'" class="wallpaper-mode-content">
               <div class="setting-row">
                 <span class="setting-label">自动更新</span>
                 <span class="setting-desc">每天自动获取Bing精美壁纸</span>
@@ -383,7 +383,7 @@
             </div>
             
             <!-- 固定壁纸模式 -->
-            <div v-if="settings.wallpaperMode === 'fixed'" class="wallpaper-mode-content">
+            <div v-if="wallpaperSettings.wallpaperMode === 'fixed'" class="wallpaper-mode-content">
               <div class="setting-row">
                 <span class="setting-label">选择壁纸</span>
                 <span class="setting-desc">从历史Bing壁纸中选择喜欢的图片</span>
@@ -393,7 +393,7 @@
                   v-for="wallpaper in fixedWallpapers" 
                   :key="wallpaper.date"
                   class="wallpaper-item"
-                  :class="{ active: settings.fixedWallpaperDate === wallpaper.date }"
+                  :class="{ active: wallpaperSettings.fixedWallpaperDate === wallpaper.date }"
                   @click="selectFixedWallpaper(wallpaper)"
                 >
                   <img 
@@ -427,7 +427,7 @@
             </div>
             
             <!-- 本地上传模式 -->
-            <div v-if="settings.wallpaperMode === 'local'" class="wallpaper-mode-content">
+            <div v-if="wallpaperSettings.wallpaperMode === 'local'" class="wallpaper-mode-content">
               <div class="setting-row">
                 <span class="setting-label">上传图片</span>
                 <span class="setting-desc">选择本地图片作为壁纸（建议4K分辨率，最大5MB）</span>
@@ -686,7 +686,6 @@
 
 <script>
 import { useTagGroups } from '../composables/useTagGroups'
-import { useWallpaper } from '../composables/useWallpaper'
 import EmojiPicker from './EmojiPicker.vue'
 import TagModal from './TagModal.vue'
 
@@ -702,6 +701,11 @@ export default {
       required: true
     },
     settings: {
+      type: Object,
+      required: true
+    },
+    // 从主应用传递的壁纸状态
+    wallpaperState: {
       type: Object,
       required: true
     }
@@ -720,7 +724,9 @@ export default {
       getFaviconUrl 
     } = useTagGroups()
     
+    // 直接使用传递的壁纸状态
     const {
+      wallpaperSettings,
       currentWallpaper,
       wallpaperLoading,
       fixedWallpapers,
@@ -730,8 +736,9 @@ export default {
       selectFixedWallpaper,
       uploadLocalWallpaper,
       loadMoreWallpapers,
-      initializeWallpaper
-    } = useWallpaper(props.settings)
+      initializeWallpaper,
+      saveWallpaperSettings
+    } = props.wallpaperState
     
     return {
       tagGroups,
@@ -743,6 +750,7 @@ export default {
       editTag,
       deleteTag,
       getFaviconUrl,
+      wallpaperSettings,
       currentWallpaper,
       wallpaperLoading,
       fixedWallpapers,
@@ -752,7 +760,8 @@ export default {
       selectFixedWallpaper,
       uploadLocalWallpaper,
       loadMoreWallpapers,
-      initializeWallpaper
+      initializeWallpaper,
+      saveWallpaperSettings
     }
   },
   data() {
@@ -964,6 +973,11 @@ export default {
     },
     
     // 壁纸相关方法
+    updateWallpaperSetting(key, value) {
+      this.wallpaperSettings[key] = value
+      this.saveWallpaperSettings()
+    },
+    
     handleFileUpload(event) {
       const file = event.target.files[0]
       if (file) {
