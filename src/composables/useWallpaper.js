@@ -78,7 +78,7 @@ export function useWallpaper() {
   // 从API获取Bing壁纸
   const fetchBingWallpaper = async (date) => {
     try {
-      const response = await fetch('https://bing.ee123.net/img/4k?type=json')
+      const response = await fetch(`https://bing.ee123.net/img/4k?type=json&date=${date}`)
       const data = await response.json()
       
       if (data && data.imgurl) {

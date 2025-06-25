@@ -724,7 +724,7 @@ export default {
       getFaviconUrl 
     } = useTagGroups()
     
-    // 直接使用传递的壁纸状态
+    // 解构壁纸状态和方法
     const {
       wallpaperSettings,
       currentWallpaper,
@@ -750,6 +750,7 @@ export default {
       editTag,
       deleteTag,
       getFaviconUrl,
+      // 壁纸相关状态和方法
       wallpaperSettings,
       currentWallpaper,
       wallpaperLoading,
