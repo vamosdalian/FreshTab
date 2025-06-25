@@ -152,33 +152,18 @@ export function useWallpaper() {
         return
       }
       
-      // 检查文件大小（限制为5MB）
-      if (file.size > 5 * 1024 * 1024) {
-        error('图片文件大小不能超过5MB')
-        return
-      }
-      
       wallpaperLoading.value = true
       
-      // 转换为base64存储
-      const reader = new FileReader()
-      reader.onload = async (e) => {
-        const base64Data = e.target.result
-        wallpaperSettings.wallpaperMode = 'local'
-        wallpaperSettings.wallpaperLocalPath = base64Data
-        wallpaperSettings.wallpaperUrl = base64Data
-        currentWallpaper.value = base64Data
-        await saveWallpaperSettings()
-        wallpaperLoading.value = false
-        log('本地壁纸已上传')
-      }
+      // 创建本地 URL
+      const localUrl = URL.createObjectURL(file)
       
-      reader.onerror = () => {
-        error('读取图片文件失败')
-        wallpaperLoading.value = false
-      }
-      
-      reader.readAsDataURL(file)
+      wallpaperSettings.wallpaperMode = 'local'
+      wallpaperSettings.wallpaperLocalPath = localUrl
+      wallpaperSettings.wallpaperUrl = localUrl
+      currentWallpaper.value = localUrl
+      await saveWallpaperSettings()
+      wallpaperLoading.value = false
+      log('本地壁纸已设置')
     } catch (err) {
       error('上传本地壁纸失败')
       wallpaperLoading.value = false
