@@ -4,7 +4,7 @@
     <div 
       class="background-gradient" 
       :style="currentWallpaper ? { 
-        backgroundImage: `url(${currentWallpaper})`,
+        background: `url(${currentWallpaper}) center/cover no-repeat`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat'

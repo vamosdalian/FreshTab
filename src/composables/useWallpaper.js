@@ -185,6 +185,27 @@ export function useWallpaper(settings) {
     }
   })
   
+  // 监听壁纸URL变化
+  watch(() => settings.wallpaperUrl, (newUrl) => {
+    if (newUrl) {
+      currentWallpaper.value = newUrl
+    }
+  })
+  
+  // 监听本地壁纸路径变化
+  watch(() => settings.wallpaperLocalPath, (newPath) => {
+    if (newPath && settings.wallpaperMode === 'local') {
+      currentWallpaper.value = newPath
+    }
+  })
+  
+  // 监听固定壁纸日期变化
+  watch(() => settings.fixedWallpaperDate, (newDate) => {
+    if (newDate && settings.wallpaperMode === 'fixed' && settings.wallpaperUrl) {
+      currentWallpaper.value = settings.wallpaperUrl
+    }
+  })
+  
   onMounted(() => {
     initializeWallpaper()
   })

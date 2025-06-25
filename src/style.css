@@ -68,20 +68,7 @@ body {
     background: var(--bg-gradient-decoration);
     opacity: 0.8;
     z-index: -1;
-    transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* 当有壁纸时，添加遮罩层确保文字可读性 */
-.background-gradient[style*="background-image"]::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: var(--bg-gradient);
-    opacity: 0.3;
-    z-index: 1;
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .background-gradient::before {
