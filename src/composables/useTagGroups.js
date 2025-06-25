@@ -167,10 +167,20 @@ export function useTagGroups() {
       themeColor,
       tags: []
     }
+    
+    // 先保存到存储，成功后再更新本地状态
+    const originalGroups = [...tagGroups.value]
     tagGroups.value.push(newGroup)
-    await saveTagGroups()
-    log(`分组 "${newGroup.name}" 已创建`)
-    return newGroup
+    
+    try {
+      await saveTagGroups()
+      log(`分组 "${newGroup.name}" 已创建`)
+      return newGroup
+    } catch (error) {
+      // 保存失败，回滚本地状态
+      tagGroups.value = originalGroups
+      throw error
+    }
   }
 
   // 编辑分组
@@ -182,12 +192,22 @@ export function useTagGroups() {
     
     const group = tagGroups.value.find(g => g.id === groupId)
     if (group) {
+      // 保存原始状态用于回滚
+      const originalGroup = { ...group }
+      
       if (updates.name) {
         updates.name = updates.name.trim()
       }
       Object.assign(group, updates)
-      await saveTagGroups()
-      log('分组已更新')
+      
+      try {
+        await saveTagGroups()
+        log('分组已更新')
+      } catch (error) {
+        // 保存失败，回滚分组状态
+        Object.assign(group, originalGroup)
+        throw error
+      }
     }
   }
 
@@ -199,10 +219,18 @@ export function useTagGroups() {
     }
     
     if (confirm('确定要删除这个分组吗？分组内的所有标签也将被删除。')) {
+      const originalGroups = [...tagGroups.value]
       tagGroups.value = tagGroups.value.filter(g => g.id !== groupId)
-      await saveTagGroups()
-      log('分组已删除')
-      return true
+      
+      try {
+        await saveTagGroups()
+        log('分组已删除')
+        return true
+      } catch (error) {
+        // 保存失败，回滚本地状态
+        tagGroups.value = originalGroups
+        throw error
+      }
     }
     return false
   }
@@ -232,9 +260,16 @@ export function useTagGroups() {
       }
       
       group.tags.push(newTag)
-      await saveTagGroups()
-      log(`标签 "${newTag.name}" 已添加`)
-      return newTag
+      
+      try {
+        await saveTagGroups()
+        log(`标签 "${newTag.name}" 已添加`)
+        return newTag
+      } catch (error) {
+        // 保存失败，回滚标签添加
+        group.tags.pop()
+        throw error
+      }
     }
   }
 
@@ -244,6 +279,7 @@ export function useTagGroups() {
     if (group) {
       const tag = group.tags.find(t => t.id === tagId)
       if (tag) {
+        const originalTag = { ...tag }
         Object.assign(tag, updates)
         
         // 如果URL变化了且是favicon类型，清除旧的validFaviconUrl
@@ -251,8 +287,14 @@ export function useTagGroups() {
           delete tag.validFaviconUrl
         }
         
-        await saveTagGroups()
-        log('标签已更新')
+        try {
+          await saveTagGroups()
+          log('标签已更新')
+        } catch (error) {
+          // 保存失败，回滚标签状态
+          Object.assign(tag, originalTag)
+          throw error
+        }
       }
     }
   }
@@ -261,9 +303,17 @@ export function useTagGroups() {
   const deleteTag = async (groupId, tagId) => {
     const group = tagGroups.value.find(g => g.id === groupId)
     if (group) {
+      const originalTags = [...group.tags]
       group.tags = group.tags.filter(t => t.id !== tagId)
-      await saveTagGroups()
-      log('标签已删除')
+      
+      try {
+        await saveTagGroups()
+        log('标签已删除')
+      } catch (error) {
+        // 保存失败，回滚标签列表
+        group.tags = originalTags
+        throw error
+      }
     }
   }
 
