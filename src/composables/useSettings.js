@@ -57,11 +57,7 @@ export function useSettings() {
       const result = await chrome.storage.sync.get(['settings'])
       Object.assign(settings, result.settings || {})
     } catch (error) {
-      console.log('使用默认设置')
-      const savedSettings = localStorage.getItem('freshtab-settings')
-      if (savedSettings) {
-        Object.assign(settings, JSON.parse(savedSettings))
-      }
+      console.log('加载设置失败')
     }
     
     // 加载完设置后更新主题
@@ -75,8 +71,7 @@ export function useSettings() {
     try {
       await chrome.storage.sync.set({ settings })
     } catch (error) {
-      console.log('无法保存到Chrome存储，使用localStorage')
-      localStorage.setItem('freshtab-settings', JSON.stringify(settings))
+      console.log('保存设置失败')
     }
     
     // 保存后更新主题
@@ -115,8 +110,7 @@ export function useSettings() {
     try {
       await chrome.storage.sync.set({ settings })
     } catch (error) {
-      console.log('无法保存到Chrome存储，使用localStorage')
-      localStorage.setItem('freshtab-settings', JSON.stringify(settings))
+      console.log('重置设置失败')
     }
     
     // 重置后更新主题
