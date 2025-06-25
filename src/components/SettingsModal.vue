@@ -551,7 +551,6 @@
     v-if="showTagModal"
     :isOpen="showTagModal"
     :tag="currentEditingTag"
-    :emojiOptions="emojiOptions"
     :themeColors="themeColors"
     @close="closeTagModal"
     @save="saveTag"
@@ -583,7 +582,6 @@ export default {
   setup() {
     const { 
       tagGroups, 
-      emojiOptions, 
       themeColors, 
       addGroup, 
       editGroup, 
@@ -596,7 +594,6 @@ export default {
     
     return {
       tagGroups,
-      emojiOptions,
       themeColors,
       addGroup,
       editGroup,

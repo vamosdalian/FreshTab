@@ -63,7 +63,6 @@
         v-if="showTagModal"
         :isOpen="showTagModal"
         :tag="currentEditingTag"
-        :emojiOptions="emojiOptions"
         :themeColors="themeColors"
         @close="closeTagModal"
         @save="saveTag"
@@ -107,7 +106,6 @@ export default {
     // 使用组合式函数
     const { 
       tagGroups, 
-      emojiOptions, 
       themeColors, 
       addTag, 
       editTag, 
@@ -185,7 +183,6 @@ export default {
     return {
       // 数据
       tagGroups,
-      emojiOptions,
       themeColors,
       settings,
       currentTime,

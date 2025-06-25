@@ -199,10 +199,6 @@ export default {
       type: Object,
       default: null
     },
-    emojiOptions: {
-      type: Array,
-      default: () => []
-    },
     themeColors: {
       type: Array,
       default: () => []
