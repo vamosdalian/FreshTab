@@ -628,7 +628,6 @@ export default {
     
     async saveGroup() {
       if (!this.groupForm.name.trim()) {
-        alert('请输入分组名称')
         return
       }
       
@@ -641,7 +640,6 @@ export default {
         this.closeGroupModal()
       } catch (error) {
         console.error('保存分组失败:', error)
-        alert('保存失败，请重试')
       }
     },
     

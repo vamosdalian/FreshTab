@@ -155,24 +155,39 @@ export function useTagGroups() {
 
   // 添加新分组
   const addGroup = async (name, emoji = '📁', themeColor = '#667eea') => {
+    if (!name || !name.trim()) {
+      warning('请输入分组名称')
+      throw new Error('分组名称不能为空')
+    }
+    
     const newGroup = {
       id: 'group_' + Date.now(),
-      name,
+      name: name.trim(),
       emoji,
       themeColor,
       tags: []
     }
     tagGroups.value.push(newGroup)
     await saveTagGroups()
+    log(`分组 "${newGroup.name}" 已创建`)
     return newGroup
   }
 
   // 编辑分组
   const editGroup = async (groupId, updates) => {
+    if (updates.name && !updates.name.trim()) {
+      warning('分组名称不能为空')
+      throw new Error('分组名称不能为空')
+    }
+    
     const group = tagGroups.value.find(g => g.id === groupId)
     if (group) {
+      if (updates.name) {
+        updates.name = updates.name.trim()
+      }
       Object.assign(group, updates)
       await saveTagGroups()
+      log('分组已更新')
     }
   }
 
