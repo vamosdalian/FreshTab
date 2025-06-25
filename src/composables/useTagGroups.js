@@ -2,8 +2,17 @@ import { ref, onMounted } from 'vue'
 import { enhancedEmojiUtils, emojiLibrary } from '../utils/emojiLibrary'
 import { useToast } from './useToast'
 
+// 全局单例：确保所有组件共享同一个状态
+let _tagGroups = null
+let _isInitialized = false
+
 export function useTagGroups() {
-  const tagGroups = ref([])
+  // 如果还没有初始化，创建全局 ref
+  if (!_tagGroups) {
+    _tagGroups = ref([])
+  }
+  
+  const tagGroups = _tagGroups
   const { error, warning, log } = useToast()
 
   // 当前数据版本
@@ -151,6 +160,11 @@ export function useTagGroups() {
       error('Chrome存储不可用，保存失败')
       throw chromeError
     }
+  }
+
+  // 强制刷新数据（用于手动同步）
+  const refreshTagGroups = async () => {
+    await loadTagGroups()
   }
 
   // 添加新分组
@@ -395,8 +409,12 @@ export function useTagGroups() {
     warning('已重置为默认标签分组')
   }
 
-  onMounted(() => {
-    loadTagGroups()
+  onMounted(async () => {
+    // 只在第一次初始化时加载数据
+    if (!_isInitialized) {
+      _isInitialized = true
+      await loadTagGroups()
+    }
   })
 
   return {
@@ -422,6 +440,7 @@ export function useTagGroups() {
     getTagEmojiRecommendations,
     searchEmojis,
     saveTagGroups,
+    refreshTagGroups,
     resetToDefault,
     
     // Emoji相关

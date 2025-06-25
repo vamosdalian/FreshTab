@@ -272,23 +272,64 @@
               
               <div class="group-color-preview" :style="{ backgroundColor: group.themeColor }"></div>
               
-              <div class="tags-preview">
+              <!-- 标签列表显示 -->
+              <div v-if="Array.isArray(group.tags) && group.tags.length > 0" class="tags-list">
                 <div 
-                  v-for="tag in (Array.isArray(group.tags) ? group.tags.slice(0, 4) : [])" 
+                  v-for="tag in group.tags" 
                   :key="tag.id"
-                  class="tag-preview"
-                  :style="{ backgroundColor: tag.backgroundColor }"
+                  class="tag-list-item"
                 >
-                  <span v-if="tag.iconType === 'emoji'">{{ tag.iconValue }}</span>
-                  <span v-else-if="tag.iconType === 'text'">{{ tag.iconValue }}</span>
-                  <img 
-                    v-else-if="tag.iconType === 'favicon'"
-                    :src="getFaviconUrl(tag.url)"
-                    :alt="tag.name"
-                    @error="$event.target.style.display='none'"
-                  />
+                  <div class="tag-list-icon">
+                    <span v-if="tag.iconType === 'emoji'">{{ tag.iconValue }}</span>
+                    <span v-else-if="tag.iconType === 'text'">{{ tag.iconValue }}</span>
+                    <img 
+                      v-else-if="tag.iconType === 'favicon'"
+                      :src="getFaviconUrl(tag.url)"
+                      :alt="tag.name"
+                      @error="$event.target.style.display='none'"
+                    />
+                    <span v-else>🔗</span>
+                  </div>
+                  <span class="tag-list-name">{{ tag.name }}</span>
+                  <div class="tag-list-actions">
+                    <button 
+                      @click="editTagModal(group.id, tag)"
+                      class="edit-btn"
+                      title="编辑标签"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                      </svg>
+                    </button>
+                    <button 
+                      @click="deleteTagConfirm(group.id, tag.id)"
+                      class="delete-btn"
+                      title="删除标签"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3,6 5,6 21,6"></polyline>
+                        <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6M8,6V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6"></path>
+                      </svg>
+                    </button>
+                  </div>
                 </div>
-                <span v-if="Array.isArray(group.tags) && group.tags.length > 4" class="more-count">+{{ group.tags.length - 4 }}</span>
+                
+                <!-- 添加标签按钮 -->
+                <button @click="addTagModal(group.id)" class="add-tag-button">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  添加标签
+                </button>
+              </div>
+              
+              <!-- 空状态 -->
+              <div v-else class="empty-tags-state">
+                <button @click="addTagModal(group.id)" class="add-first-tag-button">
+                  添加第一个标签
+                </button>
               </div>
             </div>
           </div>
@@ -504,16 +545,29 @@
     @select-emoji="handleSelectGroupEmoji"
     @close="showEmojiPicker = false"
   />
+  
+  <!-- 标签编辑模态框 -->
+  <TagModal 
+    v-if="showTagModal"
+    :isOpen="showTagModal"
+    :tag="currentEditingTag"
+    :emojiOptions="emojiOptions"
+    :themeColors="themeColors"
+    @close="closeTagModal"
+    @save="saveTag"
+  />
 </template>
 
 <script>
 import { useTagGroups } from '../composables/useTagGroups'
 import EmojiPicker from './EmojiPicker.vue'
+import TagModal from './TagModal.vue'
 
 export default {
   name: 'SettingsModal',
   components: {
-    EmojiPicker
+    EmojiPicker,
+    TagModal
   },
   props: {
     isOpen: {
@@ -534,6 +588,9 @@ export default {
       addGroup, 
       editGroup, 
       deleteGroup,
+      addTag,
+      editTag,
+      deleteTag,
       getFaviconUrl 
     } = useTagGroups()
     
@@ -544,6 +601,9 @@ export default {
       addGroup,
       editGroup,
       deleteGroup,
+      addTag,
+      editTag,
+      deleteTag,
       getFaviconUrl
     }
   },
@@ -553,7 +613,10 @@ export default {
       showAddGroupModal: false,
       showEditGroupModal: false,
       showEmojiPicker: false,
+      showTagModal: false,
       editingGroupId: null,
+      currentGroupId: null,
+      currentEditingTag: null,
       windowWidth: window.innerWidth, // 添加窗口宽度跟踪
       groupForm: {
         name: '',
@@ -645,6 +708,42 @@ export default {
     
     async deleteGroupConfirm(groupId) {
       await this.deleteGroup(groupId)
+    },
+    
+    // 标签管理方法
+    addTagModal(groupId) {
+      this.currentGroupId = groupId
+      this.currentEditingTag = null
+      this.showTagModal = true
+    },
+    
+    editTagModal(groupId, tag) {
+      this.currentGroupId = groupId
+      this.currentEditingTag = tag
+      this.showTagModal = true
+    },
+    
+    closeTagModal() {
+      this.showTagModal = false
+      this.currentEditingTag = null
+      this.currentGroupId = null
+    },
+    
+    async saveTag(tagData) {
+      try {
+        if (this.currentEditingTag) {
+          await this.editTag(this.currentGroupId, this.currentEditingTag.id, tagData)
+        } else {
+          await this.addTag(this.currentGroupId, tagData)
+        }
+        this.closeTagModal()
+      } catch (error) {
+        console.error('保存标签失败:', error)
+      }
+    },
+    
+    async deleteTagConfirm(groupId, tagId) {
+      await this.deleteTag(groupId, tagId)
     },
     
     // emoji相关方法
@@ -1436,6 +1535,119 @@ export default {
   font-size: 12px;
   color: #6c757d;
   font-weight: 500;
+}
+
+/* 标签列表样式 */
+.tags-list {
+  margin-top: 16px;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tag-list-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e9ecef;
+  transition: background-color 0.2s ease;
+}
+
+.tag-list-item:last-child {
+  border-bottom: none;
+}
+
+.tag-list-item:hover {
+  background-color: #f8f9fa;
+}
+
+.tag-list-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.tag-list-icon img {
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+}
+
+.tag-list-name {
+  flex: 1;
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.tag-list-actions {
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.tag-list-item:hover .tag-list-actions {
+  opacity: 1;
+}
+
+.add-tag-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  background: #f8f9fa;
+  border: 1px dashed #dee2e6;
+  border-radius: 0 0 8px 8px;
+  color: #6c757d;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+.add-tag-button:hover {
+  background: #e9ecef;
+  color: #495057;
+  border-color: #adb5bd;
+}
+
+.empty-tags-state {
+  text-align: center;
+  padding: 24px 16px;
+  color: #6c757d;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-top: 16px;
+}
+
+.empty-tags-state p {
+  margin: 0 0 16px 0;
+  font-size: 14px;
+}
+
+.add-first-tag-button {
+  padding: 8px 16px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+}
+
+.add-first-tag-button:hover {
+  background: #0056b3;
 }
 
 /* 分组模态框样式 */
