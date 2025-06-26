@@ -32,7 +32,7 @@
           </div>
           
           <div class="nav-footer">
-            <div class="version-info">V1.0.2</div>
+            <div class="version-info">V1.0.3</div>
           </div>
         </nav>
       </div>
@@ -488,7 +488,7 @@
               </div> -->
               <div class="app-details">
                 <h2 class="app-title">FreshTab</h2>
-                <p class="app-version">版本 1.0.2</p>
+                <p class="app-version">版本 1.0.3</p>
                 <p class="app-description">
                   一个简洁优雅的浏览器新标签页扩展，让您的浏览体验更加高效和美观。
                 </p>
