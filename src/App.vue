@@ -1,7 +1,15 @@
 <template>
   <div class="container">
     <!-- 背景装饰 -->
-    <div class="background-gradient"></div>
+    <div 
+      class="background-gradient" 
+      :style="currentWallpaper ? { 
+        background: `url(${currentWallpaper}) center/cover no-repeat`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      } : {}"
+    ></div>
     
     <!-- 主要内容区域 -->
     <main class="main-content" :style="{ maxWidth: settings.displayWidth + 'px' }">
@@ -51,6 +59,7 @@
         v-if="showSettingsModal"
         :isOpen="showSettingsModal"
         :settings="settings"
+        :wallpaperState="wallpaperState"
         @close="showSettingsModal = false"
         @updateSetting="handleSettingUpdate"
         @resetSettings="resetSettings"
@@ -89,6 +98,7 @@ import { useTagGroups } from './composables/useTagGroups'
 import { useSettings } from './composables/useSettings'
 import { useTime } from './composables/useTime'
 import { useSearch } from './composables/useSearch'
+import { useWallpaper } from './composables/useWallpaper'
 
 export default {
   name: 'App',
@@ -114,9 +124,11 @@ export default {
       searchEmojis,
       emojiLibrary
     } = useTagGroups()
-    const { settings, saveSettings, updateTheme, resetSettings } = useSettings()
+    const { settings, isLoaded, saveSettings, updateTheme, resetSettings } = useSettings()
     const { currentTime, greeting } = useTime()
     const { searchQuery, searchEngines, currentEngine, performSearch, setSearchEngine } = useSearch(settings, saveSettings)
+    const wallpaperState = useWallpaper()
+    const { currentWallpaper } = wallpaperState
 
     // 模态框状态
     const showSettingsModal = ref(false)
@@ -193,6 +205,8 @@ export default {
       showSettingsModal,
       showTagModal,
       currentEditingTag,
+      currentWallpaper,
+      wallpaperState,
       
       // 方法
       performSearch,
