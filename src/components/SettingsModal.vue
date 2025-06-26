@@ -976,6 +976,10 @@ export default {
     // 壁纸相关方法
     updateWallpaperSetting(key, value) {
       this.wallpaperSettings[key] = value
+      // 如果选择本地上传模式，暂不保存设置，等待文件选择
+      if (key === 'wallpaperMode' && value === 'local') {
+        return
+      }
       this.saveWallpaperSettings()
     },
     
@@ -983,13 +987,17 @@ export default {
       const file = event.target.files[0]
       if (file) {
         this.uploadLocalWallpaper(file)
+        // 文件选择完成后保存壁纸设置
+        this.saveWallpaperSettings()
       }
     },
-    
+
     handleFileDrop(event) {
       const files = event.dataTransfer.files
       if (files.length > 0) {
         this.uploadLocalWallpaper(files[0])
+        // 文件选择完成后保存壁纸设置
+        this.saveWallpaperSettings()
       }
     }
   }
