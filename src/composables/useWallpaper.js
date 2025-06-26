@@ -36,11 +36,13 @@ export function useWallpaper() {
     }
   }
   
-  // 保存壁纸设置
-  const saveWallpaperSettings = async () => {
+  // 保存壁纸设置（静默保存，不显示toast）
+  const saveWallpaperSettings = async (showToast = false) => {
     try {
       await chrome.storage.sync.set({ wallpaperSettings: { ...wallpaperSettings } })
-      log('壁纸设置已保存')
+      if (showToast) {
+        log('壁纸设置已保存')
+      }
     } catch (chromeError) {
       error('保存壁纸设置失败')
     }
@@ -86,7 +88,7 @@ export function useWallpaper() {
         wallpaperSettings.wallpaperDate = date
         currentWallpaper.value = data.imgurl
         await saveWallpaperSettings()
-        log('Bing每日壁纸已更新')
+        // 移除Bing壁纸更新成功的toast，避免不必要的提示
       }
     } catch (err) {
       error('获取Bing壁纸API失败')
@@ -140,7 +142,7 @@ export function useWallpaper() {
       await saveWallpaperSettings()
       log(`已选择 ${wallpaper.displayDate} 的壁纸`)
     } catch (err) {
-      error('设置固定壁纸失败')
+      error('设置壁纸失败')
     }
   }
   
@@ -163,7 +165,7 @@ export function useWallpaper() {
       currentWallpaper.value = localUrl
       await saveWallpaperSettings()
       wallpaperLoading.value = false
-      log('本地壁纸已设置')
+      log('本地壁纸设置成功')
     } catch (err) {
       error('上传本地壁纸失败')
       wallpaperLoading.value = false
@@ -222,7 +224,7 @@ export function useWallpaper() {
         }
         break
     }
-    await saveWallpaperSettings()
+    await saveWallpaperSettings() // 静默保存，不显示toast
   })
   
   // 监听壁纸URL变化
