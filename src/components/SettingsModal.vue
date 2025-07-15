@@ -593,13 +593,6 @@ const groupForm = reactive({
   themeColor: '#667eea'
 })
 
-// Wallpaper mode options
-const wallpaperModeOptions = [
-  { value: 'bing', label: 'Bing每日一图' },
-  { value: 'fixed', label: '固定壁纸' },
-  { value: 'local', label: '本地上传' }
-]
-
 const menuItems = [
   {
     id: 'settings',
@@ -621,6 +614,13 @@ const menuItems = [
     name: '关于我们',
     icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
   }
+]
+
+// Wallpaper mode options
+const wallpaperModeOptions = [
+  { value: 'bing', label: 'Bing每日一图' },
+  { value: 'fixed', label: '固定壁纸' },
+  { value: 'local', label: '本地上传' }
 ]
 
 // Methods
@@ -906,6 +906,9 @@ onMounted(async () => {
   settings.value = await getConfig()
   wallpaperSettings.wallpaperMode = settings.value.wallpaperMode
   wallpaperSettings.wallpaperPath = settings.value.wallpaperPath
+  if (wallpaperSettings.wallpaperMode === 'fixed') {
+    await getFixedWallpapers(0)
+  }
   console.log('Settings loaded:', settings.value)
 })
 
@@ -1904,8 +1907,8 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 8px;
   padding: 6px 12px;
-  border: 1px solid #28a745;
-  background: #28a745;
+  border: 1px solid #007bff;
+  background: #007bff;
   color: white;
   border-radius: 6px;
   cursor: pointer;
@@ -1915,8 +1918,8 @@ onBeforeUnmount(() => {
 }
 
 .apply-btn:hover {
-  background: #218838;
-  border-color: #218838;
+  background: #0056b3;
+  border-color: #0056b3;
 }
 
 /* Emoji选择器样式 */
