@@ -320,7 +320,6 @@
                 <div v-for="wallpaper in fixedWallpapers" :key="wallpaper.date" class="wallpaper-item"
                   :class="{ active: fixedWallpaperDate === wallpaper.date }" @click="selectFixedWallpaper(wallpaper)">
                   <img :src="wallpaper.previewUrl" :alt="wallpaper.displayDate" />
-                  <div class="wallpaper-date">{{ wallpaper.displayDate }}</div>
                 </div>
               </div>
               <div class="wallpaper-actions">
@@ -356,6 +355,7 @@
             <div class="wallpaper-preview">
               <div class="setting-row">
                 <span class="setting-label">当前壁纸预览</span>
+                <button @click="applyWallpaperSettings" class="apply-btn">应用</button>
               </div>
               <div class="preview-container">
                 <img :src="wallpaperSettings.wallpaperPath" alt="当前壁纸" class="preview-image" />
@@ -894,6 +894,11 @@ const getFixedWallpapers = async (page = 0) => {
 
 const loadMoreWallpapers = () => {
   getFixedWallpapers(currentPage.value + 1)
+}
+
+const applyWallpaperSettings = () => {
+  updateSetting('wallpaperMode', wallpaperSettings.wallpaperMode)
+  updateSetting('wallpaperPath', wallpaperSettings.wallpaperPath)
 }
 
 // Lifecycle hooks
@@ -1894,6 +1899,26 @@ onBeforeUnmount(() => {
   background: #0056b3;
 }
 
+.apply-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 1px solid #28a745;
+  background: #28a745;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.apply-btn:hover {
+  background: #218838;
+  border-color: #218838;
+}
+
 /* Emoji选择器样式 */
 .emoji-select-button {
   display: flex;
@@ -2107,7 +2132,7 @@ onBeforeUnmount(() => {
   background: #f8f9fa;
   color: #495057;
   text-decoration: none;
-  border-radius: 8px;
+  border-radius:  8px;
   font-size: 14px;
   font-weight: 500;
   transition: all 0.3s ease;
@@ -2174,7 +2199,6 @@ onBeforeUnmount(() => {
 .wallpaper-mode-content {
   margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid #f1f3f4;
 }
 
 .setting-desc {
@@ -2266,23 +2290,9 @@ onBeforeUnmount(() => {
 
 .wallpaper-item img {
   width: 100%;
-  height: 130px;
+  height: 140px;
   object-fit: cover;
   display: block;
-}
-
-.wallpaper-date {
-  padding: 8px 12px;
-  font-size: 12px;
-  color: #495057;
-  background: #f8f9fa;
-  text-align: center;
-}
-
-.wallpaper-item.active .wallpaper-date {
-  background: #e3f2fd;
-  color: #007bff;
-  font-weight: 500;
 }
 
 .upload-area {
@@ -2330,7 +2340,7 @@ onBeforeUnmount(() => {
 
 .preview-image {
   width: 100%;
-  height: 200px;
+  height: 240px;
   object-fit: cover;
   display: block;
 }
