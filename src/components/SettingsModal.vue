@@ -16,75 +16,55 @@
             </div>
           </div>
         </div>
-        
+
         <nav class="sidebar-nav">
           <div class="nav-group">
-            <button 
-              v-for="item in menuItems" 
-              :key="item.id"
-              @click="activeMenu = item.id"
-              :class="['menu-item', { active: activeMenu === item.id }]"
-            >
+            <button v-for="item in menuItems" :key="item.id" @click="activeMenu = item.id"
+              :class="['menu-item', { active: activeMenu === item.id }]">
               <span class="menu-icon" v-html="item.icon"></span>
               <span class="menu-text">{{ item.name }}</span>
               <span v-if="item.tag" class="menu-tag">{{ item.tag }}</span>
             </button>
           </div>
-          
+
           <div class="nav-footer">
-            <div class="version-info">V1.0.3</div>
+            <div class="version-info">{{ CURRENT_VERSION }}</div>
           </div>
         </nav>
       </div>
-      
+
       <!-- 右侧内容区域 -->
       <div class="setting-content">
         <!-- 设置页面 -->
         <div v-if="activeMenu === 'settings'" class="content-section">
-          
+
           <!-- 标签页 -->
           <div class="settings-group">
             <h3>标签页</h3>
             <div class="setting-row">
               <span class="setting-label">显示区域宽度</span>
               <div class="range-control">
-                <input 
-                  type="range" 
-                  min="300" 
-                  :max="getMaxDisplayWidth()" 
-                  :value="settings.displayWidth" 
-                  @input="updateDisplayWidth"
-                  class="setting-range"
-                >
+                <input type="range" min="300" :max="getMaxDisplayWidth()" :value="settings.displayWidth"
+                  @input="updateDisplayWidth" class="setting-range">
                 <span class="range-value">
-                  {{ settings.displayWidth }}px 
+                  {{ settings.displayWidth }}px
                   ({{ Math.round((settings.displayWidth / windowWidth) * 100) }}%)
                 </span>
               </div>
             </div>
             <div class="setting-row">
               <span class="setting-label">每行显示个数</span>
-              <select 
-                class="setting-select"
-                :value="settings.columnsPerRow"
-                @change="updateSetting('columnsPerRow', Number($event.target.value))"
-              >
-                <option 
-                  v-for="n in getMaxColumnsOptions()" 
-                  :key="n" 
-                  :value="n"
-                >
+              <select class="setting-select" :value="settings.columnsPerRow"
+                @change="updateSetting('columnsPerRow', Number($event.target.value))">
+                <option v-for="n in getMaxColumnsOptions()" :key="n" :value="n">
                   {{ n }}
                 </option>
               </select>
             </div>
             <div class="setting-row">
               <span class="setting-label">标签大小</span>
-              <select 
-                class="setting-select"
-                :value="settings.bookmarkSize"
-                @change="updateSetting('bookmarkSize', $event.target.value)"
-              >
+              <select class="setting-select" :value="settings.bookmarkSize"
+                @change="updateSetting('bookmarkSize', $event.target.value)">
                 <option value="large">大</option>
                 <option value="medium">中</option>
                 <option value="small">小</option>
@@ -98,32 +78,23 @@
             <div class="setting-row">
               <span class="setting-label">显示时间</span>
               <label class="toggle-switch">
-                <input 
-                  type="checkbox" 
-                  :checked="settings.showTime"
-                  @change="updateSetting('showTime', $event.target.checked)"
-                >
+                <input type="checkbox" :checked="settings.showTime"
+                  @change="updateSetting('showTime', $event.target.checked)">
                 <span class="toggle-slider"></span>
               </label>
             </div>
             <div class="setting-row">
               <span class="setting-label">显示日期</span>
               <label class="toggle-switch">
-                <input 
-                  type="checkbox" 
-                  :checked="settings.showDate"
-                  @change="updateSetting('showDate', $event.target.checked)"
-                >
+                <input type="checkbox" :checked="settings.showDate"
+                  @change="updateSetting('showDate', $event.target.checked)">
                 <span class="toggle-slider"></span>
               </label>
             </div>
             <div class="setting-row">
               <span class="setting-label">时间格式</span>
-              <select 
-                class="setting-select"
-                :value="settings.timeFormat"
-                @change="updateSetting('timeFormat', $event.target.value)"
-              >
+              <select class="setting-select" :value="settings.timeFormat"
+                @change="updateSetting('timeFormat', $event.target.value)">
                 <option value="24h">24小时制</option>
                 <option value="12h">12小时制</option>
               </select>
@@ -135,11 +106,8 @@
             <h3>主题切换</h3>
             <div class="setting-row">
               <span class="setting-label">外观主题</span>
-              <select 
-                class="setting-select"
-                :value="settings.theme"
-                @change="updateSetting('theme', $event.target.value)"
-              >
+              <select class="setting-select" :value="settings.theme"
+                @change="updateSetting('theme', $event.target.value)">
                 <option value="auto">跟随系统</option>
                 <option value="light">浅色主题</option>
                 <option value="dark">深色主题</option>
@@ -154,11 +122,8 @@
             </div>
             <div class="theme-preview-row">
               <div class="theme-preview-container">
-                <div 
-                  class="theme-preview-item" 
-                  :class="{ active: settings.theme === 'auto' }"
-                  @click="updateSetting('theme', 'auto')"
-                >
+                <div class="theme-preview-item" :class="{ active: settings.theme === 'auto' }"
+                  @click="updateSetting('theme', 'auto')">
                   <div class="preview-card auto-preview">
                     <div class="preview-header">
                       <div class="preview-dot"></div>
@@ -172,12 +137,9 @@
                   </div>
                   <span class="preview-label">跟随系统</span>
                 </div>
-                
-                <div 
-                  class="theme-preview-item" 
-                  :class="{ active: settings.theme === 'light' }"
-                  @click="updateSetting('theme', 'light')"
-                >
+
+                <div class="theme-preview-item" :class="{ active: settings.theme === 'light' }"
+                  @click="updateSetting('theme', 'light')">
                   <div class="preview-card light-preview">
                     <div class="preview-header">
                       <div class="preview-dot"></div>
@@ -191,12 +153,9 @@
                   </div>
                   <span class="preview-label">浅色主题</span>
                 </div>
-                
-                <div 
-                  class="theme-preview-item" 
-                  :class="{ active: settings.theme === 'dark' }"
-                  @click="updateSetting('theme', 'dark')"
-                >
+
+                <div class="theme-preview-item" :class="{ active: settings.theme === 'dark' }"
+                  @click="updateSetting('theme', 'dark')">
                   <div class="preview-card dark-preview">
                     <div class="preview-header">
                       <div class="preview-dot"></div>
@@ -215,7 +174,7 @@
           </div>
 
         </div>
-        
+
         <!-- 分组管理页面 -->
         <div v-if="activeMenu === 'tagManagement'" class="content-section">
           <div class="section-header">
@@ -228,25 +187,18 @@
               添加分组
             </button>
           </div>
-          
+
           <div class="groups-list">
-            <div 
-              v-for="group in tagGroups" 
-              :key="group.id"
-              class="group-item"
-            >
+            <div v-for="group in tagGroups" :key="group.id" class="group-item">
               <div class="group-header">
                 <div class="group-info">
                   <span class="group-emoji">{{ group.emoji }}</span>
                   <div class="group-details">
                     <div class="group-title-row">
                       <h4>{{ group.name }}</h4>
-                      <button 
-                        @click="editGroupModal(group)"
-                        class="edit-btn inline-edit-btn"
-                        title="编辑分组"
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <button @click="editGroupModal(group)" class="edit-btn inline-edit-btn" title="编辑分组">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                          stroke-width="2">
                           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                         </svg>
@@ -256,12 +208,8 @@
                   </div>
                 </div>
                 <div class="group-actions">
-                  <button 
-                    v-if="group.id !== 'default'"
-                    @click="deleteGroupConfirm(group.id)"
-                    class="delete-btn"
-                    title="删除分组"
-                  >
+                  <button v-if="group.id !== 'default'" @click="deleteGroupConfirm(group.id)" class="delete-btn"
+                    title="删除分组">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <polyline points="3,6 5,6 21,6"></polyline>
                       <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6M8,6V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6"></path>
@@ -269,52 +217,38 @@
                   </button>
                 </div>
               </div>
-              
+
               <div class="group-color-preview" :style="{ backgroundColor: group.themeColor }"></div>
-              
+
               <!-- 标签列表显示 -->
               <div v-if="Array.isArray(group.tags) && group.tags.length > 0" class="tags-list">
-                <div 
-                  v-for="tag in group.tags" 
-                  :key="tag.id"
-                  class="tag-list-item"
-                >
+                <div v-for="tag in group.tags" :key="tag.id" class="tag-list-item">
                   <div class="tag-list-icon">
                     <span v-if="tag.iconType === 'emoji'">{{ tag.iconValue }}</span>
                     <span v-else-if="tag.iconType === 'text'">{{ tag.iconValue }}</span>
-                    <img 
-                      v-else-if="tag.iconType === 'favicon'"
-                      :src="getFaviconUrl(tag.url)"
-                      :alt="tag.name"
-                      @error="$event.target.style.display='none'"
-                    />
+                    <img v-else-if="tag.iconType === 'favicon'" :src="getFaviconUrl(tag.url)" :alt="tag.name"
+                      @error="$event.target.style.display = 'none'" />
                     <span v-else>🔗</span>
                   </div>
                   <span class="tag-list-name">{{ tag.name }}</span>
                   <div class="tag-list-actions">
-                    <button 
-                      @click="editTagModal(group.id, tag)"
-                      class="edit-btn"
-                      title="编辑标签"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <button @click="editTagModal(group.id, tag)" class="edit-btn" title="编辑标签">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                       </svg>
                     </button>
-                    <button 
-                      @click="deleteTagConfirm(group.id, tag.id)"
-                      class="delete-btn"
-                      title="删除标签"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <button @click="deleteTagConfirm(group.id, tag.id)" class="delete-btn" title="删除标签">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
                         <polyline points="3,6 5,6 21,6"></polyline>
                         <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6M8,6V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6"></path>
                       </svg>
                     </button>
                   </div>
                 </div>
-                
+
                 <!-- 添加标签按钮 -->
                 <button @click="addTagModal(group.id)" class="add-tag-button">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -324,7 +258,7 @@
                   添加标签
                 </button>
               </div>
-              
+
               <!-- 空状态 -->
               <div v-else class="empty-tags-state">
                 <button @click="addTagModal(group.id)" class="add-first-tag-button">
@@ -334,30 +268,27 @@
             </div>
           </div>
         </div>
-        
+
         <!-- 标签管理页面 -->
         <div v-if="activeMenu === 'bookmarks'" class="content-section">
           <h3>标签管理</h3>
           <!-- 内容保持不变 -->
         </div>
-        
+
         <!-- 壁纸页面 -->
         <div v-if="activeMenu === 'wallpaper'" class="content-section">
           <div class="settings-group">
             <h3>壁纸设置</h3>
             <div class="setting-row">
               <span class="setting-label">壁纸模式</span>
-              <select 
-                class="setting-select"
-                :value="wallpaperSettings.wallpaperMode"
-                @change="updateWallpaperSetting('wallpaperMode', $event.target.value)"
-              >
-                <option value="bing">Bing每日一图</option>
-                <option value="fixed">固定壁纸</option>
-                <option value="local">本地上传</option>
+              <select class="setting-select" :value="wallpaperSettings.wallpaperMode"
+                @change="updateWallpaperSetting($event.target.value)">
+                <option v-for="option in wallpaperModeOptions" :key="option.value" :value="option.value">
+                  {{ option.label }}
+                </option>
               </select>
             </div>
-            
+
             <!-- Bing每日一图模式 -->
             <div v-if="wallpaperSettings.wallpaperMode === 'bing'" class="wallpaper-mode-content">
               <div class="setting-row">
@@ -365,12 +296,9 @@
                 <span class="setting-desc">每天自动获取Bing精美壁纸</span>
               </div>
               <div class="wallpaper-actions">
-                <button 
-                  @click="getBingDailyWallpaper" 
-                  class="action-btn primary"
-                  :disabled="wallpaperLoading"
-                >
-                  <svg v-if="!wallpaperLoading" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <button class="action-btn primary" @click="updateBingWallpaper" :disabled="wallpaperLoading">
+                  <svg v-if="!wallpaperLoading" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2">
                     <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
                     <path d="M21 3v5h-5"></path>
                     <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
@@ -381,7 +309,7 @@
                 </button>
               </div>
             </div>
-            
+
             <!-- 固定壁纸模式 -->
             <div v-if="wallpaperSettings.wallpaperMode === 'fixed'" class="wallpaper-mode-content">
               <div class="setting-row">
@@ -389,43 +317,20 @@
                 <span class="setting-desc">从历史Bing壁纸中选择喜欢的图片</span>
               </div>
               <div class="wallpaper-grid" v-if="fixedWallpapers.length > 0">
-                <div 
-                  v-for="wallpaper in fixedWallpapers" 
-                  :key="wallpaper.date"
-                  class="wallpaper-item"
-                  :class="{ active: wallpaperSettings.fixedWallpaperDate === wallpaper.date }"
-                  @click="selectFixedWallpaper(wallpaper)"
-                >
-                  <img 
-                    :src="wallpaper.previewUrl" 
-                    :alt="wallpaper.displayDate"
-                    @error="$event.target.style.display='none'"
-                  />
+                <div v-for="wallpaper in fixedWallpapers" :key="wallpaper.date" class="wallpaper-item"
+                  :class="{ active: fixedWallpaperDate === wallpaper.date }" @click="selectFixedWallpaper(wallpaper)">
+                  <img :src="wallpaper.previewUrl" :alt="wallpaper.displayDate" />
                   <div class="wallpaper-date">{{ wallpaper.displayDate }}</div>
                 </div>
               </div>
-              <div v-else-if="!wallpaperLoading" class="empty-state">
-                <p>暂无壁纸列表，点击下方按钮加载</p>
-              </div>
               <div class="wallpaper-actions">
-                <button 
-                  @click="getFixedWallpapers(0)" 
-                  class="action-btn"
-                  :disabled="wallpaperLoading"
-                >
-                  {{ wallpaperLoading ? '加载中...' : (fixedWallpapers.length > 0 ? '刷新列表' : '加载列表') }}
-                </button>
-                <button 
-                  v-if="fixedWallpapers.length > 0 && currentPage >= 0"
-                  @click="loadMoreWallpapers" 
-                  class="action-btn"
-                  :disabled="wallpaperLoading"
-                >
+                <button v-if="fixedWallpapers.length > 0 && currentPage >= 0" @click="loadMoreWallpapers"
+                  class="action-btn" :disabled="wallpaperLoading">
                   {{ wallpaperLoading ? '加载中...' : '加载更多' }}
                 </button>
               </div>
             </div>
-            
+
             <!-- 本地上传模式 -->
             <div v-if="wallpaperSettings.wallpaperMode === 'local'" class="wallpaper-mode-content">
               <div class="setting-row">
@@ -433,19 +338,9 @@
                 <span class="setting-desc">选择本地图片作为壁纸（建议4K分辨率，最大5MB）</span>
               </div>
               <div class="upload-area">
-                <input 
-                  ref="fileInput"
-                  type="file" 
-                  accept="image/*"
-                  @change="handleFileUpload"
-                  style="display: none"
-                />
-                <div 
-                  class="upload-box"
-                  @click="$refs.fileInput?.click()"
-                  @dragover.prevent
-                  @drop.prevent="handleFileDrop"
-                >
+                <input ref="fileInput" type="file" accept="image/*" @change="handleFileUpload" style="display: none" />
+                <div class="upload-box" @click="$refs.fileInput?.click()" @dragover.prevent
+                  @drop.prevent="handleFileDrop">
                   <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                     <circle cx="9" cy="9" r="2"></circle>
@@ -456,39 +351,27 @@
                 </div>
               </div>
             </div>
-            
+
             <!-- 壁纸预览 -->
-            <div v-if="currentWallpaper" class="wallpaper-preview">
+            <div class="wallpaper-preview">
               <div class="setting-row">
                 <span class="setting-label">当前壁纸预览</span>
               </div>
               <div class="preview-container">
-                <img 
-                  :src="currentWallpaper" 
-                  alt="当前壁纸"
-                  class="preview-image"
-                  @error="$event.target.style.display='none'"
-                />
+                <img :src="wallpaperSettings.wallpaperPath" alt="当前壁纸" class="preview-image" />
               </div>
             </div>
           </div>
         </div>
-        
+
         <!-- 关于页面 -->
         <div v-if="activeMenu === 'about'" class="content-section">
           <div class="about-container">
             <!-- 应用信息 -->
             <div class="about-section app-info">
-              <!-- <div class="app-logo">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                  <circle cx="9" cy="9" r="2"></circle>
-                  <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path>
-                </svg>
-              </div> -->
               <div class="app-details">
                 <h2 class="app-title">FreshTab</h2>
-                <p class="app-version">版本 1.0.3</p>
+                <p class="app-version">版本 {{ CURRENT_VERSION }}</p>
                 <p class="app-description">
                   一个简洁优雅的浏览器新标签页扩展，让您的浏览体验更加高效和美观。
                 </p>
@@ -579,7 +462,9 @@
                 <div class="contact-links">
                   <a href="https://github.com/vamosdalian/FreshTab" class="contact-link">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+                      <path
+                        d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22">
+                      </path>
                     </svg>
                     GitHub
                   </a>
@@ -605,7 +490,7 @@
         </div>
       </div>
     </div>
-    
+
     <!-- 添加/编辑分组模态框 -->
     <div v-if="showAddGroupModal || showEditGroupModal" class="group-modal-overlay" @click="closeGroupModal">
       <div class="group-modal-content" @click.stop>
@@ -618,44 +503,31 @@
             </svg>
           </button>
         </div>
-        
+
         <div class="group-modal-body">
           <div class="form-group">
             <label>分组名称</label>
-            <input 
-              v-model="groupForm.name" 
-              type="text" 
-              placeholder="输入分组名称"
-              class="form-input"
-            />
+            <input v-model="groupForm.name" type="text" placeholder="输入分组名称" class="form-input" />
           </div>
-          
+
           <div class="form-group">
             <label>选择图标</label>
-            <button 
-              type="button"
-              @click="showEmojiPicker = true"
-              class="emoji-select-button"
-            >
+            <button type="button" @click="showEmojiPicker = true" class="emoji-select-button">
               <span class="emoji-preview">{{ groupForm.emoji || '📁' }}</span>
               <span class="emoji-select-text">点击选择 Emoji</span>
             </button>
           </div>
-          
+
           <div class="form-group">
             <label>主题颜色</label>
             <div class="color-selector">
-              <div 
-                v-for="color in themeColors" 
-                :key="color"
-                @click="groupForm.themeColor = color"
+              <div v-for="color in themeColors" :key="color" @click="groupForm.themeColor = color"
                 :class="['color-option', { selected: groupForm.themeColor === color }]"
-                :style="{ backgroundColor: color }"
-              ></div>
+                :style="{ backgroundColor: color }"></div>
             </div>
           </div>
         </div>
-        
+
         <div class="group-modal-footer">
           <button @click="closeGroupModal" class="cancel-btn">取消</button>
           <button @click="saveGroup" class="save-btn">保存</button>
@@ -665,337 +537,375 @@
   </div>
 
   <!-- Emoji选择弹窗 -->
-  <EmojiPicker
-    v-if="showEmojiPicker"
-    :site-name="groupForm.name"
-    :site-url="''"
-    @select-emoji="handleSelectGroupEmoji"
-    @close="showEmojiPicker = false"
-  />
-  
+  <EmojiPicker v-if="showEmojiPicker" :site-name="groupForm.name" :site-url="''" @select-emoji="handleSelectGroupEmoji"
+    @close="showEmojiPicker = false" />
+
   <!-- 标签编辑模态框 -->
-  <TagModal 
-    v-if="showTagModal"
-    :isOpen="showTagModal"
-    :tag="currentEditingTag"
-    :themeColors="themeColors"
-    @close="closeTagModal"
-    @save="saveTag"
-  />
+  <TagModal v-if="showTagModal" :isOpen="showTagModal" :tag="currentEditingTag" :themeColors="themeColors"
+    @close="closeTagModal" @save="saveTag" />
 </template>
 
-<script>
+<script setup>
+import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
 import { useTagGroups } from '../composables/useTagGroups'
 import EmojiPicker from './EmojiPicker.vue'
 import TagModal from './TagModal.vue'
+import { CURRENT_VERSION } from '../services/version'
+import { getConfig, setConfig } from '../services/configManager'
 
-export default {
-  name: 'SettingsModal',
-  components: {
-    EmojiPicker,
-    TagModal
-  },
-  props: {
-    isOpen: {
-      type: Boolean,
-      required: true
-    },
-    settings: {
-      type: Object,
-      required: true
-    },
-    // 从主应用传递的壁纸状态
-    wallpaperState: {
-      type: Object,
-      required: true
-    }
-  },
-  emits: ['close', 'updateSetting', 'resetSettings'],
-  setup(props) {
-    const { 
-      tagGroups, 
-      themeColors, 
-      addGroup, 
-      editGroup, 
-      deleteGroup,
-      addTag,
-      editTag,
-      deleteTag,
-      getFaviconUrl 
-    } = useTagGroups()
-    
-    // 解构壁纸状态和方法
-    const {
-      wallpaperSettings,
-      currentWallpaper,
-      wallpaperLoading,
-      fixedWallpapers,
-      currentPage,
-      getBingDailyWallpaper,
-      getFixedWallpapers,
-      selectFixedWallpaper,
-      uploadLocalWallpaper,
-      loadMoreWallpapers,
-      initializeWallpaper,
-      saveWallpaperSettings
-    } = props.wallpaperState
-    
-    return {
-      tagGroups,
-      themeColors,
-      addGroup,
-      editGroup,
-      deleteGroup,
-      addTag,
-      editTag,
-      deleteTag,
-      getFaviconUrl,
-      // 壁纸相关状态和方法
-      wallpaperSettings,
-      currentWallpaper,
-      wallpaperLoading,
-      fixedWallpapers,
-      currentPage,
-      getBingDailyWallpaper,
-      getFixedWallpapers,
-      selectFixedWallpaper,
-      uploadLocalWallpaper,
-      loadMoreWallpapers,
-      initializeWallpaper,
-      saveWallpaperSettings
-    }
-  },
-  data() {
-    return {
-      activeMenu: 'settings',
-      showAddGroupModal: false,
-      showEditGroupModal: false,
-      showEmojiPicker: false,
-      showTagModal: false,
-      editingGroupId: null,
-      currentGroupId: null,
-      currentEditingTag: null,
-      windowWidth: window.innerWidth, // 添加窗口宽度跟踪
-      groupForm: {
-        name: '',
-        emoji: '📁',
-        themeColor: '#667eea'
-      },
-      menuItems: [
-        {
-          id: 'settings',
-          name: '常规设置',
-          icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>'
-        },
-        {
-          id: 'tagManagement',
-          name: '分组管理',
-          icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M7 2v4"></path><path d="M17 2v4"></path><path d="M14 14l-1-1"></path><circle cx="12" cy="12" r="2"></circle></svg>'
-        },
-        {
-          id: 'wallpaper',
-          name: '壁纸',
-          icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path></svg>'
-        },
-        {
-          id: 'about',
-          name: '关于我们',
-          icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
-        }
-      ]
-    }
-  },
-  mounted() {
-    // 监听窗口大小变化
-    window.addEventListener('resize', this.handleWindowResize)
-  },
-  beforeUnmount() {
-    // 清理事件监听器
-    window.removeEventListener('resize', this.handleWindowResize)
-  },
-  methods: {
-    handleOverlayClick() {
-      this.$emit('close')
-    },
-    updateSetting(key, value) {
-      this.$emit('updateSetting', key, value)
-    },
-    resetSettings() {
-      this.$emit('resetSettings')
-    },
-    
-    // 分组管理方法
-    editGroupModal(group) {
-      this.editingGroupId = group.id
-      this.groupForm = {
-        name: group.name,
-        emoji: group.emoji,
-        themeColor: group.themeColor
-      }
-      this.showEditGroupModal = true
-    },
-    
-    closeGroupModal() {
-      this.showAddGroupModal = false
-      this.showEditGroupModal = false
-      this.showEmojiPicker = false
-      this.editingGroupId = null
-      this.groupForm = {
-        name: '',
-        emoji: '📁',
-        themeColor: '#667eea'
-      }
-    },
-    
-    async saveGroup() {
-      if (!this.groupForm.name.trim()) {
-        return
-      }
-      
-      try {
-        if (this.showEditGroupModal) {
-          await this.editGroup(this.editingGroupId, this.groupForm)
-        } else {
-          await this.addGroup(this.groupForm.name, this.groupForm.emoji, this.groupForm.themeColor)
-        }
-        this.closeGroupModal()
-      } catch (error) {
-        console.error('保存分组失败:', error)
-      }
-    },
-    
-    async deleteGroupConfirm(groupId) {
-      await this.deleteGroup(groupId)
-    },
-    
-    // 标签管理方法
-    addTagModal(groupId) {
-      this.currentGroupId = groupId
-      this.currentEditingTag = null
-      this.showTagModal = true
-    },
-    
-    editTagModal(groupId, tag) {
-      this.currentGroupId = groupId
-      this.currentEditingTag = tag
-      this.showTagModal = true
-    },
-    
-    closeTagModal() {
-      this.showTagModal = false
-      this.currentEditingTag = null
-      this.currentGroupId = null
-    },
-    
-    async saveTag(tagData) {
-      try {
-        if (this.currentEditingTag) {
-          await this.editTag(this.currentGroupId, this.currentEditingTag.id, tagData)
-        } else {
-          await this.addTag(this.currentGroupId, tagData)
-        }
-        this.closeTagModal()
-      } catch (error) {
-        console.error('保存标签失败:', error)
-      }
-    },
-    
-    async deleteTagConfirm(groupId, tagId) {
-      await this.deleteTag(groupId, tagId)
-    },
-    
-    // emoji相关方法
-    handleSelectGroupEmoji(emoji) {
-      this.groupForm.emoji = emoji
-      this.showEmojiPicker = false
-    },
-    
-    // 宽度设置方法
-    updateDisplayWidth(event) {
-      const width = Number(event.target.value)
-      this.updateSetting('displayWidth', width)
-    },
-    
-    // 计算最大显示宽度（窗口的90%）
-    getMaxDisplayWidth() {
-      const maxWidth = Math.floor(this.windowWidth * 0.9)
-      return Math.max(maxWidth, 800) // 最小保证800px
-    },
-    
-    // 处理窗口大小变化
-    handleWindowResize() {
-      this.windowWidth = window.innerWidth
-      
-      // 如果当前设置的宽度超过了新的最大值，自动调整
-      const maxWidth = this.getMaxDisplayWidth()
-      if (this.settings.displayWidth > maxWidth) {
-        this.updateSetting('displayWidth', maxWidth)
-      }
-    },
-    
-    // 计算最大列数选项
-    getMaxColumnsOptions() {
-      const tagSizes = {
-        small: 80,   // 小标签宽度
-        medium: 100, // 中标签宽度
-        large: 120   // 大标签宽度
-      }
-      const tagWidth = tagSizes[this.settings.bookmarkSize] || 100
-      const gap = 16 // 1rem = 16px
-      const displayWidth = this.settings.displayWidth || 800
-      
-      // 计算可以放置的标签数量
-      const maxColumns = Math.floor((displayWidth + gap) / (tagWidth + gap))
-      const actualMax = Math.max(1, Math.min(maxColumns, 15)) // 最少1个，最多15个
-      
-      // 生成选项数组
-      const options = []
-      for (let i = 1; i <= actualMax; i++) {
-        options.push(i)
-      }
-      
-      // 确保当前值在范围内
-      if (this.settings.columnsPerRow > actualMax) {
-        this.updateSetting('columnsPerRow', actualMax)
-      }
-      
-      return options
-    },
-    
-    // 获取主题状态文字
-    getThemeStatusText() {
-      if (this.settings.theme === 'auto') {
-        return this.settings.isDarkMode ? '系统深色模式' : '系统浅色模式'
-      } else if (this.settings.theme === 'light') {
-        return '浅色模式'
-      } else {
-        return '深色模式'
-      }
-    },
-    
-    // 壁纸相关方法
-    updateWallpaperSetting(key, value) {
-      this.wallpaperSettings[key] = value
-      this.saveWallpaperSettings()
-    },
+const settings = ref({})
+const wallpaperSettings = reactive({})
+let wallpaperLoading = ref(false)
+const fixedWallpapers = ref([])
+let currentPage = ref(0)
+let fixedWallpaperDate = reactive("")
 
-    handleFileUpload(event) {
-      const file = event.target.files[0]
-      if (file) {
-        this.uploadLocalWallpaper(file)
-        this.saveWallpaperSettings()
-      }
-    },
+// Define emits
+const emit = defineEmits(['close'])
 
-    handleFileDrop(event) {
-      const files = event.dataTransfer.files
-      if (files.length > 0) {
-        this.uploadLocalWallpaper(files[0])
-        this.saveWallpaperSettings()
-      }
+// Use composables
+const {
+  tagGroups,
+  themeColors,
+  addGroup,
+  editGroup,
+  deleteGroup,
+  addTag,
+  editTag,
+  deleteTag,
+  getFaviconUrl
+} = useTagGroups()
+
+// Reactive data
+const activeMenu = ref('settings')
+const showAddGroupModal = ref(false)
+const showEditGroupModal = ref(false)
+const showEmojiPicker = ref(false)
+const showTagModal = ref(false)
+const editingGroupId = ref(null)
+const currentGroupId = ref(null)
+const currentEditingTag = ref(null)
+const windowWidth = ref(window.innerWidth) // 添加窗口宽度跟踪
+
+const groupForm = reactive({
+  name: '',
+  emoji: '📁',
+  themeColor: '#667eea'
+})
+
+// Wallpaper mode options
+const wallpaperModeOptions = [
+  { value: 'bing', label: 'Bing每日一图' },
+  { value: 'fixed', label: '固定壁纸' },
+  { value: 'local', label: '本地上传' }
+]
+
+const menuItems = [
+  {
+    id: 'settings',
+    name: '常规设置',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>'
+  },
+  {
+    id: 'tagManagement',
+    name: '分组管理',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M7 2v4"></path><path d="M17 2v4"></path><path d="M14 14l-1-1"></path><circle cx="12" cy="12" r="2"></circle></svg>'
+  },
+  {
+    id: 'wallpaper',
+    name: '壁纸',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path></svg>'
+  },
+  {
+    id: 'about',
+    name: '关于我们',
+    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
+  }
+]
+
+// Methods
+const handleOverlayClick = () => {
+  emit('close')
+}
+
+const updateSetting = (key, value) => {
+  settings.value[key] = value
+  setConfig(settings.value)
+}
+
+// 分组管理方法
+const editGroupModal = (group) => {
+  editingGroupId.value = group.id
+  groupForm.name = group.name
+  groupForm.emoji = group.emoji
+  groupForm.themeColor = group.themeColor
+  showEditGroupModal.value = true
+}
+
+const closeGroupModal = () => {
+  showAddGroupModal.value = false
+  showEditGroupModal.value = false
+  showEmojiPicker.value = false
+  editingGroupId.value = null
+  groupForm.name = ''
+  groupForm.emoji = '📁'
+  groupForm.themeColor = '#667eea'
+}
+
+const saveGroup = async () => {
+  if (!groupForm.name.trim()) {
+    return
+  }
+
+  try {
+    if (showEditGroupModal.value) {
+      await editGroup(editingGroupId.value, groupForm)
+    } else {
+      await addGroup(groupForm.name, groupForm.emoji, groupForm.themeColor)
     }
+    closeGroupModal()
+  } catch (error) {
+    console.error('保存分组失败:', error)
   }
 }
+
+const deleteGroupConfirm = async (groupId) => {
+  await deleteGroup(groupId)
+}
+
+// 标签管理方法
+const addTagModal = (groupId) => {
+  currentGroupId.value = groupId
+  currentEditingTag.value = null
+  showTagModal.value = true
+}
+
+const editTagModal = (groupId, tag) => {
+  currentGroupId.value = groupId
+  currentEditingTag.value = tag
+  showTagModal.value = true
+}
+
+const closeTagModal = () => {
+  showTagModal.value = false
+  currentEditingTag.value = null
+  currentGroupId.value = null
+}
+
+const saveTag = async (tagData) => {
+  try {
+    if (currentEditingTag.value) {
+      await editTag(currentGroupId.value, currentEditingTag.value.id, tagData)
+    } else {
+      await addTag(currentGroupId.value, tagData)
+    }
+    closeTagModal()
+  } catch (error) {
+    console.error('保存标签失败:', error)
+  }
+}
+
+const deleteTagConfirm = async (groupId, tagId) => {
+  await deleteTag(groupId, tagId)
+}
+
+// emoji相关方法
+const handleSelectGroupEmoji = (emoji) => {
+  groupForm.emoji = emoji
+  showEmojiPicker.value = false
+}
+
+// 宽度设置方法
+const updateDisplayWidth = (event) => {
+  const width = Number(event.target.value)
+  updateSetting('displayWidth', width)
+}
+
+// 计算最大显示宽度（窗口的90%）
+const getMaxDisplayWidth = () => {
+  const maxWidth = Math.floor(windowWidth.value * 0.9)
+  return Math.max(maxWidth, 800) // 最小保证800px
+}
+
+// 计算最大列数选项
+const getMaxColumnsOptions = () => {
+  const tagSizes = {
+    small: 80,   // 小标签宽度
+    medium: 100, // 中标签宽度
+    large: 120   // 大标签宽度
+  }
+  const tagWidth = tagSizes[settings.value.bookmarkSize] || 100
+  const gap = 16 // 1rem = 16px
+  const displayWidth = settings.value.displayWidth || 800
+
+  // 计算可以放置的标签数量
+  const maxColumns = Math.floor((displayWidth + gap) / (tagWidth + gap))
+  const actualMax = Math.max(1, Math.min(maxColumns, 15)) // 最少1个，最多15个
+
+  // 生成选项数组
+  const options = []
+  for (let i = 1; i <= actualMax; i++) {
+    options.push(i)
+  }
+
+  // 确保当前值在范围内
+  if (settings.value.columnsPerRow > actualMax) {
+    updateSetting('columnsPerRow', actualMax)
+  }
+
+  return options
+}
+
+// 获取主题状态文字
+const getThemeStatusText = () => {
+  if (settings.value.theme === 'auto') {
+    return settings.value.isDarkMode ? '系统深色模式' : '系统浅色模式'
+  } else if (settings.value.theme === 'light') {
+    return '浅色模式'
+  } else {
+    return '深色模式'
+  }
+}
+
+const updateBingWallpaper = () => {
+  wallpaperLoading.value = true
+
+  const today = new Date().toISOString().split('T')[0].replace(/-/g, '')
+  fetch(`https://bing.ee123.net/img/4k?type=json&date=${today}`).
+    then(response => response.json()).
+    then(data => {
+      if (data && data.imgurl) {
+        const img = new Image()
+        img.onload = () => {
+          wallpaperSettings.wallpaperPath = data.imgurl
+        }
+        img.onerror = () => {
+          console.error('Failed to preload Bing wallpaper image:', data.imgurl)
+        }
+        img.src = data.imgurl
+      } else {
+        console.error('No image URL found in Bing response:', data)
+      }
+      wallpaperLoading.value = false
+    }).catch(err => {
+      console.error('Error fetching Bing wallpaper:', err)
+      wallpaperLoading.value = false
+    })
+}
+
+// 壁纸相关方法
+const updateWallpaperSetting = (value) => {
+  wallpaperSettings.wallpaperMode = value
+  if (value === 'fixed') {
+    getFixedWallpapers(0)
+  } else {
+    fixedWallpaperDate = ""
+  }
+}
+
+const handleFileUpload = (event) => {
+  const file = event.target.files[0]
+  if (file) {
+    uploadLocalWallpaper(file)
+  }
+}
+
+const handleFileDrop = (event) => {
+  const files = event.dataTransfer.files
+  if (files.length > 0) {
+    uploadLocalWallpaper(files[0])
+  }
+}
+
+const uploadLocalWallpaper = async (file) => {
+  try {
+    if (!file || !file.type.startsWith('image/')) {
+      error('请选择有效的图片文件')
+      return
+    }
+
+    wallpaperLoading.value = true
+
+    // 创建本地 URL
+    const localUrl = URL.createObjectURL(file)
+    wallpaperSettings.wallpaperPath = localUrl
+    wallpaperLoading.value = false
+  } catch (err) {
+    wallpaperLoading.value = false
+  }
+}
+
+const selectFixedWallpaper = async (wallpaper) => {
+  console.log("select fixed paper:", wallpaper)
+  wallpaperLoading.value = true
+  fixedWallpaperDate = wallpaper.date
+  fetch(wallpaper.fullUrl).
+    then(response => response.json()).
+    then(data => {
+      if (data && data.imgurl) {
+        const img = new Image()
+        img.onload = () => {
+          wallpaperSettings.wallpaperPath = data.imgurl
+        }
+        img.onerror = () => {
+          console.error('Failed to preload Bing wallpaper image:', data.imgurl)
+        }
+        img.src = data.imgurl
+      } else {
+        console.error('No image URL found in Bing response:', data)
+      }
+      wallpaperLoading.value = false
+    }).catch(err => {
+      console.error('Error fetching Bing wallpaper:', err)
+      wallpaperLoading.value = false
+    })
+}
+
+const getFixedWallpapers = async (page = 0) => {
+  const wallpapersPerPage = 10
+  try {
+    const wallpapers = []
+    const today = new Date()
+
+    for (let i = 0; i < wallpapersPerPage; i++) {
+      const targetDate = new Date(today)
+      targetDate.setDate(today.getDate() - (page * wallpapersPerPage + i))
+      const dateStr = targetDate.toISOString().split('T')[0].replace(/-/g, '')
+      wallpapers.push({
+        date: dateStr,
+        previewUrl: `https://bing.ee123.net/img/?date=${dateStr}&size=320x240`,
+        fullUrl: `https://bing.ee123.net/img/?date=${dateStr}&size=4k&type=json`
+      })
+    }
+
+    if (page === 0) {
+      fixedWallpapers.value = wallpapers
+    } else {
+      fixedWallpapers.value.push(...wallpapers)
+    }
+
+    currentPage.value = page
+  } catch (err) {
+    throw new Error('fetch paper error: ' + err.message)
+  } finally {
+    wallpaperLoading.value = false
+  }
+}
+
+const loadMoreWallpapers = () => {
+  getFixedWallpapers(currentPage.value + 1)
+}
+
+// Lifecycle hooks
+onMounted(async () => {
+  settings.value = await getConfig()
+  wallpaperSettings.wallpaperMode = settings.value.wallpaperMode
+  wallpaperSettings.wallpaperPath = settings.value.wallpaperPath
+  console.log('Settings loaded:', settings.value)
+})
+
+onBeforeUnmount(() => {
+})
 </script>
 
 <style scoped>
@@ -1015,8 +925,13 @@ export default {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .modal-content {
@@ -1033,13 +948,14 @@ export default {
 }
 
 @keyframes slideIn {
-  from { 
-    transform: translateY(-30px) scale(0.95); 
-    opacity: 0; 
+  from {
+    transform: translateY(-30px) scale(0.95);
+    opacity: 0;
   }
-  to { 
-    transform: translateY(0) scale(1); 
-    opacity: 1; 
+
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
   }
 }
 
@@ -1284,11 +1200,11 @@ export default {
   border-radius: 50%;
 }
 
-.toggle-switch input:checked + .toggle-slider {
+.toggle-switch input:checked+.toggle-slider {
   background-color: #28a745;
 }
 
-.toggle-switch input:checked + .toggle-slider:before {
+.toggle-switch input:checked+.toggle-slider:before {
   transform: translateX(20px);
 }
 
@@ -1649,7 +1565,8 @@ export default {
   gap: 8px;
 }
 
-.edit-btn, .delete-btn {
+.edit-btn,
+.delete-btn {
   padding: 6px;
   border: none;
   border-radius: 6px;
@@ -1949,7 +1866,8 @@ export default {
   background: #f8f9fa;
 }
 
-.cancel-btn, .save-btn {
+.cancel-btn,
+.save-btn {
   padding: 8px 16px;
   border: none;
   border-radius: 6px;
@@ -2231,21 +2149,21 @@ export default {
     flex-direction: column;
     text-align: center;
   }
-  
+
   .features-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .contact-links {
     justify-content: center;
   }
-  
+
   .info-row {
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
   }
-  
+
   .info-label {
     min-width: auto;
     font-weight: 600;
@@ -2315,7 +2233,9 @@ export default {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .wallpaper-grid {
@@ -2346,7 +2266,7 @@ export default {
 
 .wallpaper-item img {
   width: 100%;
-  height: 120px;
+  height: 130px;
   object-fit: cover;
   display: block;
 }

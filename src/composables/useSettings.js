@@ -4,9 +4,6 @@ import { useToast } from './useToast'
 export function useSettings() {
   const { error, warning, log } = useToast()
   
-  // 当前数据版本
-  const CURRENT_VERSION = '1'
-  
   // 加载状态
   const isLoaded = ref(false)
   

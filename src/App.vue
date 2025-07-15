@@ -1,54 +1,46 @@
 <template>
   <div class="container">
-    <!-- 背景装饰 -->
-    <div 
-      class="background-gradient" 
-      :style="currentWallpaper ? { 
-        background: `url(${currentWallpaper}) center/cover no-repeat`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
-      } : {}"
-    ></div>
+    <!-- 背景壁纸组件 -->
+    <WallPaper />
     
     <!-- 主要内容区域 -->
-    <main class="main-content" :style="{ maxWidth: settings.displayWidth + 'px' }">
+    <!-- <main class="main-content" :style="{ maxWidth: settings.displayWidth + 'px' }"> -->
       <!-- 时间显示组件 -->
-      <TimeSection 
+      <!-- <TimeSection 
         v-if="settings.showTime" 
         :currentTime="currentTime" 
         :greeting="greeting"
         :timeFormat="settings.timeFormat"
         :showDate="settings.showDate"
         :showSeconds="settings.showSeconds"
-      />
+      /> -->
 
       <!-- 搜索框组件 -->
-      <SearchSection 
+      <!-- <SearchSection 
         v-if="settings.showSearch"
         v-model:searchQuery="searchQuery"
         :currentEngine="currentEngine"
         :searchEngines="searchEngines"
         @search="performSearch"
         @setEngine="setSearchEngine"
-      />
+      /> -->
 
       <!-- 标签组件 -->
-      <TagsSection 
+      <!-- <TagsSection 
         v-if="settings.showBookmarks"
         :tagGroups="tagGroups"
         :settings="settings"
         @addTag="showAddTagModal"
         @deleteTag="deleteTag"
         @openSettings="showSettingsModal = true"
-      />
-    </main>
+      /> -->
+    <!-- </main> -->
 
     <!-- 设置按钮 -->
     <SettingsButton @openSettings="showSettingsModal = true" />
     
     <!-- 主题切换按钮 -->
-    <ThemeToggleButton :settings="settings" :updateTheme="updateTheme" />
+    <!-- <ThemeToggleButton :settings="settings" :updateTheme="updateTheme" /> -->
     
     <!-- 快速访问栏 -->
     <!-- <QuickAccessBar /> -->
@@ -57,17 +49,12 @@
     <Transition name="modal">
       <SettingsModal 
         v-if="showSettingsModal"
-        :isOpen="showSettingsModal"
-        :settings="settings"
-        :wallpaperState="wallpaperState"
         @close="showSettingsModal = false"
-        @updateSetting="handleSettingUpdate"
-        @resetSettings="resetSettings"
       />
     </Transition>
 
     <!-- 添加标签模态框 -->
-    <Transition name="modal">
+    <!-- <Transition name="modal">
       <TagModal 
         v-if="showTagModal"
         :isOpen="showTagModal"
@@ -76,7 +63,7 @@
         @close="closeTagModal"
         @save="saveTag"
       />
-    </Transition>
+    </Transition> -->
 
     <!-- 提示组件 -->
     <ToastContainer />
@@ -93,12 +80,13 @@ import ThemeToggleButton from './components/ThemeToggleButton.vue'
 import SettingsModal from './components/SettingsModal.vue'
 import TagModal from './components/TagModal.vue'
 import ToastContainer from './components/ToastContainer.vue'
+import WallPaper from './components/WallPaper.vue'
 
 import { useTagGroups } from './composables/useTagGroups'
-import { useSettings } from './composables/useSettings'
+// import { useSettings } from './composables/useSettings'
 import { useTime } from './composables/useTime'
 import { useSearch } from './composables/useSearch'
-import { useWallpaper } from './composables/useWallpaper'
+// import { useWallpaper } from './composables/useWallpaper'
 
 export default {
   name: 'App',
@@ -110,7 +98,8 @@ export default {
     ThemeToggleButton,
     SettingsModal,
     TagModal,
-    ToastContainer
+    ToastContainer,
+    WallPaper
   },
   setup() {
     // 使用组合式函数
@@ -124,11 +113,10 @@ export default {
       searchEmojis,
       emojiLibrary
     } = useTagGroups()
-    const { settings, isLoaded, saveSettings, updateTheme, resetSettings } = useSettings()
+    // const { settings, isLoaded, saveSettings, updateTheme, resetSettings } = useSettings()
     const { currentTime, greeting } = useTime()
-    const { searchQuery, searchEngines, currentEngine, performSearch, setSearchEngine } = useSearch(settings, saveSettings)
-    const wallpaperState = useWallpaper()
-    const { currentWallpaper } = wallpaperState
+    // const { searchQuery, searchEngines, currentEngine, performSearch, setSearchEngine } = useSearch(settings)
+    // const wallpaperState = useWallpaper()
 
     // 模态框状态
     const showSettingsModal = ref(false)
@@ -177,12 +165,6 @@ export default {
       }
     }
 
-    // 处理设置更新
-    const handleSettingUpdate = (key, value) => {
-      settings[key] = value
-      saveSettings()
-    }
-
     // 生命周期
     onMounted(() => {
       document.addEventListener('keydown', handleKeydown)
@@ -196,29 +178,29 @@ export default {
       // 数据
       tagGroups,
       themeColors,
-      settings,
+      // settings,
       currentTime,
       greeting,
-      searchQuery,
-      searchEngines,
-      currentEngine,
+      // searchQuery,
+      // searchEngines,
+      // currentEngine,
       showSettingsModal,
       showTagModal,
       currentEditingTag,
-      currentWallpaper,
-      wallpaperState,
+      // wallpaperState,
       
       // 方法
-      performSearch,
-      setSearchEngine,
-      saveSettings,
+      // performSearch,
+      // setSearchEngine,
+      // saveSettings,
       showAddTagModal,
       showEditTagModal,
       closeTagModal,
       saveTag,
       deleteTag,
-      resetSettings,
-      handleSettingUpdate
+      // resetSettings,
+      // handleSettingUpdate,
+      // updateTheme
     }
   }
 }
