@@ -87,6 +87,7 @@ import { useTagGroups } from './composables/useTagGroups'
 import { useTime } from './composables/useTime'
 import { useSearch } from './composables/useSearch'
 // import { useWallpaper } from './composables/useWallpaper'
+import { useSettingsStore } from './stores/settingsStore';
 
 export default {
   name: 'App',
@@ -123,6 +124,7 @@ export default {
     const showTagModal = ref(false)
     const currentEditingTag = ref(null)
     const currentGroupId = ref(null)
+    const settingsStore = useSettingsStore();
 
     // 键盘事件处理
     const handleKeydown = (event) => {
@@ -168,6 +170,7 @@ export default {
     // 生命周期
     onMounted(() => {
       document.addEventListener('keydown', handleKeydown)
+      settingsStore.initialize();
     })
 
     onUnmounted(() => {

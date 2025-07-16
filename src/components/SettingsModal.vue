@@ -269,12 +269,6 @@
           </div>
         </div>
 
-        <!-- 标签管理页面 -->
-        <div v-if="activeMenu === 'bookmarks'" class="content-section">
-          <h3>标签管理</h3>
-          <!-- 内容保持不变 -->
-        </div>
-
         <!-- 壁纸页面 -->
         <div v-if="activeMenu === 'wallpaper'" class="content-section">
           <div class="settings-group">
@@ -546,12 +540,16 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useTagGroups } from '../composables/useTagGroups'
 import EmojiPicker from './EmojiPicker.vue'
 import TagModal from './TagModal.vue'
 import { CURRENT_VERSION } from '../services/version'
-import { getConfig, setConfig } from '../services/configManager'
+import { useSettingsStore } from '../stores/settingsStore';
+import { useToast } from '../composables/useToast'
+const {log, error} = useToast()
+
+const settingsStore = useSettingsStore();
 
 const settings = ref({})
 const wallpaperSettings = reactive({})
@@ -628,9 +626,8 @@ const handleOverlayClick = () => {
   emit('close')
 }
 
-const updateSetting = (key, value) => {
-  settings.value[key] = value
-  setConfig(settings.value)
+const updateSetting = async (key, value) => {
+  await settingsStore.updateSettings({ [key]: value })
 }
 
 // 分组管理方法
@@ -899,20 +896,19 @@ const loadMoreWallpapers = () => {
 const applyWallpaperSettings = () => {
   updateSetting('wallpaperMode', wallpaperSettings.wallpaperMode)
   updateSetting('wallpaperPath', wallpaperSettings.wallpaperPath)
+  log('壁纸设置已应用')
 }
 
 // Lifecycle hooks
 onMounted(async () => {
-  settings.value = await getConfig()
+  // settings.value = await getConfig()
+  settings.value = settingsStore.settings
   wallpaperSettings.wallpaperMode = settings.value.wallpaperMode
   wallpaperSettings.wallpaperPath = settings.value.wallpaperPath
   if (wallpaperSettings.wallpaperMode === 'fixed') {
     await getFixedWallpapers(0)
   }
   console.log('Settings loaded:', settings.value)
-})
-
-onBeforeUnmount(() => {
 })
 </script>
 
