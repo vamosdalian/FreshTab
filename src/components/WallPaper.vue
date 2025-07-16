@@ -75,4 +75,15 @@ watch(wallpaperPath, (newPath) => {
   z-index: -1;
   transition: opacity 0.3s ease;
 }
+
+[data-theme="dark"] .wallpaper-background::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.1);
+  z-index: 1;
+}
 </style>
