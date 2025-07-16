@@ -6,14 +6,9 @@
     <!-- 主要内容区域 -->
     <main class="main-content" :style="{ maxWidth: displayWidth + 'px' }">
       <!-- 时间显示组件 -->
-      <!-- <TimeSection 
-        v-if="settings.showTime" 
-        :currentTime="currentTime" 
-        :greeting="greeting"
-        :timeFormat="settings.timeFormat"
-        :showDate="settings.showDate"
-        :showSeconds="settings.showSeconds"
-      /> -->
+      <TimeSection 
+        v-if="showTime" 
+      />
 
       <!-- 搜索框组件 -->
       <SearchSection 
@@ -92,7 +87,6 @@ const {
   searchEmojis,
   emojiLibrary
 } = useTagGroups()
-const { currentTime, greeting } = useTime()
 
 // 模态框状态
 const showSettingsModal = ref(false)
@@ -103,6 +97,7 @@ const settingsStore = useSettingsStore();
 
 const showSearch = computed(() => settingsStore.settings.showSearch)
 const displayWidth = computed(() => settingsStore.settings.displayWidth || 1200)
+const showTime = computed(() => settingsStore.settings.showTime)
 
 // 键盘事件处理
 const handleKeydown = (event) => {
