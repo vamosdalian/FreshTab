@@ -30,7 +30,7 @@
     <SettingsButton @openSettings="showSettingsModal = true" />
     
     <!-- 主题切换按钮 -->
-    <ThemeToggleButton :settings="settings" :updateTheme="updateTheme" />
+    <ThemeToggleButton />
     
     <!-- 设置模态框 -->
     <Transition name="modal">

@@ -1,6 +1,6 @@
 <template>
   <button @click="toggleTheme" class="theme-toggle-button" :title="themeTooltip">
-    <svg v-if="isDarkMode" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <svg v-if="settingsStore.settings.isDarkMode" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <!-- 太阳图标 (浅色模式) -->
       <circle cx="12" cy="12" r="5"></circle>
       <line x1="12" y1="1" x2="12" y2="3"></line>
@@ -26,15 +26,14 @@ import { useSettingsStore } from '../stores/settingsStore'
 const settingsStore = useSettingsStore()
 
 const themeMode = computed(() => settingsStore.settings.theme || 'auto')
-const isDarkMode = computed(() => settingsStore.settings.isDarkMode || false)
 const themeTooltip = computed(() =>  settingsStore.settings.isDarkMode ? '切换到浅色模式' : '切换到深色模式')
 
 const toggleTheme = async () => {
-  const currentTheme = themeMode.value === 'auto' ? (isDarkMode.value ? 'dark' : 'light') : themeMode.value
-  if (currentTheme === 'light') {
-    settingsStore.updateSettings({ theme: 'dark', isDarkMode: true })
-  } else {
+  const currentIsDark = settingsStore.settings.isDarkMode
+  if (currentIsDark) {
     settingsStore.updateSettings({ theme: 'light', isDarkMode: false })
+  } else {
+    settingsStore.updateSettings({ theme: 'dark', isDarkMode: true })
   }
 }
 
@@ -42,9 +41,15 @@ const setDocumentTheme = (theme) => {
   document.documentElement.setAttribute('data-theme',theme)
 }
 
-watch(isDarkMode, (value) => {
+watch(settingsStore.settings.isDarkMode, (value) => {
+  console.log('Theme changed:', value ? 'dark' : 'light')
   setDocumentTheme(value ? 'dark' : 'light')
 })
+
+watch(() => settingsStore.settings.isDarkMode, (value) => {
+  console.log('Theme changed:', value ? 'dark' : 'light')
+  setDocumentTheme(value ? 'dark' : 'light')
+}, { immediate: true })
 
 const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)')
 darkModeQuery.addEventListener('change', (e) => {
@@ -54,7 +59,6 @@ darkModeQuery.addEventListener('change', (e) => {
 })
 
 onMounted(() => {
-  setDocumentTheme(isDarkMode ? 'dark' : 'light')
 })
 </script>
 

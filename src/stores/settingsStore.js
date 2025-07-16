@@ -18,7 +18,7 @@ export const useSettingsStore = defineStore('settings', () => {
   async function updateSettings(newPartialSettings) {
     settings.value = { ...settings.value, ...newPartialSettings };
     await configManager.setConfig(settings.value);
-    console.log('Pinia: Settings persisted to chrome.storage.');
+    console.log('Pinia: Settings persisted to chrome.storage.',settings.value);
   }
 
   return {
