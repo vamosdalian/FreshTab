@@ -123,7 +123,7 @@
             <div class="theme-preview-row">
               <div class="theme-preview-container">
                 <div class="theme-preview-item" :class="{ active: settings.theme === 'auto' }"
-                  @click="updateSetting('theme', 'auto')">
+                  @click="updateTheme('auto')">
                   <div class="preview-card auto-preview">
                     <div class="preview-header">
                       <div class="preview-dot"></div>
@@ -139,7 +139,7 @@
                 </div>
 
                 <div class="theme-preview-item" :class="{ active: settings.theme === 'light' }"
-                  @click="updateSetting('theme', 'light')">
+                  @click="updateTheme( 'light')">
                   <div class="preview-card light-preview">
                     <div class="preview-header">
                       <div class="preview-dot"></div>
@@ -155,7 +155,7 @@
                 </div>
 
                 <div class="theme-preview-item" :class="{ active: settings.theme === 'dark' }"
-                  @click="updateSetting('theme', 'dark')">
+                  @click="updateTheme('dark')">
                   <div class="preview-card dark-preview">
                     <div class="preview-header">
                       <div class="preview-dot"></div>
@@ -540,7 +540,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { useTagGroups } from '../composables/useTagGroups'
 import EmojiPicker from './EmojiPicker.vue'
 import TagModal from './TagModal.vue'
@@ -551,7 +551,7 @@ const {log, error} = useToast()
 
 const settingsStore = useSettingsStore();
 
-const settings = ref({})
+const settings = computed(() => settingsStore.settings)
 const wallpaperSettings = reactive({})
 let wallpaperLoading = ref(false)
 const fixedWallpapers = ref([])
@@ -624,6 +624,15 @@ const wallpaperModeOptions = [
 // Methods
 const handleOverlayClick = () => {
   emit('close')
+}
+
+const updateTheme = (theme) => {
+  if (theme === 'auto') {
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    settingsStore.updateSettings({ "theme": 'auto', "isDarkMode": systemPrefersDark })
+  } else {
+    settingsStore.updateSettings({ "theme": theme , "isDarkMode": theme === 'dark' })
+  }
 }
 
 const updateSetting = async (key, value) => {
@@ -901,8 +910,6 @@ const applyWallpaperSettings = () => {
 
 // Lifecycle hooks
 onMounted(async () => {
-  // settings.value = await getConfig()
-  settings.value = settingsStore.settings
   wallpaperSettings.wallpaperMode = settings.value.wallpaperMode
   wallpaperSettings.wallpaperPath = settings.value.wallpaperPath
   if (wallpaperSettings.wallpaperMode === 'fixed') {

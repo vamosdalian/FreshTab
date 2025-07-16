@@ -19,77 +19,43 @@
   </button>
 </template>
 
-<script>
-import { ref, onMounted, computed, inject } from 'vue'
+<script setup>
+import { ref, onMounted, computed, watch } from 'vue'
+import { useSettingsStore } from '../stores/settingsStore'
 
-export default {
-  name: 'ThemeToggleButton',
-  props: {
-    settings: {
-      type: Object,
-      default: () => ({})
-    },
-    updateTheme: {
-      type: Function,
-      default: () => {}
-    }
-  },
-  setup(props) {
-    const isDarkMode = ref(false)
-    
-    const themeTooltip = computed(() => {
-      return isDarkMode.value ? '切换到浅色模式' : '切换到深色模式'
-    })
-    
-    // 更新主题状态
-    const updateThemeState = () => {
-      isDarkMode.value = document.documentElement.getAttribute('data-theme') === 'dark'
-    }
-    
-    // 切换主题
-    const toggleTheme = () => {
-      let newTheme
-      
-      // 如果当前是自动模式，则切换到相反的手动模式
-      if (props.settings.theme === 'auto') {
-        newTheme = isDarkMode.value ? 'light' : 'dark'
-      } else if (props.settings.theme === 'light') {
-        newTheme = 'dark'
-      } else {
-        newTheme = 'light'
-      }
-      
-      // 更新设置
-      if (props.settings && typeof props.updateTheme === 'function') {
-        props.settings.theme = newTheme
-        props.updateTheme()
-      } else {
-        // 回退到直接设置 DOM 属性
-        document.documentElement.setAttribute('data-theme', newTheme)
-      }
-    }
-    
-    onMounted(() => {
-      // 初始化主题状态
-      updateThemeState()
-      
-      // 监听主题变化
-      const observer = new MutationObserver(() => {
-        updateThemeState()
-      })
-      observer.observe(document.documentElement, { 
-        attributes: true, 
-        attributeFilter: ['data-theme'] 
-      })
-    })
-    
-    return {
-      isDarkMode,
-      themeTooltip,
-      toggleTheme
-    }
+const settingsStore = useSettingsStore()
+
+const themeMode = computed(() => settingsStore.settings.theme || 'auto')
+const isDarkMode = computed(() => settingsStore.settings.isDarkMode || false)
+const themeTooltip = computed(() =>  settingsStore.settings.isDarkMode ? '切换到浅色模式' : '切换到深色模式')
+
+const toggleTheme = async () => {
+  const currentTheme = themeMode.value === 'auto' ? (isDarkMode.value ? 'dark' : 'light') : themeMode.value
+  if (currentTheme === 'light') {
+    settingsStore.updateSettings({ theme: 'dark', isDarkMode: true })
+  } else {
+    settingsStore.updateSettings({ theme: 'light', isDarkMode: false })
   }
 }
+
+const setDocumentTheme = (theme) => {
+  document.documentElement.setAttribute('data-theme',theme)
+}
+
+watch(isDarkMode, (value) => {
+  setDocumentTheme(value ? 'dark' : 'light')
+})
+
+const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)')
+darkModeQuery.addEventListener('change', (e) => {
+  if (themeMode.value === 'auto') {
+    settingsStore.updateSettings({ isDarkMode: e.matches })
+  }
+})
+
+onMounted(() => {
+  setDocumentTheme(isDarkMode ? 'dark' : 'light')
+})
 </script>
 
 <style scoped>

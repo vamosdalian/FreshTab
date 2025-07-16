@@ -30,10 +30,7 @@
     <SettingsButton @openSettings="showSettingsModal = true" />
     
     <!-- 主题切换按钮 -->
-    <!-- <ThemeToggleButton :settings="settings" :updateTheme="updateTheme" /> -->
-    
-    <!-- 快速访问栏 -->
-    <!-- <QuickAccessBar /> -->
+    <ThemeToggleButton :settings="settings" :updateTheme="updateTheme" />
     
     <!-- 设置模态框 -->
     <Transition name="modal">

@@ -14,7 +14,7 @@
         </button>
 
         <!-- 搜索输入框 -->
-        <input :value="searchQuery" @keydown="handleKeydown" @compositionstart="handleCompositionStart"
+        <input v-model="searchQuery" @keydown="handleKeydown" @compositionstart="handleCompositionStart"
           @compositionend="handleCompositionEnd" type="text" placeholder="搜索或输入网址..." class="search-input"
           ref="searchInput" />
 
