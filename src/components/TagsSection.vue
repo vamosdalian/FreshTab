@@ -6,7 +6,7 @@
       <h3>No Tag Groups</h3>
       <p>Create your first tag group to organize your bookmarks</p>
     </div>
-    
+
     <!-- 标签组列表 -->
     <div v-for="group in tagGroups.groups" :key="group.id" class="tag-group">
       <div class="group-header">
@@ -15,32 +15,18 @@
           <h3>{{ group.name }}</h3>
         </div>
       </div>
-      
-      <div 
-        class="tags-grid" 
-        :class="['tag-size-' + (settings.bookmarkSize || 'medium')]"
-        :style="{ 
-          '--items-per-row': settings.columnsPerRow || 6,
-          maxWidth: '100%'
-        }"
-      >
-        <div
-          v-for="tag in (Array.isArray(group.tags) ? group.tags : [])"
-          :key="tag.id"
-          class="tag-item"
-          @click="openTag(tag.url)"
-          :style="{ '--tag-color': group.themeColor }"
-        >
+
+      <div class="tags-grid" :class="['tag-size-' + (settings.bookmarkSize || 'medium')]" :style="{
+        '--items-per-row': settings.columnsPerRow || 6,
+        maxWidth: '100%'
+      }">
+        <div v-for="tag in (Array.isArray(group.tags) ? group.tags : [])" :key="tag.id" class="tag-item"
+          @click="openTag(tag.url)" :style="{ '--tag-color': group.themeColor }">
           <div class="tag-icon" :style="{ backgroundColor: tag.backgroundColor }">
             <span v-if="tag.iconType === 'emoji'">{{ tag.iconValue }}</span>
             <span v-else-if="tag.iconType === 'text'">{{ tag.iconValue }}</span>
-            <img 
-              v-else-if="tag.iconType === 'favicon'"
-              :src="getFaviconUrl(tag.url, tag)"
-              :alt="tag.name"
-              :data-original-url="tag.url"
-              @error="handleIconError"
-            />
+            <img v-else-if="tag.iconType === 'favicon'" :src="getFaviconUrl(tag.url, tag)" :alt="tag.name"
+              :data-original-url="tag.url" @error="handleIconError" />
             <span v-else>🔗</span>
           </div>
           <div class="tag-title">{{ tag.name }}</div>
@@ -51,7 +37,7 @@
 </template>
 
 <script setup>
-import { computed,onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useTagGroupsStore } from '../stores/tagGroupsStore'
 import { useSettingsStore } from '../stores/settingsStore';
 
@@ -76,10 +62,10 @@ function getFaviconUrl(url, tag) {
 function handleIconError(event) {
   const img = event.target
   const parent = img.parentElement
-  
+
   // 获取当前使用的URL
   const currentSrc = img.src
-  
+
   // 获取备用favicon服务列表
   const url = img.alt || img.dataset.originalUrl
   if (url) {
@@ -91,15 +77,15 @@ function handleIconError(event) {
       `https://favicon.yandex.net/favicon/v2/${domain}?size=32`,
       `https://${domain}/favicon.ico`
     ]
-    
+
     // 找到下一个备用服务
     const currentIndex = backupServices.findIndex(service => currentSrc.includes(service.split('/')[2]))
     const nextService = backupServices[currentIndex + 1]
-    
+
     if (nextService && !img.dataset.tried) {
       // 标记已尝试，避免无限循环
       img.dataset.tried = (parseInt(img.dataset.tried || '0') + 1).toString()
-      
+
       // 如果尝试次数少于3次，继续尝试下一个服务
       if (parseInt(img.dataset.tried) < 3) {
         img.src = nextService
@@ -107,7 +93,7 @@ function handleIconError(event) {
       }
     }
   }
-  
+
   // 所有服务都失败了，显示默认图标
   img.style.display = 'none'
   if (parent && !parent.querySelector('.fallback-icon')) {
@@ -147,28 +133,6 @@ onMounted(async () => {
   align-items: center;
   gap: 0.75rem;
   flex: 1;
-}
-
-.add-tag-btn {
-  background: var(--card-bg, rgba(255, 255, 255, 0.1));
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
-  border-radius: 8px;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  color: var(--text-color, white);
-  opacity: 0.7;
-}
-
-.add-tag-btn:hover {
-  background: var(--button-hover-bg, rgba(255, 255, 255, 0.2));
-  border-color: var(--tag-color, #667eea);
-  opacity: 1;
-  transform: scale(1.1);
 }
 
 .group-emoji {
@@ -333,61 +297,6 @@ onMounted(async () => {
   -webkit-box-orient: vertical;
 }
 
-.delete-btn {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  background: rgba(255, 0, 0, 0.8);
-  border: none;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  opacity: 0;
-  transition: all 0.3s ease;
-  color: white;
-}
-
-.tag-item:hover .delete-btn {
-  opacity: 1;
-}
-
-.delete-btn:hover {
-  background: rgba(255, 0, 0, 1);
-  transform: scale(1.1);
-}
-
-.empty-state {
-  text-align: center;
-  padding: 3rem 1rem;
-  color: var(--text-color-light, rgba(255, 255, 255, 0.7));
-  transition: color 0.3s ease;
-}
-
-.empty-state p {
-  font-size: 1.1rem;
-  margin-bottom: 1rem;
-}
-
-.add-first-btn {
-  padding: 0.8rem 1.5rem;
-  background: var(--button-bg, rgba(255, 255, 255, 0.2));
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.3));
-  border-radius: 25px;
-  color: var(--text-color, white);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 1rem;
-}
-
-.add-first-btn:hover {
-  background: var(--button-hover-bg, rgba(255, 255, 255, 0.3));
-  transform: translateY(-1px);
-}
-
 .global-empty-state {
   text-align: center;
   padding: 4rem 1rem;
@@ -412,64 +321,5 @@ onMounted(async () => {
 .global-empty-state p {
   font-size: 1.1rem;
   margin-bottom: 2rem;
-}
-
-.settings-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.8rem 1.5rem;
-  background: var(--button-bg, rgba(255, 255, 255, 0.2));
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.3));
-  border-radius: 25px;
-  color: var(--text-color, white);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 1rem;
-}
-
-.settings-btn:hover {
-  background: var(--button-hover-bg, rgba(255, 255, 255, 0.3));
-  transform: translateY(-1px);
-}
-
-@media (max-width: 768px) {
-  .tags-grid {
-    gap: 0.8rem;
-  }
-  
-  /* 移动端强制使用小尺寸 */
-  .tag-item {
-    width: 70px !important;
-    height: 70px !important;
-    padding: 0.4rem;
-  }
-  
-  .tag-icon {
-    width: 28px !important;
-    height: 28px !important;
-    font-size: 14px !important;
-    margin-bottom: 0.2rem !important;
-  }
-  
-  .tag-icon img {
-    width: 14px !important;
-    height: 14px !important;
-  }
-  
-  .tag-title {
-    font-size: 0.6rem !important;
-    line-height: 1.1 !important;
-  }
-  
-  .group-header {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
-  }
-  
-  .group-title h3 {
-    text-align: center;
-  }
 }
 </style>
