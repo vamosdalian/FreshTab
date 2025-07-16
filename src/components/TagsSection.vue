@@ -1,29 +1,26 @@
 <template>
   <section class="tags-section">
-    <!-- 标签分组显示 -->
-    <div v-for="group in tagGroups" :key="group.id" class="tag-group">
+    <!-- 空状态 -->
+    <div v-if="!tagGroups.groups || tagGroups.groups.length === 0" class="global-empty-state">
+      <div class="empty-icon">📋</div>
+      <h3>No Tag Groups</h3>
+      <p>Create your first tag group to organize your bookmarks</p>
+    </div>
+    
+    <!-- 标签组列表 -->
+    <div v-for="group in tagGroups.groups" :key="group.id" class="tag-group">
       <div class="group-header">
         <div class="group-title">
           <span class="group-emoji">{{ group.emoji }}</span>
           <h3>{{ group.name }}</h3>
         </div>
-        <button 
-          class="add-tag-btn"
-          @click="$emit('addTag', group.id)"
-          title="添加标签"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-        </button>
       </div>
       
       <div 
         class="tags-grid" 
-        :class="['tag-size-' + settings.bookmarkSize]"
+        :class="['tag-size-' + (settings.bookmarkSize || 'medium')]"
         :style="{ 
-          '--items-per-row': settings.columnsPerRow,
+          '--items-per-row': settings.columnsPerRow || 6,
           maxWidth: '100%'
         }"
       >
@@ -47,153 +44,86 @@
             <span v-else>🔗</span>
           </div>
           <div class="tag-title">{{ tag.name }}</div>
-          <button 
-            @click.stop="$emit('deleteTag', group.id, tag.id)"
-            class="delete-btn"
-            title="删除标签"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="3,6 5,6 21,6"></polyline>
-              <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6M8,6V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6"></path>
-            </svg>
-          </button>
         </div>
       </div>
-      
-      <!-- 空状态 -->
-      <div v-if="!Array.isArray(group.tags) || group.tags.length === 0" class="empty-state">
-        <button @click="$emit('addTag', group.id)" class="add-first-btn">
-          添加第一个标签
-        </button>
-      </div>
-    </div>
-    
-    <!-- 全局空状态 -->
-    <div v-if="tagGroups.length === 0" class="global-empty-state">
-      <div class="empty-icon">📁</div>
-      <button @click="$emit('openSettings')" class="settings-btn">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="3"></circle>
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-        </svg>
-        打开设置
-      </button>
     </div>
   </section>
 </template>
 
-<script>
-export default {
-  name: 'TagsSection',
-  props: {
-    tagGroups: {
-      type: Array,
-      required: true
-    },
-    settings: {
-      type: Object,
-      required: true
-    }
-  },
-  emits: ['addTag', 'deleteTag', 'openSettings'],
-  methods: {
-    openTag(url) {
-      window.location.href = url
-    },
+<script setup>
+import { computed,onMounted } from 'vue'
+import { useTagGroupsStore } from '../stores/tagGroupsStore'
+import { useSettingsStore } from '../stores/settingsStore';
+
+const tagGroupsStore = useTagGroupsStore()
+const settingsStore = useSettingsStore();
+
+const tagGroups = computed(() => tagGroupsStore.tagGroups)
+const settings = computed(() => settingsStore.settings)
+
+function openTag(url) {
+  window.location.href = url
+}
+
+function getFaviconUrl(url, tag) {
+  if (tag && tag.validFaviconUrl) {
+    return tag.validFaviconUrl
+  }
+  const domain = new URL(url).hostname
+  return `https://${domain}/favicon.ico`
+}
+
+function handleIconError(event) {
+  const img = event.target
+  const parent = img.parentElement
+  
+  // 获取当前使用的URL
+  const currentSrc = img.src
+  
+  // 获取备用favicon服务列表
+  const url = img.alt || img.dataset.originalUrl
+  if (url) {
+    const domain = new URL(url).hostname
+    const backupServices = [
+      `https://favicon.link/icon?url=${domain}`,
+      `https://icon.horse/icon/${domain}`,
+      `https://www.google.com/s2/favicons?domain=${domain}&sz=32`,
+      `https://favicon.yandex.net/favicon/v2/${domain}?size=32`,
+      `https://${domain}/favicon.ico`
+    ]
     
-    getFaviconUrl(url, tag) {
-      // 优先使用保存的有效favicon URL
-      if (tag && tag.validFaviconUrl) {
-        return tag.validFaviconUrl
-      }
-      
-      try {
-        const domain = new URL(url).hostname
-        
-        // 国内外favicon服务列表（按优先级排序）
-        const faviconServices = [
-          // 国内服务（速度更快）
-          `https://api.iowen.cn/favicon/${domain}.png`,
-          `https://favicon.link/icon?url=${domain}`,
-          `https://icon.horse/icon/${domain}`,
-          
-          // 国外服务（备用）
-          `https://www.google.com/s2/favicons?domain=${domain}&sz=32`,
-          `https://favicon.yandex.net/favicon/v2/${domain}?size=32`,
-          
-          // 直接尝试网站根目录
-          `https://${domain}/favicon.ico`
-        ]
-        
-        // 返回第一个服务作为主要选择
-        return faviconServices[0]
-      } catch {
-        return ''
-      }
-    },
+    // 找到下一个备用服务
+    const currentIndex = backupServices.findIndex(service => currentSrc.includes(service.split('/')[2]))
+    const nextService = backupServices[currentIndex + 1]
     
-    // 计算最大每行显示个数
-    getMaxColumnsPerRow() {
-      const tagSizes = {
-        small: 80,   // 小标签宽度
-        medium: 100, // 中标签宽度
-        large: 120   // 大标签宽度
-      }
-      const tagWidth = tagSizes[this.settings.bookmarkSize] || 100
-      const gap = 16 // 1rem = 16px
-      const displayWidth = this.settings.displayWidth || 800
+    if (nextService && !img.dataset.tried) {
+      // 标记已尝试，避免无限循环
+      img.dataset.tried = (parseInt(img.dataset.tried || '0') + 1).toString()
       
-      // 计算可以放置的标签数量（考虑间距）
-      const maxColumns = Math.floor((displayWidth + gap) / (tagWidth + gap))
-      return Math.max(1, maxColumns) // 至少显示1个
-    },
-    
-    handleIconError(event) {
-      const img = event.target
-      const parent = img.parentElement
-      
-      // 获取当前使用的URL
-      const currentSrc = img.src
-      
-      // 获取备用favicon服务列表
-      const url = img.alt || img.dataset.originalUrl
-      if (url) {
-        const domain = new URL(url).hostname
-        const backupServices = [
-          `https://favicon.link/icon?url=${domain}`,
-          `https://icon.horse/icon/${domain}`,
-          `https://www.google.com/s2/favicons?domain=${domain}&sz=32`,
-          `https://favicon.yandex.net/favicon/v2/${domain}?size=32`,
-          `https://${domain}/favicon.ico`
-        ]
-        
-        // 找到下一个备用服务
-        const currentIndex = backupServices.findIndex(service => currentSrc.includes(service.split('/')[2]))
-        const nextService = backupServices[currentIndex + 1]
-        
-        if (nextService && !img.dataset.tried) {
-          // 标记已尝试，避免无限循环
-          img.dataset.tried = (parseInt(img.dataset.tried || '0') + 1).toString()
-          
-          // 如果尝试次数少于3次，继续尝试下一个服务
-          if (parseInt(img.dataset.tried) < 3) {
-            img.src = nextService
-            return
-          }
-        }
-      }
-      
-      // 所有服务都失败了，显示默认图标
-      img.style.display = 'none'
-      if (parent && !parent.querySelector('.fallback-icon')) {
-        const fallback = document.createElement('span')
-        fallback.className = 'fallback-icon'
-        fallback.textContent = '🔗'
-        parent.appendChild(fallback)
+      // 如果尝试次数少于3次，继续尝试下一个服务
+      if (parseInt(img.dataset.tried) < 3) {
+        img.src = nextService
+        return
       }
     }
   }
+  
+  // 所有服务都失败了，显示默认图标
+  img.style.display = 'none'
+  if (parent && !parent.querySelector('.fallback-icon')) {
+    const fallback = document.createElement('span')
+    fallback.className = 'fallback-icon'
+    fallback.textContent = '🔗'
+    parent.appendChild(fallback)
+  }
 }
+
+onMounted(async () => {
+  console.log('TagsSection mounted')
+  console.log('Tag groups:', tagGroups.value)
+  console.log('Tag groups structure:', JSON.stringify(tagGroups.value, null, 2))
+})
+
 </script>
 
 <style scoped>
@@ -255,11 +185,18 @@ export default {
 }
 
 .group-title h3 {
-  color: var(--title-color, white);
+  color: white;
   font-size: 1.5rem;
   font-weight: 400;
   margin: 0;
-  transition: color 0.3s ease;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+/* Dark mode adjustments */
+:root[data-theme="dark"] .group-title h3 {
+  color: #e0e0e0;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
 .tags-grid {

@@ -16,14 +16,9 @@
       />
 
       <!-- 标签组件 -->
-      <!-- <TagsSection 
-        v-if="settings.showBookmarks"
-        :tagGroups="tagGroups"
-        :settings="settings"
-        @addTag="showAddTagModal"
-        @deleteTag="deleteTag"
-        @openSettings="showSettingsModal = true"
-      /> -->
+      <TagsSection 
+        v-if="showBookmarks"
+      />
     </main>
 
     <!-- 设置按钮 -->
@@ -65,38 +60,24 @@ import TagsSection from './components/TagsSection.vue'
 import SettingsButton from './components/SettingsButton.vue'
 import ThemeToggleButton from './components/ThemeToggleButton.vue'
 import SettingsModal from './components/SettingsModal.vue'
-import TagModal from './components/TagModal.vue'
 import ToastContainer from './components/ToastContainer.vue'
 import WallPaper from './components/WallPaper.vue'
 
-import { useTagGroups } from './composables/useTagGroups'
-import { useTime } from './composables/useTime'
+
 import { useSettingsStore } from './stores/settingsStore';
+import { useTagGroupsStore } from './stores/tagGroupsStore'
 
-// 使用组合式函数
-const { 
-  tagGroups, 
-  themeColors, 
-  addTag, 
-  editTag, 
-  deleteTag,
-  getTagEmojiRecommendations,
-  searchEmojis,
-  emojiLibrary
-} = useTagGroups()
-
-// 模态框状态
 const showSettingsModal = ref(false)
 const showTagModal = ref(false)
-const currentEditingTag = ref(null)
-const currentGroupId = ref(null)
+
 const settingsStore = useSettingsStore();
+const tagGroupsStore = useTagGroupsStore();
 
 const showSearch = computed(() => settingsStore.settings.showSearch)
 const displayWidth = computed(() => settingsStore.settings.displayWidth || 1200)
 const showTime = computed(() => settingsStore.settings.showTime)
+const showBookmarks = computed(() => settingsStore.settings.showBookmarks)
 
-// 键盘事件处理
 const handleKeydown = (event) => {
   if (event.key === 'Escape') {
     if (showSettingsModal.value) {
@@ -107,40 +88,11 @@ const handleKeydown = (event) => {
   }
 }
 
-// 显示添加标签模态框
-const showAddTagModal = (groupId) => {
-  currentGroupId.value = groupId
-  currentEditingTag.value = null
-  showTagModal.value = true
-}
-
-// 显示编辑标签模态框  
-const showEditTagModal = (groupId, tag) => {
-  currentGroupId.value = groupId
-  currentEditingTag.value = tag
-  showTagModal.value = true
-}
-
-// 关闭标签模态框
-const closeTagModal = () => {
-  showTagModal.value = false
-  currentEditingTag.value = null
-  currentGroupId.value = null
-}
-
-// 保存标签
-const saveTag = async (tagData) => {
-  if (currentEditingTag.value) {
-    await editTag(currentGroupId.value, currentEditingTag.value.id, tagData)
-  } else {
-    await addTag(currentGroupId.value, tagData)
-  }
-}
-
 // 生命周期
-onMounted(() => {
+onMounted(async () => {
   document.addEventListener('keydown', handleKeydown)
-  settingsStore.initialize();
+  await settingsStore.initialize()
+  await tagGroupsStore.initialize()
 })
 
 onUnmounted(() => {
