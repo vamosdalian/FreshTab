@@ -4,7 +4,7 @@
     <WallPaper />
     
     <!-- 主要内容区域 -->
-    <!-- <main class="main-content" :style="{ maxWidth: settings.displayWidth + 'px' }"> -->
+    <main class="main-content" :style="{ maxWidth: displayWidth + 'px' }">
       <!-- 时间显示组件 -->
       <!-- <TimeSection 
         v-if="settings.showTime" 
@@ -16,14 +16,9 @@
       /> -->
 
       <!-- 搜索框组件 -->
-      <!-- <SearchSection 
-        v-if="settings.showSearch"
-        v-model:searchQuery="searchQuery"
-        :currentEngine="currentEngine"
-        :searchEngines="searchEngines"
-        @search="performSearch"
-        @setEngine="setSearchEngine"
-      /> -->
+      <SearchSection 
+        v-if="showSearch"
+      />
 
       <!-- 标签组件 -->
       <!-- <TagsSection 
@@ -34,7 +29,7 @@
         @deleteTag="deleteTag"
         @openSettings="showSettingsModal = true"
       /> -->
-    <!-- </main> -->
+    </main>
 
     <!-- 设置按钮 -->
     <SettingsButton @openSettings="showSettingsModal = true" />
@@ -70,8 +65,8 @@
   </div>
 </template>
 
-<script>
-import { ref, reactive, onMounted, onUnmounted } from 'vue'
+<script setup>
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import TimeSection from './components/TimeSection.vue'
 import SearchSection from './components/SearchSection.vue'
 import TagsSection from './components/TagsSection.vue'
@@ -83,130 +78,82 @@ import ToastContainer from './components/ToastContainer.vue'
 import WallPaper from './components/WallPaper.vue'
 
 import { useTagGroups } from './composables/useTagGroups'
-// import { useSettings } from './composables/useSettings'
 import { useTime } from './composables/useTime'
-import { useSearch } from './composables/useSearch'
-// import { useWallpaper } from './composables/useWallpaper'
 import { useSettingsStore } from './stores/settingsStore';
 
-export default {
-  name: 'App',
-  components: {
-    TimeSection,
-    SearchSection,
-    TagsSection,
-    SettingsButton,
-    ThemeToggleButton,
-    SettingsModal,
-    TagModal,
-    ToastContainer,
-    WallPaper
-  },
-  setup() {
-    // 使用组合式函数
-    const { 
-      tagGroups, 
-      themeColors, 
-      addTag, 
-      editTag, 
-      deleteTag,
-      getTagEmojiRecommendations,
-      searchEmojis,
-      emojiLibrary
-    } = useTagGroups()
-    // const { settings, isLoaded, saveSettings, updateTheme, resetSettings } = useSettings()
-    const { currentTime, greeting } = useTime()
-    // const { searchQuery, searchEngines, currentEngine, performSearch, setSearchEngine } = useSearch(settings)
-    // const wallpaperState = useWallpaper()
+// 使用组合式函数
+const { 
+  tagGroups, 
+  themeColors, 
+  addTag, 
+  editTag, 
+  deleteTag,
+  getTagEmojiRecommendations,
+  searchEmojis,
+  emojiLibrary
+} = useTagGroups()
+const { currentTime, greeting } = useTime()
 
-    // 模态框状态
-    const showSettingsModal = ref(false)
-    const showTagModal = ref(false)
-    const currentEditingTag = ref(null)
-    const currentGroupId = ref(null)
-    const settingsStore = useSettingsStore();
+// 模态框状态
+const showSettingsModal = ref(false)
+const showTagModal = ref(false)
+const currentEditingTag = ref(null)
+const currentGroupId = ref(null)
+const settingsStore = useSettingsStore();
 
-    // 键盘事件处理
-    const handleKeydown = (event) => {
-      if (event.key === 'Escape') {
-        if (showSettingsModal.value) {
-          showSettingsModal.value = false
-        } else if (showTagModal.value) {
-          showTagModal.value = false
-        }
-      }
-    }
+const showSearch = computed(() => settingsStore.settings.showSearch)
+const displayWidth = computed(() => settingsStore.settings.displayWidth || 1200)
 
-    // 显示添加标签模态框
-    const showAddTagModal = (groupId) => {
-      currentGroupId.value = groupId
-      currentEditingTag.value = null
-      showTagModal.value = true
-    }
-
-    // 显示编辑标签模态框  
-    const showEditTagModal = (groupId, tag) => {
-      currentGroupId.value = groupId
-      currentEditingTag.value = tag
-      showTagModal.value = true
-    }
-
-    // 关闭标签模态框
-    const closeTagModal = () => {
+// 键盘事件处理
+const handleKeydown = (event) => {
+  if (event.key === 'Escape') {
+    if (showSettingsModal.value) {
+      showSettingsModal.value = false
+    } else if (showTagModal.value) {
       showTagModal.value = false
-      currentEditingTag.value = null
-      currentGroupId.value = null
-    }
-
-    // 保存标签
-    const saveTag = async (tagData) => {
-      if (currentEditingTag.value) {
-        await editTag(currentGroupId.value, currentEditingTag.value.id, tagData)
-      } else {
-        await addTag(currentGroupId.value, tagData)
-      }
-    }
-
-    // 生命周期
-    onMounted(() => {
-      document.addEventListener('keydown', handleKeydown)
-      settingsStore.initialize();
-    })
-
-    onUnmounted(() => {
-      document.removeEventListener('keydown', handleKeydown)
-    })
-
-    return {
-      // 数据
-      tagGroups,
-      themeColors,
-      // settings,
-      currentTime,
-      greeting,
-      // searchQuery,
-      // searchEngines,
-      // currentEngine,
-      showSettingsModal,
-      showTagModal,
-      currentEditingTag,
-      // wallpaperState,
-      
-      // 方法
-      // performSearch,
-      // setSearchEngine,
-      // saveSettings,
-      showAddTagModal,
-      showEditTagModal,
-      closeTagModal,
-      saveTag,
-      deleteTag,
-      // resetSettings,
-      // handleSettingUpdate,
-      // updateTheme
     }
   }
 }
+
+// 显示添加标签模态框
+const showAddTagModal = (groupId) => {
+  currentGroupId.value = groupId
+  currentEditingTag.value = null
+  showTagModal.value = true
+}
+
+// 显示编辑标签模态框  
+const showEditTagModal = (groupId, tag) => {
+  currentGroupId.value = groupId
+  currentEditingTag.value = tag
+  showTagModal.value = true
+}
+
+// 关闭标签模态框
+const closeTagModal = () => {
+  showTagModal.value = false
+  currentEditingTag.value = null
+  currentGroupId.value = null
+}
+
+// 保存标签
+const saveTag = async (tagData) => {
+  if (currentEditingTag.value) {
+    await editTag(currentGroupId.value, currentEditingTag.value.id, tagData)
+  } else {
+    await addTag(currentGroupId.value, tagData)
+  }
+}
+
+// 生命周期
+onMounted(() => {
+  document.addEventListener('keydown', handleKeydown)
+  settingsStore.initialize();
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeydown)
+})
 </script>
 
 <style>

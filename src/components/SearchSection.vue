@@ -4,52 +4,32 @@
       <div class="search-box">
         <!-- 搜索引擎图标按钮 -->
         <button @click="toggleEngineDropdown" class="engine-icon-btn" ref="engineBtn">
-          <img 
-            v-if="!iconError"
-            :src="currentEngine.icon" 
-            :alt="currentEngine.name"
-            class="engine-icon"
-            @error="handleIconError"
-          />
+          <img v-if="!iconError" :src="currentEngine.icon" :alt="currentEngine.name" class="engine-icon"
+            @error="handleIconError" />
           <span v-else class="engine-icon-fallback">{{ currentEngine.fallbackIcon }}</span>
-          <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2">
             <polyline points="6,9 12,15 18,9"></polyline>
           </svg>
         </button>
-        
+
         <!-- 搜索输入框 -->
-        <input
-          :value="searchQuery"
-          @input="$emit('update:searchQuery', $event.target.value)"
-          @keydown="handleKeydown"
-          @compositionstart="handleCompositionStart"
-          @compositionend="handleCompositionEnd"
-          type="text"
-          placeholder="搜索或输入网址..."
-          class="search-input"
-          ref="searchInput"
-        />
-        
+        <input :value="searchQuery" @keydown="handleKeydown" @compositionstart="handleCompositionStart"
+          @compositionend="handleCompositionEnd" type="text" placeholder="搜索或输入网址..." class="search-input"
+          ref="searchInput" />
+
         <!-- 搜索按钮 -->
         <button @click="handleSearch" class="search-button">
           <img src="/icons/search-icon.svg" alt="搜索" class="search-icon" />
         </button>
       </div>
-      
+
       <!-- 搜索引擎下拉菜单 -->
       <div v-if="showEngineDropdown" class="engine-dropdown" ref="dropdown">
-        <div
-          v-for="engine in searchEngines"
-          :key="engine.id"
-          @click="selectSearchEngine(engine)"
-          :class="['engine-option', { active: currentEngine.id === engine.id }]"
-        >
-          <img 
-            :src="engine.icon" 
-            :alt="engine.name"
-            class="engine-option-icon"
-            @error="(e) => { e.target.style.display = 'none'; e.target.nextElementSibling.style.display = 'block' }"
-          />
+        <div v-for="engine in searchEngines" :key="engine.id" @click="selectSearchEngine(engine)"
+          :class="['engine-option', { active: currentEngine.id === engine.id }]">
+          <img :src="engine.icon" :alt="engine.name" class="engine-option-icon"
+            @error="(e) => { e.target.style.display = 'none'; e.target.nextElementSibling.style.display = 'block' }" />
           <span class="engine-option-fallback" style="display: none;">{{ engine.fallbackIcon }}</span>
           <span class="engine-option-name">{{ engine.name }}</span>
         </div>
@@ -58,117 +38,180 @@
   </section>
 </template>
 
-<script>
-import { ref, onMounted, onUnmounted } from 'vue'
+<script setup>
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { useSettingsStore } from '../stores/settingsStore';
 
-export default {
-  name: 'SearchSection',
-  props: {
-    searchQuery: {
-      type: String,
-      required: true
-    },
-    searchEngines: {
-      type: Array,
-      required: true
-    },
-    currentEngine: {
-      type: Object,
-      required: true
-    }
+const settingsStore = useSettingsStore();
+const searchQuery = ref('')
+const isComposing = ref(false)
+const showEngineDropdown = ref(false)
+const iconError = ref(false)
+const engineBtn = ref(null)
+const dropdown = ref(null)
+const currentEngine = computed(() => searchEngines.value.find(engine => engine.id === settingsStore.settings.searchEngine) || searchEngines.value[0])
+
+const searchEngines = ref([
+  {
+    id: 'chrome-default',
+    name: '默认搜索引擎',
+    url: null, // 特殊标识，使用Chrome API
+    icon: '',
+    fallbackIcon: '🔍'
   },
-  emits: ['update:searchQuery', 'search', 'setEngine'],
-  setup(props, { emit }) {
-    const showEngineDropdown = ref(false)
-    const iconError = ref(false)
-    const engineBtn = ref(null)
-    const dropdown = ref(null)
-    const isComposing = ref(false)
+  {
+    id: 'google',
+    name: 'Google',
+    url: 'https://www.google.com/search?q=',
+    icon: 'https://www.google.com/favicon.ico',
+    fallbackIcon: '🔍'
+  },
+  {
+    id: 'bing',
+    name: 'Bing',
+    url: 'https://www.bing.com/search?q=',
+    icon: 'https://www.bing.com/favicon.ico',
+    fallbackIcon: '🅱️'
+  },
+  {
+    id: 'baidu',
+    name: '百度',
+    url: 'https://www.baidu.com/s?wd=',
+    icon: 'https://www.baidu.com/favicon.ico',
+    fallbackIcon: '🟦'
+  },
+  {
+    id: 'duckduckgo',
+    name: 'DuckDuckGo',
+    url: 'https://duckduckgo.com/?q=',
+    icon: 'https://duckduckgo.com/favicon.ico',
+    fallbackIcon: '🦆'
+  },
+  {
+    id: 'yahoo',
+    name: 'Yahoo',
+    url: 'https://search.yahoo.com/search?p=',
+    icon: 'https://search.yahoo.com/favicon.ico',
+    fallbackIcon: '🟣'
+  }
+])
 
-    const handleSearch = () => {
-      emit('search')
-    }
-
-    const handleKeydown = (event) => {
-      // 只有在不是输入法组合状态且按下回车键时才触发搜索
-      if (event.key === 'Enter' && !isComposing.value) {
-        event.preventDefault() // 防止表单提交或其他默认行为
-        handleSearch()
-      }
-    }
-
-    const handleCompositionStart = () => {
-      isComposing.value = true
-    }
-
-    const handleCompositionEnd = (event) => {
-      isComposing.value = false
-      // 在某些浏览器中，compositionend 可能在 keydown 之后触发
-      // 所以我们需要在下一个事件循环中重置状态
-      setTimeout(() => {
-        isComposing.value = false
-      }, 0)
-    }
-
-    const setSearchEngine = (engine) => {
-      emit('setEngine', engine)
-      // 重置图标错误状态
-      iconError.value = false
-    }
-
-    const toggleEngineDropdown = () => {
-      showEngineDropdown.value = !showEngineDropdown.value
-    }
-
-    const selectSearchEngine = async (engine) => {
-      setSearchEngine(engine)
-      showEngineDropdown.value = false
-    }
-
-    const handleIconError = () => {
-      iconError.value = true
-    }
-
-    // 监听当前引擎变化，重置图标错误状态
-    const resetIconError = () => {
-      iconError.value = false
-    }
-
-    // 点击外部关闭下拉菜单
-    const handleClickOutside = (event) => {
-      if (engineBtn.value && dropdown.value && 
-          !engineBtn.value.contains(event.target) && 
-          !dropdown.value.contains(event.target)) {
-        showEngineDropdown.value = false
-      }
-    }
-
-    onMounted(() => {
-      document.addEventListener('click', handleClickOutside)
-    })
-
-    onUnmounted(() => {
-      document.removeEventListener('click', handleClickOutside)
-    })
-
-    return {
-      showEngineDropdown,
-      iconError,
-      engineBtn,
-      dropdown,
-      isComposing,
-      handleSearch,
-      handleKeydown,
-      handleCompositionStart,
-      handleCompositionEnd,
-      setSearchEngine,
-      toggleEngineDropdown,
-      selectSearchEngine,
-      handleIconError,
-      resetIconError
-    }
+// URL检查函数
+const isURL = (string) => {
+  try {
+    // 检查是否包含常见的URL模式
+    const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/
+    const ipPattern = /^(https?:\/\/)?((\d{1,3}\.){3}\d{1,3})(:\d+)?(\/.*)?$/
+    
+    return urlPattern.test(string) || ipPattern.test(string) || 
+           string.includes('.') && !string.includes(' ')
+  } catch (e) {
+    return false
   }
 }
+
+
+const handleSearch = () => {
+  performSearch(searchQuery.value)
+}
+
+const performSearch = async (query = searchQuery.value) => {
+  if (!query.trim()) return
+
+  // 检查是否是URL
+  if (isURL(query)) {
+    // 如果是URL，直接打开
+    window.location.href = query.startsWith('http') ? query : `https://${query}`
+    return
+  }
+
+  // 检查是否使用Chrome默认搜索引擎
+  if (currentEngine.value.id === 'chrome-default') {
+    try {
+      // 使用Chrome搜索API
+      if (chrome && chrome.search && chrome.search.query) {
+        await chrome.search.query({
+          text: query,
+          disposition: 'CURRENT_TAB'
+        })
+      } else {
+        // 如果Chrome API不可用，回退到Google搜索
+        window.location.href = `https://www.google.com/search?q=${encodeURIComponent(query)}`
+      }
+    } catch (error) {
+      console.warn('Chrome search API failed, falling back to Google:', error)
+      // 回退到Google搜索
+      window.location.href = `https://www.google.com/search?q=${encodeURIComponent(query)}`
+    }
+  } else {
+    // 使用指定的搜索引擎
+    const searchURL = currentEngine.value.url + encodeURIComponent(query)
+    window.location.href = searchURL
+  }
+}
+
+const handleKeydown = (event) => {
+  // 只有在不是输入法组合状态且按下回车键时才触发搜索
+  if (event.key === 'Enter' && !isComposing.value) {
+    event.preventDefault() // 防止表单提交或其他默认行为
+    handleSearch()
+  }
+}
+
+const handleCompositionStart = () => {
+  isComposing.value = true
+}
+
+const handleCompositionEnd = (event) => {
+  isComposing.value = false
+  // 在某些浏览器中，compositionend 可能在 keydown 之后触发
+  // 所以我们需要在下一个事件循环中重置状态
+  setTimeout(() => {
+    isComposing.value = false
+  }, 0)
+}
+
+const setSearchEngine = (engine) => {
+  console.log('Setting search engine to:', engine)
+  currentEngine.value = engine
+  settingsStore.updateSettings({ searchEngine: engine.id })
+  iconError.value = false
+}
+
+const toggleEngineDropdown = () => {
+  showEngineDropdown.value = !showEngineDropdown.value
+}
+
+const selectSearchEngine = async (engine) => {
+  setSearchEngine(engine)
+  showEngineDropdown.value = false
+}
+
+const handleIconError = () => {
+  iconError.value = true
+}
+
+// 监听当前引擎变化，重置图标错误状态
+const resetIconError = () => {
+  iconError.value = false
+}
+
+// 点击外部关闭下拉菜单
+const handleClickOutside = (event) => {
+  if (engineBtn.value && dropdown.value &&
+    !engineBtn.value.contains(event.target) &&
+    !dropdown.value.contains(event.target)) {
+    showEngineDropdown.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 </script>
 
 <style scoped>
@@ -366,46 +409,46 @@ export default {
   .search-container {
     width: 95%;
   }
-  
+
   .search-box {
     border-radius: 40px 25px 25px 40px;
   }
-  
+
   .search-input {
     width: calc(100% - 7rem);
     font-size: 0.9rem;
     padding: 0.875rem 3.5rem 0.875rem 0.875rem;
   }
-  
+
   .engine-icon-btn {
     padding: 0.875rem 0.375rem 0.875rem 0.625rem;
     gap: 0;
     border-radius: 40px 0 0 40px;
   }
-  
+
   .engine-icon-btn:hover {
     padding-left: 0.75rem;
     padding-right: 0.5rem;
     gap: 0.25rem;
   }
-  
+
   .engine-icon,
   .engine-option-icon {
     width: 16px;
     height: 16px;
   }
-  
+
   .engine-icon-fallback,
   .engine-option-fallback {
     font-size: 14px;
     width: 16px;
   }
-  
+
   .search-button {
     right: 0.5rem;
     padding: 0.625rem;
   }
-  
+
   .dropdown-arrow {
     width: 10px;
     height: 10px;
