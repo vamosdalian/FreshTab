@@ -134,13 +134,4 @@ onMounted(() => {
 .theme-toggle-button:hover::before {
   opacity: 1;
 }
-
-@media (max-width: 768px) {
-  .theme-toggle-button {
-    bottom: 4rem; /* 调整移动端位置 */
-    left: 1rem;
-    width: 44px;
-    height: 44px;
-  }
-}
 </style>

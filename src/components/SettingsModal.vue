@@ -2174,33 +2174,6 @@ onMounted(async () => {
   font-weight: 500;
 }
 
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .app-info {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .features-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .contact-links {
-    justify-content: center;
-  }
-
-  .info-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
-
-  .info-label {
-    min-width: auto;
-    font-weight: 600;
-  }
-}
-
 /* 壁纸设置样式 */
 .wallpaper-mode-content {
   margin-top: 16px;

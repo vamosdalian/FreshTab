@@ -48,8 +48,6 @@ async function fetchBingWallpaper() {
   }
 }
 
-
-
 onMounted(async () => {
   loadWallpaperImage(wallpaperPath.value)
 

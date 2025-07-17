@@ -112,10 +112,4 @@ onUnmounted(() => {
   font-family: 'Courier New', monospace;
   letter-spacing: 0.1em;
 }
-
-@media (max-width: 768px) {
-  .time-display {
-    font-size: 3rem;
-  }
-}
 </style>
