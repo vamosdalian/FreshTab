@@ -1,12 +1,5 @@
 <template>
   <section class="tags-section">
-    <!-- 空状态 -->
-    <div v-if="!tagGroups.groups || tagGroups.groups.length === 0" class="global-empty-state">
-      <div class="empty-icon">📋</div>
-      <h3>No Tag Groups</h3>
-      <p>Create your first tag group to organize your bookmarks</p>
-    </div>
-
     <!-- 标签组列表 -->
     <div v-for="group in tagGroups.groups" :key="group.id" class="tag-group">
       <div class="group-header">
@@ -36,31 +29,34 @@
   </section>
 </template>
 
-<script setup>
-import { computed, onMounted } from 'vue'
+<script setup lang="ts">
+import { computed } from 'vue'
+import type { Tag } from '../types/tagGroup'
 import { useTagGroupsStore } from '../stores/tagGroupsStore'
-import { useSettingsStore } from '../stores/settingsStore';
+import { useSettingsStore } from '../stores/settingsStore'
 
 const tagGroupsStore = useTagGroupsStore()
 const settingsStore = useSettingsStore();
 
 const tagGroups = computed(() => tagGroupsStore.tagGroups)
-const settings = computed(() => settingsStore.settings)
+const settings = computed(() => settingsStore.settings as any) // TODO: Add proper settings type
 
-function openTag(url) {
+function openTag(url: string): void {
   window.location.href = url
 }
 
-function getFaviconUrl(url, tag) {
-  if (tag && tag.validFaviconUrl) {
-    return tag.validFaviconUrl
+function getFaviconUrl(url: string, tag: Tag): string {
+  // Note: validFaviconUrl is not part of the Tag interface but may exist in runtime
+  const tagWithExtras = tag as Tag & { validFaviconUrl?: string }
+  if (tagWithExtras && tagWithExtras.validFaviconUrl) {
+    return tagWithExtras.validFaviconUrl
   }
   const domain = new URL(url).hostname
   return `https://${domain}/favicon.ico`
 }
 
-function handleIconError(event) {
-  const img = event.target
+function handleIconError(event: Event): void {
+  const img = event.target as HTMLImageElement
   const parent = img.parentElement
 
   // 获取当前使用的URL
@@ -103,12 +99,6 @@ function handleIconError(event) {
     parent.appendChild(fallback)
   }
 }
-
-onMounted(async () => {
-  console.log('TagsSection mounted')
-  console.log('Tag groups:', tagGroups.value)
-  console.log('Tag groups structure:', JSON.stringify(tagGroups.value, null, 2))
-})
 
 </script>
 

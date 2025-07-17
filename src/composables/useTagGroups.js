@@ -1,5 +1,5 @@
 import { computed } from 'vue'
-import { useTagGroupsStore } from '../stores/tagGroupsStore.js'
+import { useTagGroupsStore } from '../stores/tagGroupsStore'
 import { useToast } from './useToast'
 
 export function useTagGroups() {

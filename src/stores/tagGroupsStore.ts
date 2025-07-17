@@ -1,46 +1,55 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
-import * as tagGroupManager from '../services/tagGroupManager.js';
+import { ref, type Ref } from 'vue';
+import type { TagGroupConfig, TagGroup, Tag } from '../types/tagGroup';
+import { setTagGroups, onTagGroupsChange, getTagGroups } from '../services/tagGroupManager';
 
 export const useTagGroupsStore = defineStore('tagGroups', () => {
-  const tagGroups = ref({});
+  const tagGroups: Ref<TagGroupConfig> = ref({} as TagGroupConfig);
 
-  async function initialize() {
-    tagGroups.value = await tagGroupManager.getTagGroups();
-    console.log('Pinia: Tag groups initialized.', tagGroups.value);
+  async function initialize(): Promise<void> {
+    const data = await getTagGroups();
+    tagGroups.value = data;
+    
+    console.log('[Pinia] Tag groups initialized.', tagGroups.value);
 
-    tagGroupManager.onTagGroupsChange((changedTagGroups) => {
-      console.log('Pinia: Detected tag groups changes from background.', changedTagGroups);
+    onTagGroupsChange((changedTagGroups: TagGroupConfig) => {
+      console.log('[Pinia] Detected tag groups changes from background.', changedTagGroups);
       tagGroups.value = changedTagGroups;
     });
   }
 
-  async function updateTagGroups(newTagGroups) {
+  async function updateTagGroups(newTagGroups: TagGroupConfig): Promise<void> {
     tagGroups.value = { ...newTagGroups };
-    await tagGroupManager.setTagGroups(tagGroups.value);
-    console.log('Pinia: Tag groups persisted to chrome.storage.', tagGroups.value);
+    await setTagGroups(tagGroups.value);
   }
 
-  async function addGroup(group) {
-    const newGroup = {
+  async function addGroup(group: Partial<TagGroup>): Promise<TagGroup> {
+    const groups = tagGroups.value.groups;
+    console.log('[Pinia] (debug) groups', groups);
+
+    const newGroup: TagGroup = {
       id: group.id || `group_${Date.now()}`,
-      name: group.name,
-      emoji: group.emoji,
-      themeColor: group.themeColor,
+      name: group.name || '',
+      emoji: group.emoji || '📁',
+      themeColor: group.themeColor || '#666',
       tags: group.tags || []
     };
+
+    if (groups.findIndex(g => g.id === newGroup.id) !== -1) {
+      throw new Error(`Group with id ${group.id} already exists`);
+    }
     
-    const updatedTagGroups = {
+    const updatedTagGroups: TagGroupConfig = {
       ...tagGroups.value,
-      groups: [...(tagGroups.value.groups || []), newGroup]
+      groups: [...groups, newGroup]
     };
     
     await updateTagGroups(updatedTagGroups);
     return newGroup;
   }
 
-  async function updateGroup(groupId, updatedGroup) {
-    const groups = tagGroups.value.groups || [];
+  async function updateGroup(groupId: string, updatedGroup: Partial<TagGroup>): Promise<TagGroup> {
+    const groups = tagGroups.value.groups;
     const groupIndex = groups.findIndex(g => g.id === groupId);
     
     if (groupIndex === -1) {
@@ -50,7 +59,7 @@ export const useTagGroupsStore = defineStore('tagGroups', () => {
     const updatedGroups = [...groups];
     updatedGroups[groupIndex] = { ...updatedGroups[groupIndex], ...updatedGroup };
     
-    const updatedTagGroups = {
+    const updatedTagGroups: TagGroupConfig = {
       ...tagGroups.value,
       groups: updatedGroups
     };
@@ -59,11 +68,11 @@ export const useTagGroupsStore = defineStore('tagGroups', () => {
     return updatedGroups[groupIndex];
   }
 
-  async function removeGroup(groupId) {
-    const groups = tagGroups.value.groups || [];
+  async function removeGroup(groupId: string): Promise<void> {    
+    const groups = tagGroups.value.groups;
     const updatedGroups = groups.filter(g => g.id !== groupId);
     
-    const updatedTagGroups = {
+    const updatedTagGroups: TagGroupConfig = {
       ...tagGroups.value,
       groups: updatedGroups
     };
@@ -71,18 +80,18 @@ export const useTagGroupsStore = defineStore('tagGroups', () => {
     await updateTagGroups(updatedTagGroups);
   }
 
-  async function addTag(groupId, tag) {
-    const newTag = {
+  async function addTag(groupId: string, tag: Partial<Tag>): Promise<Tag> {
+    const newTag: Tag = {
       id: tag.id || `tag_${Date.now()}`,
-      name: tag.name,
-      url: tag.url,
+      name: tag.name || '',
+      url: tag.url || '',
       iconType: tag.iconType || 'emoji',
       iconValue: tag.iconValue || '🔗',
       backgroundColor: tag.backgroundColor || '#666'
     };
     
-    const groups = tagGroups.value.groups || [];
-    const groupIndex = groups.findIndex(g => g.id === groupId);
+    const groups = tagGroups.value.groups;
+    let groupIndex = groups.findIndex(g => g.id === groupId);
     
     if (groupIndex === -1) {
       throw new Error(`Group with id ${groupId} not found`);
@@ -91,10 +100,10 @@ export const useTagGroupsStore = defineStore('tagGroups', () => {
     const updatedGroups = [...groups];
     updatedGroups[groupIndex] = {
       ...updatedGroups[groupIndex],
-      tags: [...(updatedGroups[groupIndex].tags || []), newTag]
+      tags: [...updatedGroups[groupIndex].tags, newTag]
     };
     
-    const updatedTagGroups = {
+    const updatedTagGroups: TagGroupConfig = {
       ...tagGroups.value,
       groups: updatedGroups
     };
@@ -103,9 +112,9 @@ export const useTagGroupsStore = defineStore('tagGroups', () => {
     return newTag;
   }
 
-  async function updateTag(groupId, tagId, updatedTag) {
-    const groups = tagGroups.value.groups || [];
-    const groupIndex = groups.findIndex(g => g.id === groupId);
+  async function updateTag(groupId: string, tagId: string, updatedTag: Partial<Tag>): Promise<Tag> {
+    const groups = tagGroups.value.groups;
+    let groupIndex = groups.findIndex(g => g.id === groupId);
     
     if (groupIndex === -1) {
       throw new Error(`Group with id ${groupId} not found`);
@@ -124,7 +133,7 @@ export const useTagGroupsStore = defineStore('tagGroups', () => {
     updatedTags[tagIndex] = { ...updatedTags[tagIndex], ...updatedTag };
     updatedGroups[groupIndex] = { ...group, tags: updatedTags };
     
-    const updatedTagGroups = {
+    const updatedTagGroups: TagGroupConfig = {
       ...tagGroups.value,
       groups: updatedGroups
     };
@@ -133,8 +142,8 @@ export const useTagGroupsStore = defineStore('tagGroups', () => {
     return updatedTags[tagIndex];
   }
 
-  async function removeTag(groupId, tagId) {
-    const groups = tagGroups.value.groups || [];
+  async function removeTag(groupId: string, tagId: string): Promise<void> {
+    const groups = tagGroups.value.groups;
     const groupIndex = groups.findIndex(g => g.id === groupId);
     
     if (groupIndex === -1) {
@@ -142,12 +151,12 @@ export const useTagGroupsStore = defineStore('tagGroups', () => {
     }
     
     const group = groups[groupIndex];
-    const updatedTags = (group.tags || []).filter(t => t.id !== tagId);
+    const updatedTags = (group.tags).filter(t => t.id !== tagId);
     
     const updatedGroups = [...groups];
     updatedGroups[groupIndex] = { ...group, tags: updatedTags };
     
-    const updatedTagGroups = {
+    const updatedTagGroups: TagGroupConfig = {
       ...tagGroups.value,
       groups: updatedGroups
     };
@@ -158,7 +167,6 @@ export const useTagGroupsStore = defineStore('tagGroups', () => {
   return {
     tagGroups,
     initialize,
-    updateTagGroups,
     addGroup,
     updateGroup,
     removeGroup,

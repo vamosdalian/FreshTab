@@ -55,7 +55,7 @@
             <div class="setting-row">
               <span class="setting-label">每行显示个数</span>
               <select class="setting-select" :value="settings.columnsPerRow"
-                @change="updateSetting('columnsPerRow', Number($event.target.value))">
+                @change="updateSetting('columnsPerRow', Number(($event.target as HTMLSelectElement).value))">
                 <option v-for="n in getMaxColumnsOptions()" :key="n" :value="n">
                   {{ n }}
                 </option>
@@ -64,7 +64,7 @@
             <div class="setting-row">
               <span class="setting-label">标签大小</span>
               <select class="setting-select" :value="settings.bookmarkSize"
-                @change="updateSetting('bookmarkSize', $event.target.value)">
+                @change="updateSetting('bookmarkSize', ($event.target as HTMLSelectElement).value)">
                 <option value="large">大</option>
                 <option value="medium">中</option>
                 <option value="small">小</option>
@@ -79,7 +79,7 @@
               <span class="setting-label">显示时间</span>
               <label class="toggle-switch">
                 <input type="checkbox" :checked="settings.showTime"
-                  @change="updateSetting('showTime', $event.target.checked)">
+                  @change="updateSetting('showTime', ($event.target as HTMLInputElement).checked)">
                 <span class="toggle-slider"></span>
               </label>
             </div>
@@ -87,14 +87,14 @@
               <span class="setting-label">显示日期</span>
               <label class="toggle-switch">
                 <input type="checkbox" :checked="settings.showDate"
-                  @change="updateSetting('showDate', $event.target.checked)">
+                  @change="updateSetting('showDate', ($event.target as HTMLInputElement).checked)">
                 <span class="toggle-slider"></span>
               </label>
             </div>
             <div class="setting-row">
               <span class="setting-label">时间格式</span>
               <select class="setting-select" :value="settings.timeFormat"
-                @change="updateSetting('timeFormat', $event.target.value)">
+                @change="updateSetting('timeFormat', ($event.target as HTMLSelectElement).value)">
                 <option value="24h">24小时制</option>
                 <option value="12h">12小时制</option>
               </select>
@@ -107,7 +107,7 @@
             <div class="setting-row">
               <span class="setting-label">外观主题</span>
               <select class="setting-select" :value="settings.theme"
-                @change="updateSetting('theme', $event.target.value)">
+                @change="updateSetting('theme', ($event.target as HTMLSelectElement).value)">
                 <option value="auto">跟随系统</option>
                 <option value="light">浅色主题</option>
                 <option value="dark">深色主题</option>
@@ -139,7 +139,7 @@
                 </div>
 
                 <div class="theme-preview-item" :class="{ active: settings.theme === 'light' }"
-                  @click="updateTheme( 'light')">
+                  @click="updateTheme('light')">
                   <div class="preview-card light-preview">
                     <div class="preview-header">
                       <div class="preview-dot"></div>
@@ -189,7 +189,7 @@
           </div>
 
           <div class="groups-list">
-            <div v-for="group in tagGroups" :key="group.id" class="group-item">
+            <div v-for="group in tagGroups.groups" :key="group.id" class="group-item">
               <div class="group-header">
                 <div class="group-info">
                   <span class="group-emoji">{{ group.emoji }}</span>
@@ -226,8 +226,8 @@
                   <div class="tag-list-icon">
                     <span v-if="tag.iconType === 'emoji'">{{ tag.iconValue }}</span>
                     <span v-else-if="tag.iconType === 'text'">{{ tag.iconValue }}</span>
-                    <img v-else-if="tag.iconType === 'favicon'" :src="getFaviconUrl(tag.url)" :alt="tag.name"
-                      @error="$event.target.style.display = 'none'" />
+                    <img v-else-if="tag.iconType === 'favicon'" :src="getFaviconUrl(tag.url).primary" :alt="tag.name"
+                      @error="($event.target as HTMLImageElement).style.display = 'none'" />
                     <span v-else>🔗</span>
                   </div>
                   <span class="tag-list-name">{{ tag.name }}</span>
@@ -276,7 +276,7 @@
             <div class="setting-row">
               <span class="setting-label">壁纸模式</span>
               <select class="setting-select" :value="wallpaperSettings.wallpaperMode"
-                @change="updateWallpaperSetting($event.target.value)">
+                @change="updateWallpaperSetting(($event.target as HTMLSelectElement).value)">
                 <option v-for="option in wallpaperModeOptions" :key="option.value" :value="option.value">
                   {{ option.label }}
                 </option>
@@ -313,7 +313,7 @@
               <div class="wallpaper-grid" v-if="fixedWallpapers.length > 0">
                 <div v-for="wallpaper in fixedWallpapers" :key="wallpaper.date" class="wallpaper-item"
                   :class="{ active: fixedWallpaperDate === wallpaper.date }" @click="selectFixedWallpaper(wallpaper)">
-                  <img :src="wallpaper.previewUrl" :alt="wallpaper.displayDate" />
+                  <img :src="wallpaper.previewUrl" :alt="wallpaper.date" />
                 </div>
               </div>
               <div class="wallpaper-actions">
@@ -332,7 +332,7 @@
               </div>
               <div class="upload-area">
                 <input ref="fileInput" type="file" accept="image/*" @change="handleFileUpload" style="display: none" />
-                <div class="upload-box" @click="$refs.fileInput?.click()" @dragover.prevent
+                <div class="upload-box" @click="fileInput?.click()" @dragover.prevent
                   @drop.prevent="handleFileDrop">
                   <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
@@ -535,44 +535,43 @@
     @close="showEmojiPicker = false" />
 
   <!-- 标签编辑模态框 -->
-  <TagModal v-if="showTagModal" :isOpen="showTagModal" :tag="currentEditingTag" :themeColors="themeColors"
+  <TagModal v-if="showTagModal" :isOpen="showTagModal" :tag="currentEditingTag || undefined" :themeColors="themeColors"
     @close="closeTagModal" @save="saveTag" />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
-import { useTagGroups } from '../composables/useTagGroups'
+import type { Ref } from 'vue'
+import type { TagGroup, Tag } from '../types/tagGroup'
+import { useTagGroupsStore } from '../stores/tagGroupsStore.ts'
 import EmojiPicker from './EmojiPicker.vue'
 import TagModal from './TagModal.vue'
 import { CURRENT_VERSION } from '../services/version'
-import { useSettingsStore } from '../stores/settingsStore';
+import { useSettingsStore } from '../stores/settingsStore'
 import { useToast } from '../composables/useToast'
-const {log, error} = useToast()
+const { log, error } = useToast()
 
-const settingsStore = useSettingsStore();
+const settingsStore = useSettingsStore()
+const tagGroupsStore = useTagGroupsStore()
 
-const settings = computed(() => settingsStore.settings)
-const wallpaperSettings = reactive({})
-let wallpaperLoading = ref(false)
-const fixedWallpapers = ref([])
-let currentPage = ref(0)
-let fixedWallpaperDate = reactive("")
+const tagGroups = computed(() => tagGroupsStore.tagGroups)
+const themeColors = computed(() => [
+  '#667eea', '#764ba2', '#ff6b6b', '#f7b733', '#4ecdc4', '#556270',
+  '#c7f464', '#ff9a8b', '#dfe6e9', '#2d3436', '#00cec9', '#0984e3'
+])
+
+const settings = computed(() => settingsStore.settings as any) // TODO: Add proper settings type
+const wallpaperSettings = reactive<{
+  wallpaperMode?: string
+  wallpaperPath?: string
+}>({})
+const wallpaperLoading: Ref<boolean> = ref(false)
+const fixedWallpapers: Ref<Array<{ date: string; previewUrl: string; fullUrl: string }>> = ref([])
+const currentPage: Ref<number> = ref(0)
+const fixedWallpaperDate = ref("")
 
 // Define emits
 const emit = defineEmits(['close'])
-
-// Use composables
-const {
-  tagGroups,
-  themeColors,
-  addGroup,
-  editGroup,
-  deleteGroup,
-  addTag,
-  editTag,
-  deleteTag,
-  getFaviconUrl
-} = useTagGroups()
 
 // Reactive data
 const activeMenu = ref('settings')
@@ -580,10 +579,11 @@ const showAddGroupModal = ref(false)
 const showEditGroupModal = ref(false)
 const showEmojiPicker = ref(false)
 const showTagModal = ref(false)
-const editingGroupId = ref(null)
-const currentGroupId = ref(null)
-const currentEditingTag = ref(null)
-const windowWidth = ref(window.innerWidth) // 添加窗口宽度跟踪
+const editingGroupId: Ref<string> = ref('')
+const currentGroupId: Ref<string | null> = ref(null)
+const currentEditingTag: Ref<Tag | null> = ref(null)
+const windowWidth = ref(window.innerWidth)
+const fileInput = ref<HTMLInputElement>()
 
 const groupForm = reactive({
   name: '',
@@ -591,7 +591,14 @@ const groupForm = reactive({
   themeColor: '#667eea'
 })
 
-const menuItems = [
+interface MenuItem {
+  id: string
+  name: string
+  icon: string
+  tag?: string
+}
+
+const menuItems: MenuItem[] = [
   {
     id: 'settings',
     name: '常规设置',
@@ -622,25 +629,25 @@ const wallpaperModeOptions = [
 ]
 
 // Methods
-const handleOverlayClick = () => {
+const handleOverlayClick = (): void => {
   emit('close')
 }
 
-const updateTheme = (theme) => {
+const updateTheme = (theme: string): void => {
   if (theme === 'auto') {
     const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
     settingsStore.updateSettings({ "theme": 'auto', "isDarkMode": systemPrefersDark })
   } else {
-    settingsStore.updateSettings({ "theme": theme , "isDarkMode": theme === 'dark' })
+    settingsStore.updateSettings({ "theme": theme, "isDarkMode": theme === 'dark' })
   }
 }
 
-const updateSetting = async (key, value) => {
+const updateSetting = async (key: string, value: any): Promise<void> => {
   await settingsStore.updateSettings({ [key]: value })
 }
 
 // 分组管理方法
-const editGroupModal = (group) => {
+const editGroupModal = (group: TagGroup): void => {
   editingGroupId.value = group.id
   groupForm.name = group.name
   groupForm.emoji = group.emoji
@@ -648,11 +655,11 @@ const editGroupModal = (group) => {
   showEditGroupModal.value = true
 }
 
-const closeGroupModal = () => {
+const closeGroupModal = (): void => {
   showAddGroupModal.value = false
   showEditGroupModal.value = false
   showEmojiPicker.value = false
-  editingGroupId.value = null
+  editingGroupId.value = ""
   groupForm.name = ''
   groupForm.emoji = '📁'
   groupForm.themeColor = '#667eea'
@@ -665,9 +672,11 @@ const saveGroup = async () => {
 
   try {
     if (showEditGroupModal.value) {
-      await editGroup(editingGroupId.value, groupForm)
+      console.log('[setting] update group:', groupForm)
+      await tagGroupsStore.updateGroup(editingGroupId.value, groupForm)
     } else {
-      await addGroup(groupForm.name, groupForm.emoji, groupForm.themeColor)
+      console.log('[setting] Adding new group:', groupForm)
+      await tagGroupsStore.addGroup(groupForm)
     }
     closeGroupModal()
   } catch (error) {
@@ -675,35 +684,36 @@ const saveGroup = async () => {
   }
 }
 
-const deleteGroupConfirm = async (groupId) => {
-  await deleteGroup(groupId)
+const deleteGroupConfirm = async (groupId: string): Promise<void> => {
+  console.log('[setting] delete group:', groupId)
+  await tagGroupsStore.removeGroup(groupId)
 }
 
 // 标签管理方法
-const addTagModal = (groupId) => {
+const addTagModal = (groupId: string): void => {
   currentGroupId.value = groupId
   currentEditingTag.value = null
   showTagModal.value = true
 }
 
-const editTagModal = (groupId, tag) => {
+const editTagModal = (groupId: string, tag: Tag): void => {
   currentGroupId.value = groupId
   currentEditingTag.value = tag
   showTagModal.value = true
 }
 
-const closeTagModal = () => {
+const closeTagModal = (): void => {
   showTagModal.value = false
   currentEditingTag.value = null
   currentGroupId.value = null
 }
 
-const saveTag = async (tagData) => {
+const saveTag = async (tagData: Partial<Tag>): Promise<void> => {
   try {
     if (currentEditingTag.value) {
-      await editTag(currentGroupId.value, currentEditingTag.value.id, tagData)
+      await tagGroupsStore.updateTag(currentGroupId.value!, currentEditingTag.value.id, tagData)
     } else {
-      await addTag(currentGroupId.value, tagData)
+      await tagGroupsStore.addTag(currentGroupId.value!, tagData)
     }
     closeTagModal()
   } catch (error) {
@@ -711,30 +721,61 @@ const saveTag = async (tagData) => {
   }
 }
 
-const deleteTagConfirm = async (groupId, tagId) => {
-  await deleteTag(groupId, tagId)
+const deleteTagConfirm = async (groupId: string, tagId: string): Promise<void> => {
+  await tagGroupsStore.removeTag(groupId, tagId)
+}
+
+function getFaviconUrl(url: string): { primary: string; fallbacks: string[] } {
+  try {
+    const domain = new URL(url).hostname
+
+    // Favicon services list (by priority)
+    const faviconServices = [
+      // Domestic services (faster)
+      `https://api.iowen.cn/favicon/${domain}.png`,
+      `https://favicon.link/icon?url=${domain}`,
+      `https://icon.horse/icon/${domain}`,
+
+      // International services (backup)
+      `https://www.google.com/s2/favicons?domain=${domain}&sz=32`,
+      `https://favicon.yandex.net/favicon/v2/${domain}?size=32`,
+
+      // Direct attempt at website root
+      `https://${domain}/favicon.ico`
+    ]
+
+    return {
+      primary: faviconServices[0],
+      fallbacks: faviconServices.slice(1)
+    }
+  } catch {
+    return {
+      primary: '',
+      fallbacks: []
+    }
+  }
 }
 
 // emoji相关方法
-const handleSelectGroupEmoji = (emoji) => {
+const handleSelectGroupEmoji = (emoji: string): void => {
   groupForm.emoji = emoji
   showEmojiPicker.value = false
 }
 
 // 宽度设置方法
-const updateDisplayWidth = (event) => {
-  const width = Number(event.target.value)
+const updateDisplayWidth = (event: Event): void => {
+  const width = Number((event.target as HTMLInputElement).value)
   updateSetting('displayWidth', width)
 }
 
 // 计算最大显示宽度（窗口的90%）
-const getMaxDisplayWidth = () => {
+const getMaxDisplayWidth = (): number => {
   const maxWidth = Math.floor(windowWidth.value * 0.9)
   return Math.max(maxWidth, 800) // 最小保证800px
 }
 
 // 计算最大列数选项
-const getMaxColumnsOptions = () => {
+const getMaxColumnsOptions = (): number[] => {
   const tagSizes = {
     small: 80,   // 小标签宽度
     medium: 100, // 中标签宽度
@@ -749,7 +790,7 @@ const getMaxColumnsOptions = () => {
   const actualMax = Math.max(1, Math.min(maxColumns, 15)) // 最少1个，最多15个
 
   // 生成选项数组
-  const options = []
+  const options: number[] = []
   for (let i = 1; i <= actualMax; i++) {
     options.push(i)
   }
@@ -763,7 +804,7 @@ const getMaxColumnsOptions = () => {
 }
 
 // 获取主题状态文字
-const getThemeStatusText = () => {
+const getThemeStatusText = (): string => {
   if (settings.value.theme === 'auto') {
     return settings.value.isDarkMode ? '系统深色模式' : '系统浅色模式'
   } else if (settings.value.theme === 'light') {
@@ -773,7 +814,7 @@ const getThemeStatusText = () => {
   }
 }
 
-const updateBingWallpaper = () => {
+const updateBingWallpaper = (): void => {
   wallpaperLoading.value = true
 
   const today = new Date().toISOString().split('T')[0].replace(/-/g, '')
@@ -800,30 +841,30 @@ const updateBingWallpaper = () => {
 }
 
 // 壁纸相关方法
-const updateWallpaperSetting = (value) => {
+const updateWallpaperSetting = (value: string): void => {
   wallpaperSettings.wallpaperMode = value
   if (value === 'fixed') {
     getFixedWallpapers(0)
   } else {
-    fixedWallpaperDate = ""
+    fixedWallpaperDate.value = ""
   }
 }
 
-const handleFileUpload = (event) => {
-  const file = event.target.files[0]
+const handleFileUpload = (event: Event): void => {
+  const file = (event.target as HTMLInputElement).files?.[0]
   if (file) {
     uploadLocalWallpaper(file)
   }
 }
 
-const handleFileDrop = (event) => {
-  const files = event.dataTransfer.files
-  if (files.length > 0) {
+const handleFileDrop = (event: DragEvent): void => {
+  const files = event.dataTransfer?.files
+  if (files && files.length > 0) {
     uploadLocalWallpaper(files[0])
   }
 }
 
-const uploadLocalWallpaper = async (file) => {
+const uploadLocalWallpaper = async (file: File): Promise<void> => {
   try {
     if (!file || !file.type.startsWith('image/')) {
       error('请选择有效的图片文件')
@@ -841,10 +882,10 @@ const uploadLocalWallpaper = async (file) => {
   }
 }
 
-const selectFixedWallpaper = async (wallpaper) => {
+const selectFixedWallpaper = async (wallpaper: { date: string; fullUrl: string }): Promise<void> => {
   console.log("select fixed paper:", wallpaper)
   wallpaperLoading.value = true
-  fixedWallpaperDate = wallpaper.date
+  fixedWallpaperDate.value = wallpaper.date
   fetch(wallpaper.fullUrl).
     then(response => response.json()).
     then(data => {
@@ -867,10 +908,10 @@ const selectFixedWallpaper = async (wallpaper) => {
     })
 }
 
-const getFixedWallpapers = async (page = 0) => {
+const getFixedWallpapers = async (page: number = 0): Promise<void> => {
   const wallpapersPerPage = 10
   try {
-    const wallpapers = []
+    const wallpapers: Array<{ date: string; previewUrl: string; fullUrl: string }> = []
     const today = new Date()
 
     for (let i = 0; i < wallpapersPerPage; i++) {
@@ -898,11 +939,11 @@ const getFixedWallpapers = async (page = 0) => {
   }
 }
 
-const loadMoreWallpapers = () => {
+const loadMoreWallpapers = (): void => {
   getFixedWallpapers(currentPage.value + 1)
 }
 
-const applyWallpaperSettings = () => {
+const applyWallpaperSettings = (): void => {
   updateSetting('wallpaperMode', wallpaperSettings.wallpaperMode)
   updateSetting('wallpaperPath', wallpaperSettings.wallpaperPath)
   log('壁纸设置已应用')
@@ -915,7 +956,9 @@ onMounted(async () => {
   if (wallpaperSettings.wallpaperMode === 'fixed') {
     await getFixedWallpapers(0)
   }
-  console.log('Settings loaded:', settings.value)
+
+  console.log('[setting] Tag groups loaded:', tagGroups.value)
+  console.log('[setting] Settings loaded:', settings.value)
 })
 </script>
 
@@ -2138,7 +2181,7 @@ onMounted(async () => {
   background: #f8f9fa;
   color: #495057;
   text-decoration: none;
-  border-radius:  8px;
+  border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
   transition: all 0.3s ease;
