@@ -1,7 +1,7 @@
 <template>
   <section class="tags-section">
     <!-- 标签组列表 -->
-    <div v-for="group in tagGroups.groups" :key="group.id" class="tag-group">
+    <div v-for="group in tagGroups" :key="group.id" class="tag-group">
       <div class="group-header">
         <div class="group-title">
           <span class="group-emoji">{{ group.emoji }}</span>
@@ -30,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import type { Tag } from '../types/tagGroup'
 import { useTagGroupsStore } from '../stores/tagGroupsStore'
 import { useSettingsStore } from '../stores/settingsStore'
@@ -38,7 +38,7 @@ import { useSettingsStore } from '../stores/settingsStore'
 const tagGroupsStore = useTagGroupsStore()
 const settingsStore = useSettingsStore();
 
-const tagGroups = computed(() => tagGroupsStore.tagGroups)
+const tagGroups = computed(() => tagGroupsStore.tagGroups.groups || [])
 const settings = computed(() => settingsStore.settings as any) // TODO: Add proper settings type
 
 function openTag(url: string): void {

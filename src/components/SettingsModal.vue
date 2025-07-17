@@ -189,7 +189,7 @@
           </div>
 
           <div class="groups-list">
-            <div v-for="group in tagGroups.groups" :key="group.id" class="group-item">
+            <div v-for="group in tagGroups" :key="group.id" class="group-item">
               <div class="group-header">
                 <div class="group-info">
                   <span class="group-emoji">{{ group.emoji }}</span>
@@ -554,7 +554,7 @@ const { log, error } = useToast()
 const settingsStore = useSettingsStore()
 const tagGroupsStore = useTagGroupsStore()
 
-const tagGroups = computed(() => tagGroupsStore.tagGroups)
+const tagGroups = computed(() => tagGroupsStore.tagGroups.groups || [])
 const themeColors = computed(() => [
   '#667eea', '#764ba2', '#ff6b6b', '#f7b733', '#4ecdc4', '#556270',
   '#c7f464', '#ff9a8b', '#dfe6e9', '#2d3436', '#00cec9', '#0984e3'

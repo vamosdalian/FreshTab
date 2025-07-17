@@ -146,9 +146,8 @@ export function onTagGroupsChange(callback: (tagGroups: TagGroupConfig) => void)
     chrome.storage.onChanged.addListener((changes: { [key: string]: chrome.storage.StorageChange }, areaName: string) => {
         if (areaName === 'sync') {
             if (TAG_GROUPS_KEY in changes) {
-                console.log('[chrome.storage.sync] Tag groups changed new value:', 
-                    changes[TAG_GROUPS_KEY].newValue);
-                callback(changes[TAG_GROUPS_KEY].newValue);
+                const value = JSON.parse(changes[TAG_GROUPS_KEY].newValue) as TagGroupConfig;
+                callback(value);
             }
         }
     });
