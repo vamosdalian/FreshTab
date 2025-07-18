@@ -226,7 +226,7 @@
                   <div class="tag-list-icon">
                     <span v-if="tag.iconType === 'emoji'">{{ tag.iconValue }}</span>
                     <span v-else-if="tag.iconType === 'text'">{{ tag.iconValue }}</span>
-                    <img v-else-if="tag.iconType === 'favicon'" :src="getFaviconUrl(tag.url).primary" :alt="tag.name"
+                    <img v-else-if="tag.iconType === 'favicon'" :src="getFaviconUrl(tag.url,tag)" :alt="tag.name"
                       @error="($event.target as HTMLImageElement).style.display = 'none'" />
                     <span v-else>🔗</span>
                   </div>
@@ -724,36 +724,14 @@ const saveTag = async (tagData: Partial<Tag>): Promise<void> => {
 const deleteTagConfirm = async (groupId: string, tagId: string): Promise<void> => {
   await tagGroupsStore.removeTag(groupId, tagId)
 }
-
-function getFaviconUrl(url: string): { primary: string; fallbacks: string[] } {
-  try {
-    const domain = new URL(url).hostname
-
-    // Favicon services list (by priority)
-    const faviconServices = [
-      // Domestic services (faster)
-      `https://api.iowen.cn/favicon/${domain}.png`,
-      `https://favicon.link/icon?url=${domain}`,
-      `https://icon.horse/icon/${domain}`,
-
-      // International services (backup)
-      `https://www.google.com/s2/favicons?domain=${domain}&sz=32`,
-      `https://favicon.yandex.net/favicon/v2/${domain}?size=32`,
-
-      // Direct attempt at website root
-      `https://${domain}/favicon.ico`
-    ]
-
-    return {
-      primary: faviconServices[0],
-      fallbacks: faviconServices.slice(1)
-    }
-  } catch {
-    return {
-      primary: '',
-      fallbacks: []
-    }
+function getFaviconUrl(url: string, tag: Tag): string {
+  // Note: validFaviconUrl is not part of the Tag interface but may exist in runtime
+  const tagWithExtras = tag as Tag & { validFaviconUrl?: string }
+  if (tagWithExtras && tagWithExtras.validFaviconUrl) {
+    return tagWithExtras.validFaviconUrl
   }
+  const domain = new URL(url).hostname
+  return `https://${domain}/favicon.ico`
 }
 
 // emoji相关方法

@@ -110,7 +110,7 @@
                 <img 
                   :src="favicon.validUrl" 
                   :alt="favicon.name"
-                  @error="(e) => e.target.style.display = 'none'"
+                  @error="handleFaviconError"
                 />
               </div>
               <span class="favicon-source">{{ favicon.name }}</span>
@@ -181,321 +181,320 @@
   />
 </template>
 
-<script>
-import { ref, watch, nextTick, computed } from 'vue'
+<script setup lang="ts">
+import { ref, watch, nextTick } from 'vue'
+import type { Ref } from 'vue'
 import EmojiPicker from './EmojiPicker.vue'
+import type { IconType } from '../types/tagGroup'
 
-export default {
-  name: 'TagModal',
-  components: {
-    EmojiPicker
-  },
-  props: {
-    isOpen: {
-      type: Boolean,
-      required: true
-    },
-    tag: {
-      type: Object,
-      default: null
-    },
-    themeColors: {
-      type: Array,
-      default: () => []
-    }
-  },
-  emits: ['close', 'save'],
-  setup(props, { emit }) {
-    const formData = ref({
-      name: '',
-      url: '',
-      iconType: 'favicon',
-      iconValue: '',
-      backgroundColor: '#667eea'
-    })
-    
-    const nameInput = ref(null)
-    const isEditing = ref(false)
-    const currentFaviconUrl = ref('')
-    const faviconLoading = ref(false)
-    const availableFavicons = ref([])
-    const showFaviconSelector = ref(false)
-    const showEmojiPicker = ref(false)
-    
-    // 监听 props 变化，初始化表单数据
-    watch(() => props.tag, (newTag) => {
-      if (newTag) {
-        isEditing.value = true
-        formData.value = {
-          name: newTag.name,
-          url: newTag.url,
-          iconType: newTag.iconType || 'favicon',
-          iconValue: newTag.iconValue || '',
-          backgroundColor: newTag.backgroundColor || '#667eea'
-        }
-        
-        // 如果是favicon类型，加载现有的图标或重新获取
-        if (formData.value.iconType === 'favicon') {
-          if (newTag.validFaviconUrl) {
-            currentFaviconUrl.value = newTag.validFaviconUrl
-          } else {
-            updateFavicon()
-          }
-        }
-      } else {
-        isEditing.value = false
-        formData.value = {
-          name: '',
-          url: '',
-          iconType: 'favicon',
-          iconValue: '',
-          backgroundColor: '#667eea'
-        }
-        currentFaviconUrl.value = ''
+// 定义类型
+interface TagFormData {
+  name: string
+  url: string
+  iconType: IconType
+  iconValue: string
+  backgroundColor: string
+}
+
+interface TagData extends TagFormData {
+  id?: string
+  validFaviconUrl?: string
+}
+
+interface FaviconService {
+  name: string
+  url: string
+  validUrl?: string
+}
+
+// Props 定义
+interface Props {
+  isOpen: boolean
+  tag?: TagData | null
+  themeColors: string[]
+}
+
+// Emits 定义
+interface Emits {
+  close: []
+  save: [tag: TagData]
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  tag: null,
+  themeColors: () => []
+})
+
+const emit = defineEmits<Emits>()
+
+// 响应式变量
+const formData: Ref<TagFormData> = ref({
+  name: '',
+  url: '',
+  iconType: 'favicon',
+  iconValue: '',
+  backgroundColor: '#667eea'
+})
+
+const nameInput: Ref<HTMLInputElement | null> = ref(null)
+const isEditing: Ref<boolean> = ref(false)
+const currentFaviconUrl: Ref<string> = ref('')
+const faviconLoading: Ref<boolean> = ref(false)
+const availableFavicons: Ref<FaviconService[]> = ref([])
+const showFaviconSelector: Ref<boolean> = ref(false)
+const showEmojiPicker: Ref<boolean> = ref(false)
+
+// 为 updateFavicon 函数添加 timeoutId 属性
+interface UpdateFaviconFunction {
+  (): Promise<void>
+  timeoutId?: NodeJS.Timeout
+}
+
+// 监听 props 变化，初始化表单数据
+watch(
+  () => props.tag,
+  (newTag: TagData | null) => {
+    if (newTag) {
+      isEditing.value = true
+      formData.value = {
+        name: newTag.name,
+        url: newTag.url,
+        iconType: newTag.iconType || 'favicon',
+        iconValue: newTag.iconValue || '',
+        backgroundColor: newTag.backgroundColor || '#667eea'
       }
-    }, { immediate: true })
-    
-    // 监听模态框打开状态，自动聚焦输入框
-    watch(() => props.isOpen, (isOpen) => {
-      if (isOpen) {
-        nextTick(() => {
-          nameInput.value?.focus()
-        })
-      }
-    })
-    
-    // 监听URL变化，自动更新favicon
-    watch(() => formData.value.url, (newUrl, oldUrl) => {
-      if (newUrl !== oldUrl && formData.value.iconType === 'favicon') {
-        // 延迟执行，避免频繁请求
-        if (updateFavicon.timeoutId) {
-          clearTimeout(updateFavicon.timeoutId)
-        }
-        updateFavicon.timeoutId = setTimeout(() => {
+
+      // 如果是favicon类型，加载现有的图标或重新获取
+      if (formData.value.iconType === 'favicon') {
+        if (newTag.validFaviconUrl) {
+          currentFaviconUrl.value = newTag.validFaviconUrl
+        } else {
           updateFavicon()
-        }, 500)
+        }
       }
-    })
-    
-    // 监听图标类型变化，如果切换到favicon则更新图标
-    watch(() => formData.value.iconType, (newType) => {
-      if (newType === 'favicon' && formData.value.url) {
-        updateFavicon()
+    } else {
+      isEditing.value = false
+      formData.value = {
+        name: '',
+        url: '',
+        iconType: 'favicon',
+        iconValue: '',
+        backgroundColor: '#667eea'
       }
-    })
-    
-    const handleOverlayClick = () => {
-      emit('close')
+      currentFaviconUrl.value = ''
     }
-    
-    const handleSubmit = () => {
-      const tagData = {
-        name: formData.value.name.trim(),
-        url: formData.value.url.trim(),
-        iconType: formData.value.iconType,
-        iconValue: formData.value.iconValue,
-        backgroundColor: formData.value.backgroundColor
-      }
-      
-      // 确保 URL 有协议
-      if (!tagData.url.startsWith('http://') && !tagData.url.startsWith('https://')) {
-        tagData.url = 'https://' + tagData.url
-      }
-      
-      // 如果是文字类型但没有输入值，使用名称首字母
-      if (tagData.iconType === 'text' && !tagData.iconValue) {
-        tagData.iconValue = tagData.name.charAt(0).toUpperCase()
-      }
-      
-      // 如果是favicon类型，保存验证过的URL
-      if (tagData.iconType === 'favicon' && currentFaviconUrl.value) {
-        tagData.validFaviconUrl = currentFaviconUrl.value
-      }
-      
-      if (isEditing.value) {
-        tagData.id = props.tag.id
-      }
-      
-      emit('save', tagData)
-      emit('close')
-    }
-    
-    const getFaviconUrl = (url) => {
-      try {
-        const domain = new URL(url).hostname
-        
-        // 国内外favicon服务列表（按优先级排序）
-        const faviconServices = [
-          // 国内服务（速度更快）
-          `https://api.iowen.cn/favicon/${domain}.png`,
-          `https://favicon.link/icon?url=${domain}`,
-          `https://icon.horse/icon/${domain}`,
-          
-          // 国外服务（备用）
-          `https://www.google.com/s2/favicons?domain=${domain}&sz=32`,
-          `https://favicon.yandex.net/favicon/v2/${domain}?size=32`,
-          
-          // 直接尝试网站根目录
-          `https://${domain}/favicon.ico`
-        ]
-        
-        // 返回第一个服务作为主要选择
-        return faviconServices[0]
-      } catch {
-        return ''
-      }
-    }
-    
-    // 验证favicon URL是否有效
-    const validateFaviconUrl = (url) => {
-      return new Promise((resolve) => {
-        const img = new Image()
-        img.onload = () => resolve(url)
-        img.onerror = () => resolve(null)
-        img.src = url
-        
-        // 设置超时，避免无限等待
-        setTimeout(() => resolve(null), 5000)
+  },
+  { immediate: true }
+)
+
+// 监听模态框打开状态，自动聚焦输入框
+watch(
+  () => props.isOpen,
+  (isOpen: boolean) => {
+    if (isOpen) {
+      nextTick(() => {
+        nameInput.value?.focus()
       })
     }
-    
-    // 获取可用的favicon URL
-    const getValidFaviconUrl = async (siteUrl) => {
-      try {
-        const domain = new URL(siteUrl).hostname
-        
-        const faviconServices = [
-          { name: 'iowen API', url: `https://api.iowen.cn/favicon/${domain}.png` },
-          { name: 'favicon.link', url: `https://favicon.link/icon?url=${domain}` },
-          { name: 'icon.horse', url: `https://icon.horse/icon/${domain}` },
-          { name: 'Google', url: `https://www.google.com/s2/favicons?domain=${domain}&sz=32` },
-          { name: 'Yandex', url: `https://favicon.yandex.net/favicon/v2/${domain}?size=32` },
-          { name: '网站根目录', url: `https://${domain}/favicon.ico` }
-        ]
-        
-        const validFavicons = []
-        
-        // 并发获取所有favicon
-        const promises = faviconServices.map(async (service) => {
-          const isValid = await validateFaviconUrl(service.url)
-          if (isValid) {
-            return {
-              ...service,
-              validUrl: service.url
-            }
-          }
-          return null
-        })
-        
-        const results = await Promise.all(promises)
-        
-        // 过滤掉失败的请求
-        results.forEach(result => {
-          if (result) {
-            validFavicons.push(result)
-          }
-        })
-        
-        return validFavicons
-      } catch {
-        return []
+  }
+)
+
+// 监听URL变化，自动更新favicon
+watch(
+  () => formData.value.url,
+  (newUrl: string, oldUrl: string) => {
+    if (newUrl !== oldUrl && formData.value.iconType === 'favicon') {
+      // 延迟执行，避免频繁请求
+      if ((updateFavicon as UpdateFaviconFunction).timeoutId) {
+        clearTimeout((updateFavicon as UpdateFaviconFunction).timeoutId)
       }
+      ;(updateFavicon as UpdateFaviconFunction).timeoutId = setTimeout(() => {
+        updateFavicon()
+      }, 500)
     }
-    
-    // 更新favicon
-    const updateFavicon = async () => {
-      if (formData.value.iconType === 'favicon' && formData.value.url) {
-        faviconLoading.value = true
-        availableFavicons.value = []
-        showFaviconSelector.value = false
-        
-        try {
-          // 确保URL格式正确
-          let url = formData.value.url.trim()
-          if (!url.startsWith('http://') && !url.startsWith('https://')) {
-            url = 'https://' + url
-          }
-          
-          const validFavicons = await getValidFaviconUrl(url)
-          availableFavicons.value = validFavicons
-          
-          if (validFavicons.length > 0) {
-            // 如果只有一个可用图标，直接使用
-            if (validFavicons.length === 1) {
-              currentFaviconUrl.value = validFavicons[0].validUrl
-            } else {
-              // 多个图标可用，显示选择器
-              showFaviconSelector.value = true
-              // 默认选择第一个
-              currentFaviconUrl.value = validFavicons[0].validUrl
-            }
-          } else {
-            currentFaviconUrl.value = ''
-          }
-        } catch (error) {
-          console.warn('获取favicon失败:', error)
-          currentFaviconUrl.value = ''
-          availableFavicons.value = []
-        } finally {
-          faviconLoading.value = false
+  }
+)
+
+// 监听图标类型变化，如果切换到favicon则更新图标
+watch(
+  () => formData.value.iconType,
+  (newType: IconType) => {
+    if (newType === 'favicon' && formData.value.url) {
+      updateFavicon()
+    }
+  }
+)
+
+// 方法定义
+const handleOverlayClick = (): void => {
+  emit('close')
+}
+
+const handleSubmit = (): void => {
+  const tagData: TagData = {
+    name: formData.value.name.trim(),
+    url: formData.value.url.trim(),
+    iconType: formData.value.iconType,
+    iconValue: formData.value.iconValue,
+    backgroundColor: formData.value.backgroundColor
+  }
+
+  // 确保 URL 有协议
+  if (!tagData.url.startsWith('http://') && !tagData.url.startsWith('https://')) {
+    tagData.url = 'https://' + tagData.url
+  }
+
+  // 如果是文字类型但没有输入值，使用名称首字母
+  if (tagData.iconType === 'text' && !tagData.iconValue) {
+    tagData.iconValue = tagData.name.charAt(0).toUpperCase()
+  }
+
+  // 如果是favicon类型，保存验证过的URL
+  if (tagData.iconType === 'favicon' && currentFaviconUrl.value) {
+    tagData.validFaviconUrl = currentFaviconUrl.value
+  }
+
+  if (isEditing.value && props.tag?.id) {
+    tagData.id = props.tag.id
+  }
+
+  emit('save', tagData)
+  emit('close')
+}
+
+// 验证favicon URL是否有效
+const validateFaviconUrl = (url: string): Promise<string | null> => {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => resolve(url)
+    img.onerror = () => resolve(null)
+    img.src = url
+
+    // 设置超时，避免无限等待
+    setTimeout(() => resolve(null), 5000)
+  })
+}
+
+// 获取可用的favicon URL
+const getValidFaviconUrl = async (siteUrl: string): Promise<FaviconService[]> => {
+  try {
+    const domain = new URL(siteUrl).hostname
+
+    const faviconServices: FaviconService[] = [
+      { name: 'iowen API', url: `https://api.iowen.cn/favicon/${domain}.png` },
+      { name: 'favicon.link', url: `https://favicon.link/icon?url=${domain}` },
+      { name: 'icon.horse', url: `https://icon.horse/icon/${domain}` },
+      { name: 'Google', url: `https://www.google.com/s2/favicons?domain=${domain}&sz=32` },
+      { name: 'Yandex', url: `https://favicon.yandex.net/favicon/v2/${domain}?size=32` },
+      { name: '网站根目录', url: `https://${domain}/favicon.ico` }
+    ]
+
+    const validFavicons: FaviconService[] = []
+
+    // 并发获取所有favicon
+    const promises = faviconServices.map(async (service): Promise<FaviconService | null> => {
+      const isValid = await validateFaviconUrl(service.url)
+      if (isValid) {
+        return {
+          ...service,
+          validUrl: service.url
         }
-      } else {
-        currentFaviconUrl.value = ''
-        availableFavicons.value = []
-        showFaviconSelector.value = false
       }
-    }
-    
-    // 选择favicon
-    const selectFavicon = (favicon) => {
-      currentFaviconUrl.value = favicon.validUrl
-    }
-    
-    const handleFaviconError = (event) => {
-      event.target.style.display = 'none'
-    }
-    
-    // emoji选择处理
-    const handleEmojiSelect = (emoji) => {
-      formData.value.iconValue = emoji
-      showEmojiPicker.value = false
-    }
-    
-    // 初始化数据
-    const initializeModal = () => {
-      // 模态框初始化逻辑
-    }
-    
-    // 监听modal打开状态
-    watch(() => props.isOpen, (isOpen) => {
-      if (isOpen) {
-        initializeModal()
-        nextTick(() => {
-          nameInput.value?.focus()
-        })
+      return null
+    })
+
+    const results = await Promise.all(promises)
+
+    // 过滤掉失败的请求
+    results.forEach((result) => {
+      if (result) {
+        validFavicons.push(result)
       }
     })
 
-    return {
-      formData,
-      nameInput,
-      isEditing,
-      currentFaviconUrl,
-      faviconLoading,
-      availableFavicons,
-      showFaviconSelector,
-      showEmojiPicker,
-      // 方法
-      handleOverlayClick,
-      handleSubmit,
-      getFaviconUrl,
-      handleFaviconError,
-      handleEmojiSelect,
-      updateFavicon,
-      selectFavicon
-    }
+    return validFavicons
+  } catch {
+    return []
   }
 }
+
+// 更新favicon
+const updateFavicon: UpdateFaviconFunction = async (): Promise<void> => {
+  if (formData.value.iconType === 'favicon' && formData.value.url) {
+    faviconLoading.value = true
+    availableFavicons.value = []
+    showFaviconSelector.value = false
+
+    try {
+      // 确保URL格式正确
+      let url = formData.value.url.trim()
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = 'https://' + url
+      }
+
+      const validFavicons = await getValidFaviconUrl(url)
+      availableFavicons.value = validFavicons
+
+      if (validFavicons.length > 0) {
+        // 如果只有一个可用图标，直接使用
+        if (validFavicons.length === 1) {
+          currentFaviconUrl.value = validFavicons[0].validUrl || ''
+        } else {
+          // 多个图标可用，显示选择器
+          showFaviconSelector.value = true
+          // 默认选择第一个
+          currentFaviconUrl.value = validFavicons[0].validUrl || ''
+        }
+      } else {
+        currentFaviconUrl.value = ''
+      }
+    } catch (error) {
+      console.warn('获取favicon失败:', error)
+      currentFaviconUrl.value = ''
+      availableFavicons.value = []
+    } finally {
+      faviconLoading.value = false
+    }
+  } else {
+    currentFaviconUrl.value = ''
+    availableFavicons.value = []
+    showFaviconSelector.value = false
+  }
+}
+
+// 选择favicon
+const selectFavicon = (favicon: FaviconService): void => {
+  currentFaviconUrl.value = favicon.validUrl || ''
+}
+
+const handleFaviconError = (event: Event): void => {
+  const target = event.target as HTMLImageElement
+  target.style.display = 'none'
+}
+
+// emoji选择处理
+const handleEmojiSelect = (emoji: string): void => {
+  formData.value.iconValue = emoji
+  showEmojiPicker.value = false
+}
+
+// 初始化数据
+const initializeModal = (): void => {
+  // 模态框初始化逻辑
+}
+
+// 监听modal打开状态
+watch(
+  () => props.isOpen,
+  (isOpen: boolean) => {
+    if (isOpen) {
+      initializeModal()
+      nextTick(() => {
+        nameInput.value?.focus()
+      })
+    }
+  }
+)
 </script>
 
 <style scoped>
