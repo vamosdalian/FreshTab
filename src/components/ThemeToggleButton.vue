@@ -1,6 +1,6 @@
 <template>
   <button @click="toggleTheme" class="theme-toggle-button" :title="themeTooltip">
-    <svg v-if="isDarkMode" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <svg v-if="settingsStore.settings.isDarkMode" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <!-- 太阳图标 (浅色模式) -->
       <circle cx="12" cy="12" r="5"></circle>
       <line x1="12" y1="1" x2="12" y2="3"></line>
@@ -19,77 +19,47 @@
   </button>
 </template>
 
-<script>
-import { ref, onMounted, computed, inject } from 'vue'
+<script setup>
+import { ref, onMounted, computed, watch } from 'vue'
+import { useSettingsStore } from '../stores/settingsStore'
 
-export default {
-  name: 'ThemeToggleButton',
-  props: {
-    settings: {
-      type: Object,
-      default: () => ({})
-    },
-    updateTheme: {
-      type: Function,
-      default: () => {}
-    }
-  },
-  setup(props) {
-    const isDarkMode = ref(false)
-    
-    const themeTooltip = computed(() => {
-      return isDarkMode.value ? '切换到浅色模式' : '切换到深色模式'
-    })
-    
-    // 更新主题状态
-    const updateThemeState = () => {
-      isDarkMode.value = document.documentElement.getAttribute('data-theme') === 'dark'
-    }
-    
-    // 切换主题
-    const toggleTheme = () => {
-      let newTheme
-      
-      // 如果当前是自动模式，则切换到相反的手动模式
-      if (props.settings.theme === 'auto') {
-        newTheme = isDarkMode.value ? 'light' : 'dark'
-      } else if (props.settings.theme === 'light') {
-        newTheme = 'dark'
-      } else {
-        newTheme = 'light'
-      }
-      
-      // 更新设置
-      if (props.settings && typeof props.updateTheme === 'function') {
-        props.settings.theme = newTheme
-        props.updateTheme()
-      } else {
-        // 回退到直接设置 DOM 属性
-        document.documentElement.setAttribute('data-theme', newTheme)
-      }
-    }
-    
-    onMounted(() => {
-      // 初始化主题状态
-      updateThemeState()
-      
-      // 监听主题变化
-      const observer = new MutationObserver(() => {
-        updateThemeState()
-      })
-      observer.observe(document.documentElement, { 
-        attributes: true, 
-        attributeFilter: ['data-theme'] 
-      })
-    })
-    
-    return {
-      isDarkMode,
-      themeTooltip,
-      toggleTheme
-    }
+const settingsStore = useSettingsStore()
+
+const themeMode = computed(() => settingsStore.settings.theme || 'auto')
+const themeTooltip = computed(() =>  settingsStore.settings.isDarkMode ? '切换到浅色模式' : '切换到深色模式')
+
+const toggleTheme = async () => {
+  const currentIsDark = settingsStore.settings.isDarkMode
+  if (currentIsDark) {
+    settingsStore.updateSettings({ theme: 'light', isDarkMode: false })
+  } else {
+    settingsStore.updateSettings({ theme: 'dark', isDarkMode: true })
   }
 }
+
+const setDocumentTheme = (theme) => {
+  document.documentElement.setAttribute('data-theme',theme)
+}
+
+watch(settingsStore.settings.isDarkMode, (value) => {
+  console.log('Theme changed:', value ? 'dark' : 'light')
+  setDocumentTheme(value ? 'dark' : 'light')
+})
+
+watch(() => settingsStore.settings.isDarkMode, (value) => {
+  console.log('Theme changed:', value ? 'dark' : 'light')
+  setDocumentTheme(value ? 'dark' : 'light')
+}, { immediate: true })
+
+const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)')
+darkModeQuery.addEventListener('change', (e) => {
+  if (themeMode.value === 'auto') {
+    settingsStore.updateSettings({ isDarkMode: e.matches })
+  }
+})
+
+onMounted(() => {
+})
 </script>
 
 <style scoped>
@@ -163,14 +133,5 @@ export default {
 
 .theme-toggle-button:hover::before {
   opacity: 1;
-}
-
-@media (max-width: 768px) {
-  .theme-toggle-button {
-    bottom: 4rem; /* 调整移动端位置 */
-    left: 1rem;
-    width: 44px;
-    height: 44px;
-  }
 }
 </style>

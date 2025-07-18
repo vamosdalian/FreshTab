@@ -12,7 +12,9 @@
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "echo \"No linter configured\"",
-    "test": "echo \"No tests configured\""
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run"
   },
   "keywords": [
     "chrome-extension",
@@ -36,9 +38,15 @@
   "dependencies": {
     "@vitejs/plugin-vue": "^5.2.4",
     "emoji-mart-vue-fast": "^15.0.4",
-    "emoji-regex": "^10.4.0",
-    "unicode-emoji-json": "^0.8.0",
+    "pinia": "^3.0.3",
     "vite": "^6.3.5",
     "vue": "^3.5.16"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.1.1",
+    "@vitest/ui": "^3.2.4",
+    "jsdom": "^26.1.0",
+    "sass-embedded": "^1.89.2",
+    "vitest": "^3.2.4"
   }
 }

@@ -5,78 +5,70 @@
   </section>
 </template>
 
-<script>
-import { computed } from 'vue'
+<script setup>
+import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { useSettingsStore } from '../stores/settingsStore'
 
-export default {
-  name: 'TimeSection',
-  props: {
-    currentTime: {
-      type: String,
-      required: true
-    },
-    greeting: {
-      type: String,
-      required: true
-    },
-    timeFormat: {
-      type: String,
-      default: '24h' // '12h' | '24h'
-    },
-    showDate: {
-      type: Boolean,
-      default: true
-    },
-    showSeconds: {
-      type: Boolean,
-      default: false
-    }
-  },
-  setup(props) {
-    const timeFormatClass = computed(() => {
-      return {
-        'time-12h': props.timeFormat === '12h',
-        'time-24h': props.timeFormat === '24h'
-      }
-    })
-    
-    const formattedTime = computed(() => {
-      const now = new Date()
-      
-      if (props.timeFormat === '12h') {
-        return now.toLocaleTimeString('en-US', {
-          hour12: true,
-          hour: 'numeric',
-          minute: '2-digit',
-          second: props.showSeconds ? '2-digit' : undefined
-        })
-      } else {
-        return now.toLocaleTimeString('zh-CN', {
-          hour12: false,
-          hour: '2-digit',
-          minute: '2-digit',
-          second: props.showSeconds ? '2-digit' : undefined
-        })
-      }
-    })
-    
-    const currentDate = computed(() => {
-      const now = new Date()
-      return now.toLocaleDateString('zh-CN', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        weekday: 'long'
-      })
-    })
-    
-    return {
-      timeFormatClass,
-      formattedTime,
-      currentDate
-    }
-  }
+const settingsStore = useSettingsStore()
+const timeUpdateTrigger = ref(0)
+
+const timeFormat = computed(() => settingsStore.settings.timeFormat || '24h')
+const showDate = computed(() => settingsStore.settings.showDate !== false)
+const showSeconds = computed(() => settingsStore.settings.showSeconds || false)
+
+const updateTime = () => {
+  timeUpdateTrigger.value++
 }
+
+const timeFormatClass = computed(() => {
+  return {
+    'time-12h': timeFormat.value === '12h',
+    'time-24h': timeFormat.value === '24h'
+  }
+})
+
+const formattedTime = computed(() => {
+  timeUpdateTrigger.value // trigger reactivity
+  const now = new Date()
+  
+  if (timeFormat.value === '12h') {
+    return now.toLocaleTimeString('en-US', {
+      hour12: true,
+      hour: 'numeric',
+      minute: '2-digit',
+      second: showSeconds.value ? '2-digit' : undefined
+    })
+  } else {
+    return now.toLocaleTimeString('zh-CN', {
+      hour12: false,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: showSeconds.value ? '2-digit' : undefined
+    })
+  }
+})
+
+const currentDate = computed(() => {
+  timeUpdateTrigger.value // trigger reactivity
+  const now = new Date()
+  return now.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    weekday: 'long'
+  })
+})
+
+let timeInterval
+
+onMounted(() => {
+  updateTime()
+  timeInterval = setInterval(updateTime, 1000)
+})
+
+onUnmounted(() => {
+  if (timeInterval) clearInterval(timeInterval)
+})
 </script>
 
 <style scoped>
@@ -113,17 +105,11 @@ export default {
 }
 
 .time-12h {
-  font-family: 'Georgia', serif;
+  font-family: 'Courier New', monospace;
 }
 
 .time-24h {
   font-family: 'Courier New', monospace;
   letter-spacing: 0.1em;
-}
-
-@media (max-width: 768px) {
-  .time-display {
-    font-size: 3rem;
-  }
 }
 </style>
