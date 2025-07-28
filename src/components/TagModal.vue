@@ -186,6 +186,7 @@ import { ref, watch, nextTick } from 'vue'
 import type { Ref } from 'vue'
 import EmojiPicker from './EmojiPicker.vue'
 import type { IconType } from '../types/tagGroup'
+import { FaviconUtils } from '../services/favicons.js'
 
 // 定义类型
 interface TagFormData {
@@ -244,12 +245,6 @@ const availableFavicons: Ref<FaviconService[]> = ref([])
 const showFaviconSelector: Ref<boolean> = ref(false)
 const showEmojiPicker: Ref<boolean> = ref(false)
 
-// 为 updateFavicon 函数添加 timeoutId 属性
-interface UpdateFaviconFunction {
-  (): Promise<void>
-  timeoutId?: NodeJS.Timeout
-}
-
 // 监听 props 变化，初始化表单数据
 watch(
   () => props.tag,
@@ -300,17 +295,18 @@ watch(
 )
 
 // 监听URL变化，自动更新favicon
+let updateFaviconTimeout: NodeJS.Timeout | null = null
 watch(
   () => formData.value.url,
   (newUrl: string, oldUrl: string) => {
     if (newUrl !== oldUrl && formData.value.iconType === 'favicon') {
       // 延迟执行，避免频繁请求
-      if ((updateFavicon as UpdateFaviconFunction).timeoutId) {
-        clearTimeout((updateFavicon as UpdateFaviconFunction).timeoutId)
+      if (updateFaviconTimeout) {
+        clearTimeout(updateFaviconTimeout)
       }
-      ;(updateFavicon as UpdateFaviconFunction).timeoutId = setTimeout(() => {
+      updateFaviconTimeout = setTimeout(() => {
         updateFavicon()
-      }, 500)
+      }, 800) // 增加延迟，减少API调用
     }
   }
 )
@@ -363,63 +359,51 @@ const handleSubmit = (): void => {
 }
 
 // 验证favicon URL是否有效
-const validateFaviconUrl = (url: string): Promise<string | null> => {
-  return new Promise((resolve) => {
-    const img = new Image()
-    img.onload = () => resolve(url)
-    img.onerror = () => resolve(null)
-    img.src = url
-
-    // 设置超时，避免无限等待
-    setTimeout(() => resolve(null), 5000)
-  })
+const validateFaviconUrl = async (url: string): Promise<string | null> => {
+  try {
+    const faviconData = await FaviconUtils.getFavicon(url, true)
+    return faviconData ? url : null
+  } catch (error) {
+    console.warn('Failed to validate favicon:', error)
+    return null
+  }
 }
 
 // 获取可用的favicon URL
 const getValidFaviconUrl = async (siteUrl: string): Promise<FaviconService[]> => {
   try {
-    const domain = new URL(siteUrl).hostname
+    const domain = FaviconUtils.getDomainFromUrl(siteUrl)
 
-    const faviconServices: FaviconService[] = [
-      { name: 'iowen API', url: `https://api.iowen.cn/favicon/${domain}.png` },
-      { name: 'favicon.link', url: `https://favicon.link/icon?url=${domain}` },
-      { name: 'icon.horse', url: `https://icon.horse/icon/${domain}` },
-      { name: 'Google', url: `https://www.google.com/s2/favicons?domain=${domain}&sz=32` },
-      { name: 'Yandex', url: `https://favicon.yandex.net/favicon/v2/${domain}?size=32` },
-      { name: '网站根目录', url: `https://${domain}/favicon.ico` }
-    ]
-
-    const validFavicons: FaviconService[] = []
-
-    // 并发获取所有favicon
-    const promises = faviconServices.map(async (service): Promise<FaviconService | null> => {
-      const isValid = await validateFaviconUrl(service.url)
-      if (isValid) {
-        return {
-          ...service,
-          validUrl: service.url
-        }
-      }
-      return null
-    })
-
-    const results = await Promise.all(promises)
-
-    // 过滤掉失败的请求
-    results.forEach((result) => {
-      if (result) {
-        validFavicons.push(result)
-      }
-    })
-
-    return validFavicons
-  } catch {
-    return []
+    // 直接使用FaviconUtils获取favicon，支持缓存
+    const faviconData = await FaviconUtils.getFavicon(siteUrl, true)
+    
+    if (faviconData && faviconData !== FaviconUtils.getDefaultFavicon()) {
+      // 成功获取到favicon
+      return [{
+        name: 'Website Favicon',
+        url: siteUrl,
+        validUrl: faviconData
+      }]
+    } else {
+      // 如果获取失败，返回默认图标
+      return [{
+        name: 'Default Icon',
+        url: siteUrl,
+        validUrl: FaviconUtils.getDefaultFavicon()
+      }]
+    }
+  } catch (error) {
+    console.warn('Failed to get valid favicon URL:', error)
+    return [{
+      name: 'Default Icon',
+      url: siteUrl,
+      validUrl: FaviconUtils.getDefaultFavicon()
+    }]
   }
 }
 
 // 更新favicon
-const updateFavicon: UpdateFaviconFunction = async (): Promise<void> => {
+const updateFavicon = async (): Promise<void> => {
   if (formData.value.iconType === 'favicon' && formData.value.url) {
     faviconLoading.value = true
     availableFavicons.value = []
@@ -436,21 +420,16 @@ const updateFavicon: UpdateFaviconFunction = async (): Promise<void> => {
       availableFavicons.value = validFavicons
 
       if (validFavicons.length > 0) {
-        // 如果只有一个可用图标，直接使用
-        if (validFavicons.length === 1) {
-          currentFaviconUrl.value = validFavicons[0].validUrl || ''
-        } else {
-          // 多个图标可用，显示选择器
-          showFaviconSelector.value = true
-          // 默认选择第一个
-          currentFaviconUrl.value = validFavicons[0].validUrl || ''
-        }
+        // 直接使用获取到的favicon
+        currentFaviconUrl.value = validFavicons[0].validUrl || ''
+        // 不需要显示选择器，因为我们使用智能获取
+        showFaviconSelector.value = false
       } else {
-        currentFaviconUrl.value = ''
+        currentFaviconUrl.value = FaviconUtils.getDefaultFavicon()
       }
     } catch (error) {
       console.warn('获取favicon失败:', error)
-      currentFaviconUrl.value = ''
+      currentFaviconUrl.value = FaviconUtils.getDefaultFavicon()
       availableFavicons.value = []
     } finally {
       faviconLoading.value = false
@@ -481,6 +460,11 @@ const handleEmojiSelect = (emoji: string): void => {
 // 初始化数据
 const initializeModal = (): void => {
   // 模态框初始化逻辑
+}
+
+// 清理favicon缓存的方法（可在需要时调用）
+const clearFaviconCache = (): void => {
+  FaviconUtils.clearCache()
 }
 
 // 监听modal打开状态
