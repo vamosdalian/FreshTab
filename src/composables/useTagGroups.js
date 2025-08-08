@@ -102,7 +102,8 @@ export function useTagGroups() {
         url,
         iconType: tagData.iconType || 'favicon',
         iconValue: tagData.iconValue || '',
-        backgroundColor: tagData.backgroundColor || '#667eea'
+        backgroundColor: tagData.backgroundColor || '#667eea',
+        faviconData: tagData.faviconData
       })
       
       success(`Tag "${newTag.name}" added`)
@@ -115,9 +116,10 @@ export function useTagGroups() {
 
   async function editTag(groupId, tagId, updates) {
     try {
-      // If URL changed and is favicon type, clear old validFaviconUrl
-      if (updates.url && updates.iconType === 'favicon' && !updates.validFaviconUrl) {
+      // If URL changed and is favicon type, clear old favicon data unless new data is provided
+      if (updates.url && updates.iconType === 'favicon' && !updates.faviconData && !updates.validFaviconUrl) {
         updates.validFaviconUrl = undefined
+        updates.faviconData = undefined
       }
       
       await tagGroupsStore.updateTag(groupId, tagId, updates)

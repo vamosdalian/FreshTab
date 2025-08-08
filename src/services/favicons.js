@@ -283,7 +283,7 @@ class FaviconDownloader {
  */
 export const FaviconUtils = {
     /**
-     * Get favicon for a URL with caching
+     * Get favicon for a URL with multiple fallback strategies
      */
     async getFavicon(url, useCache = true) {
         const domain = this.getDomainFromUrl(url)
@@ -294,9 +294,9 @@ export const FaviconUtils = {
             if (cached) return cached
         }
 
+        // Strategy 1: Try to extract favicon from HTML head
         try {
             const downloader = new FaviconDownloader(url)
-            // Wait for async initialization to complete
             await new Promise(resolve => {
                 const checkComplete = () => {
                     if (downloader.icoExists !== null || downloader.error) {
@@ -309,17 +309,110 @@ export const FaviconUtils = {
             })
 
             if (downloader.icoExists && downloader.icoData) {
-                // Cache the result
                 if (useCache) {
                     this.setCachedFavicon(domain, downloader.icoData)
                 }
                 return downloader.icoData
-            } else {
-                return this.getDefaultFavicon()
             }
         } catch (error) {
-            console.warn('Failed to get favicon for', url, error)
-            return this.getDefaultFavicon()
+            console.warn('Strategy 1 failed for', url, error)
+        }
+
+        // Strategy 2: Try common favicon paths
+        const commonPaths = [
+            '/favicon.ico',
+            '/favicon.png',
+            '/apple-touch-icon.png',
+            '/apple-touch-icon-precomposed.png'
+        ]
+
+        for (const path of commonPaths) {
+            try {
+                const faviconUrl = `${this.getBaseUrl(url)}${path}`
+                const faviconData = await this.downloadFaviconDirect(faviconUrl)
+                if (faviconData) {
+                    if (useCache) {
+                        this.setCachedFavicon(domain, faviconData)
+                    }
+                    return faviconData
+                }
+            } catch (error) {
+                continue
+            }
+        }
+
+        // Strategy 3: Try favicon services as fallback
+        const faviconServices = [
+            `https://www.google.com/s2/favicons?domain=${domain}&sz=32`,
+            `https://icon.horse/icon/${domain}`,
+            `https://favicon.yandex.net/favicon/v2/${domain}?size=32`
+        ]
+
+        for (const serviceUrl of faviconServices) {
+            try {
+                const faviconData = await this.downloadFaviconDirect(serviceUrl)
+                if (faviconData) {
+                    if (useCache) {
+                        this.setCachedFavicon(domain, faviconData)
+                    }
+                    return faviconData
+                }
+            } catch (error) {
+                continue
+            }
+        }
+
+        // All strategies failed, return default
+        return this.getDefaultFavicon()
+    },
+
+    /**
+     * Download favicon directly from URL and convert to base64
+     */
+    async downloadFaviconDirect(url) {
+        try {
+            const response = await fetch(url, {
+                method: 'GET',
+                mode: 'cors',
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                },
+                redirect: 'follow'
+            })
+
+            if (!response.ok) return null
+
+            const contentType = response.headers.get('content-type') || ''
+            if (contentType.includes('text/html') || contentType.includes('text/plain')) {
+                return null
+            }
+
+            const blob = await response.blob()
+            if (blob.size === 0) return null
+
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader()
+                reader.onload = () => resolve(reader.result)
+                reader.onerror = () => reject(null)
+                reader.readAsDataURL(blob)
+            })
+        } catch (error) {
+            return null
+        }
+    },
+
+    /**
+     * Get base URL from full URL
+     */
+    getBaseUrl(url) {
+        try {
+            if (!url.startsWith('http')) {
+                url = 'https://' + url
+            }
+            const urlObj = new URL(url)
+            return `${urlObj.protocol}//${urlObj.host}`
+        } catch (e) {
+            return url
         }
     },
 

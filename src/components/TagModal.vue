@@ -149,6 +149,7 @@
                   :src="currentFaviconUrl"
                   :alt="formData.name"
                   @error="handleFaviconError"
+                  class="favicon-preview-img"
                 />
                 <span v-else class="favicon-fallback">🔗</span>
               </div>
@@ -195,6 +196,7 @@ interface TagFormData {
   iconType: IconType
   iconValue: string
   backgroundColor: string
+  faviconData?: string
 }
 
 interface TagData extends TagFormData {
@@ -234,7 +236,8 @@ const formData: Ref<TagFormData> = ref({
   url: '',
   iconType: 'favicon',
   iconValue: '',
-  backgroundColor: '#667eea'
+  backgroundColor: '#667eea',
+  faviconData: undefined
 })
 
 const nameInput: Ref<HTMLInputElement | null> = ref(null)
@@ -256,12 +259,15 @@ watch(
         url: newTag.url,
         iconType: newTag.iconType || 'favicon',
         iconValue: newTag.iconValue || '',
-        backgroundColor: newTag.backgroundColor || '#667eea'
+        backgroundColor: newTag.backgroundColor || '#667eea',
+        faviconData: newTag.faviconData
       }
 
       // 如果是favicon类型，加载现有的图标或重新获取
       if (formData.value.iconType === 'favicon') {
-        if (newTag.validFaviconUrl) {
+        if (newTag.faviconData) {
+          currentFaviconUrl.value = newTag.faviconData
+        } else if (newTag.validFaviconUrl) {
           currentFaviconUrl.value = newTag.validFaviconUrl
         } else {
           updateFavicon()
@@ -274,7 +280,8 @@ watch(
         url: '',
         iconType: 'favicon',
         iconValue: '',
-        backgroundColor: '#667eea'
+        backgroundColor: '#667eea',
+        faviconData: undefined
       }
       currentFaviconUrl.value = ''
     }
@@ -332,7 +339,8 @@ const handleSubmit = (): void => {
     url: formData.value.url.trim(),
     iconType: formData.value.iconType,
     iconValue: formData.value.iconValue,
-    backgroundColor: formData.value.backgroundColor
+    backgroundColor: formData.value.backgroundColor,
+    faviconData: formData.value.faviconData
   }
 
   // 确保 URL 有协议
@@ -345,9 +353,13 @@ const handleSubmit = (): void => {
     tagData.iconValue = tagData.name.charAt(0).toUpperCase()
   }
 
-  // 如果是favicon类型，保存验证过的URL
-  if (tagData.iconType === 'favicon' && currentFaviconUrl.value) {
-    tagData.validFaviconUrl = currentFaviconUrl.value
+  // 如果是favicon类型，保存base64数据或验证过的URL
+  if (tagData.iconType === 'favicon') {
+    if (formData.value.faviconData) {
+      tagData.faviconData = formData.value.faviconData
+    } else if (currentFaviconUrl.value) {
+      tagData.validFaviconUrl = currentFaviconUrl.value
+    }
   }
 
   if (isEditing.value && props.tag?.id) {
@@ -416,26 +428,27 @@ const updateFavicon = async (): Promise<void> => {
         url = 'https://' + url
       }
 
-      const validFavicons = await getValidFaviconUrl(url)
-      availableFavicons.value = validFavicons
-
-      if (validFavicons.length > 0) {
-        // 直接使用获取到的favicon
-        currentFaviconUrl.value = validFavicons[0].validUrl || ''
-        // 不需要显示选择器，因为我们使用智能获取
-        showFaviconSelector.value = false
+      // 使用改进的 FaviconUtils 获取 favicon
+      const faviconData = await FaviconUtils.getFavicon(url, true)
+      
+      if (faviconData && faviconData !== FaviconUtils.getDefaultFavicon()) {
+        currentFaviconUrl.value = faviconData
+        // 将 base64 数据存储到 formData 中，稍后保存到标签数据
+        formData.value.faviconData = faviconData
       } else {
         currentFaviconUrl.value = FaviconUtils.getDefaultFavicon()
+        formData.value.faviconData = undefined
       }
     } catch (error) {
       console.warn('获取favicon失败:', error)
       currentFaviconUrl.value = FaviconUtils.getDefaultFavicon()
-      availableFavicons.value = []
+      formData.value.faviconData = undefined
     } finally {
       faviconLoading.value = false
     }
   } else {
     currentFaviconUrl.value = ''
+    formData.value.faviconData = undefined
     availableFavicons.value = []
     showFaviconSelector.value = false
   }
@@ -448,7 +461,13 @@ const selectFavicon = (favicon: FaviconService): void => {
 
 const handleFaviconError = (event: Event): void => {
   const target = event.target as HTMLImageElement
-  target.style.display = 'none'
+  // 如果是预览图片加载失败，显示默认图标
+  if (target.classList.contains('favicon-preview-img')) {
+    target.src = FaviconUtils.getDefaultFavicon()
+    target.onerror = null // 防止无限循环
+  } else {
+    target.style.display = 'none'
+  }
 }
 
 // emoji选择处理
@@ -794,6 +813,13 @@ watch(
 .favicon-fallback {
   font-size: 16px;
   color: white;
+}
+
+.favicon-preview-img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  border-radius: 2px;
 }
 
 .preview-name {
