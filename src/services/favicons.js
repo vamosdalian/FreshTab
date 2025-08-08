@@ -59,7 +59,7 @@ class FaviconDownloader {
         } catch (e) {
             // If URL parsing fails, try to fix it
             if (!this.url.startsWith('http')) {
-                url = 'https://' + this.url
+                url = 'http://' + this.url
             }
         }
 
@@ -329,7 +329,7 @@ export const FaviconUtils = {
     getDomainFromUrl(url) {
         try {
             if (!url.startsWith('http')) {
-                url = 'https://' + url
+                url = 'http://' + url
             }
             const urlObj = new URL(url)
             return urlObj.hostname
