@@ -2,7 +2,7 @@
 
 > 基于 Vue.js 3 构建的美观且功能丰富的新标签页替换 Chrome 扩展程序
 
-![Version](https://img.shields.io/badge/version-1.0.4-blue.svg)
+![Version](https://img.shields.io/badge/version-1.0.5-blue.svg)
 ![Vue](https://img.shields.io/badge/vue-3.5.16-green.svg)
 ![Vite](https://img.shields.io/badge/vite-6.3.5-purple.svg)
 ![License](https://img.shields.io/badge/license-ISC-yellow.svg)

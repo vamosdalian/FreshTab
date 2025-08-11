@@ -46,13 +46,24 @@ function openTag(url: string): void {
 }
 
 function getFaviconUrl(url: string, tag: Tag): string {
-  // Note: validFaviconUrl is not part of the Tag interface but may exist in runtime
-  const tagWithExtras = tag as Tag & { validFaviconUrl?: string }
-  if (tagWithExtras && tagWithExtras.validFaviconUrl) {
+  // 优先使用保存的 base64 favicon 数据
+  const tagWithExtras = tag as Tag & { faviconData?: string; validFaviconUrl?: string }
+  
+  if (tagWithExtras.faviconData) {
+    return tagWithExtras.faviconData
+  }
+  
+  if (tagWithExtras.validFaviconUrl) {
     return tagWithExtras.validFaviconUrl
   }
-  const domain = new URL(url).hostname
-  return `https://${domain}/favicon.ico`
+  
+  // 回退到默认 favicon 路径
+  try {
+    const domain = new URL(url).hostname
+    return `https://${domain}/favicon.ico`
+  } catch (e) {
+    return `https://www.google.com/s2/favicons?domain=${url}&sz=32`
+  }
 }
 
 function handleIconError(event: Event): void {

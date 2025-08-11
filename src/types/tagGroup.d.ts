@@ -9,6 +9,7 @@ export interface Tag {
     iconType: IconType;
     iconValue: string;
     backgroundColor: string;
+    faviconData?: string; // Base64 encoded favicon data
 }
 
 export interface TagGroup {

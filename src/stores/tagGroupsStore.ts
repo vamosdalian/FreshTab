@@ -87,7 +87,8 @@ export const useTagGroupsStore = defineStore('tagGroups', () => {
       url: tag.url || '',
       iconType: tag.iconType || 'emoji',
       iconValue: tag.iconValue || '🔗',
-      backgroundColor: tag.backgroundColor || '#666'
+      backgroundColor: tag.backgroundColor || '#666',
+      faviconData: tag.faviconData
     };
     
     const groups = tagGroups.value.groups;
