@@ -4,6 +4,13 @@ import { useToast } from './useToast'
 export function useWallpaper() {
   const { error, log } = useToast()
   
+  // Silent debug logging function - only logs to console, no toast
+  const debugLog = (message) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[Wallpaper Debug] ${message}`)
+    }
+  }
+  
   // 壁纸配置的默认值
   const getDefaultWallpaperSettings = () => ({
     wallpaperMode: 'bing', // 'bing', 'fixed', 'local'
@@ -43,7 +50,7 @@ export function useWallpaper() {
           isWallpaperLoaded.value = true
           
           if (attempt > 1) {
-            log(`壁纸设置在第${attempt}次尝试后成功加载`)
+            debugLog(`壁纸设置在第${attempt}次尝试后成功加载`)
           }
           return
         } else {
@@ -52,10 +59,10 @@ export function useWallpaper() {
       } catch (chromeError) {
         if (attempt < retries) {
           const delayMs = calculateBackoffDelay(attempt, 500, 2000) // 较短的延迟
-          log(`加载壁纸设置失败，${delayMs}ms后重试第${attempt + 1}次: ${chromeError.message}`)
+          debugLog(`加载壁纸设置失败，${delayMs}ms后重试第${attempt + 1}次: ${chromeError.message}`)
           await delay(delayMs)
         } else {
-          log(`加载壁纸设置失败，使用默认设置: ${chromeError.message}`)
+          debugLog(`加载壁纸设置失败，使用默认设置: ${chromeError.message}`)
           Object.assign(wallpaperSettings, getDefaultWallpaperSettings())
           isWallpaperLoaded.value = true
         }
@@ -80,16 +87,16 @@ export function useWallpaper() {
         }
         
         if (attempt > 1) {
-          log(`壁纸设置在第${attempt}次尝试后成功保存`)
+          debugLog(`壁纸设置在第${attempt}次尝试后成功保存`)
         }
         return
       } catch (chromeError) {
         if (attempt < retries) {
           const delayMs = calculateBackoffDelay(attempt, 500, 2000) // 较短的延迟
-          log(`保存壁纸设置失败，${delayMs}ms后重试第${attempt + 1}次: ${chromeError.message}`)
+          debugLog(`保存壁纸设置失败，${delayMs}ms后重试第${attempt + 1}次: ${chromeError.message}`)
           await delay(delayMs)
         } else {
-          log(`保存壁纸设置失败: ${chromeError.message}`)
+          debugLog(`保存壁纸设置失败: ${chromeError.message}`)
         }
       }
     }
@@ -103,7 +110,7 @@ export function useWallpaper() {
       
       // 验证今天的日期格式
       if (!isValidDateString(today)) {
-        log('日期格式无效，无法获取壁纸')
+        debugLog('日期格式无效，无法获取壁纸')
         wallpaperLoading.value = false
         return
       }
@@ -113,7 +120,7 @@ export function useWallpaper() {
       
       // 检查是否有活跃的请求
       if (hasActiveRequest(today)) {
-        log('检测到相同日期的活跃请求，等待其完成')
+        debugLog('检测到相同日期的活跃请求，等待其完成')
         const waitSuccess = await waitForActiveRequest(today)
         if (waitSuccess) {
           // 使用等待完成的请求结果
@@ -134,7 +141,7 @@ export function useWallpaper() {
       // 检查日期缓存
       if (hasDailyRequestCache(today)) {
         const cache = getDailyRequestCache(today)
-        log('使用日期缓存的壁纸')
+        debugLog('使用日期缓存的壁纸')
         const transitionSuccess = await transitionToWallpaper(cache.url)
         if (transitionSuccess) {
           wallpaperSettings.wallpaperUrl = cache.url
@@ -144,7 +151,7 @@ export function useWallpaper() {
           return
         } else {
           // 缓存的URL不可用，清除缓存并重新获取
-          log('缓存的壁纸URL不可用，清除缓存并重新获取')
+          debugLog('缓存的壁纸URL不可用，清除缓存并重新获取')
           dailyRequestCache.value.delete(today)
         }
       }
@@ -161,12 +168,12 @@ export function useWallpaper() {
             return
           } else {
             // 如果缓存的URL不可用，重新获取
-            log('持久化缓存的壁纸URL不可用，重新获取')
+            debugLog('持久化缓存的壁纸URL不可用，重新获取')
             await fetchBingWallpaperWithDeduplication(today)
           }
         } catch (preloadError) {
           // 如果缓存的URL不可用，静默重新获取
-          log(`持久化缓存壁纸验证失败: ${preloadError.message}，重新获取`)
+          debugLog(`持久化缓存壁纸验证失败: ${preloadError.message}，重新获取`)
           await fetchBingWallpaperWithDeduplication(today)
         }
       } else {
@@ -175,7 +182,7 @@ export function useWallpaper() {
       }
     } catch (err) {
       // 静默处理顶层错误，记录用于调试
-      log(`获取Bing每日壁纸过程中发生错误: ${err.message}`)
+      debugLog(`获取Bing每日壁纸过程中发生错误: ${err.message}`)
       wallpaperLoading.value = false
     }
   }
@@ -196,7 +203,7 @@ export function useWallpaper() {
           
           if (attempts < maxRetries) {
             const delayMs = calculateBackoffDelay(attempts)
-            log(`壁纸预加载超时，${delayMs}ms后进行第${attempts + 1}次重试`)
+            debugLog(`壁纸预加载超时，${delayMs}ms后进行第${attempts + 1}次重试`)
             setTimeout(attemptLoad, delayMs)
           } else {
             reject(new Error(`Failed to preload wallpaper after ${maxRetries} attempts: timeout`))
@@ -206,7 +213,7 @@ export function useWallpaper() {
         img.onload = () => {
           clearTimeout(timeoutId)
           if (attempts > 1) {
-            log(`壁纸预加载在第${attempts}次尝试后成功`)
+            debugLog(`壁纸预加载在第${attempts}次尝试后成功`)
           }
           resolve(url)
         }
@@ -216,7 +223,7 @@ export function useWallpaper() {
           
           if (attempts < maxRetries) {
             const delayMs = calculateBackoffDelay(attempts)
-            log(`壁纸预加载失败，${delayMs}ms后进行第${attempts + 1}次重试`)
+            debugLog(`壁纸预加载失败，${delayMs}ms后进行第${attempts + 1}次重试`)
             setTimeout(attemptLoad, delayMs)
           } else {
             reject(new Error(`Failed to preload wallpaper after ${maxRetries} attempts: Image load error`))
@@ -236,7 +243,7 @@ export function useWallpaper() {
   const transitionToWallpaper = async (newUrl, fallbackUrl = null) => {
     // 处理空URL的情况
     if (!newUrl || typeof newUrl !== 'string') {
-      log('壁纸URL无效，保持当前壁纸')
+      debugLog('壁纸URL无效，保持当前壁纸')
       return false
     }
     
@@ -244,7 +251,7 @@ export function useWallpaper() {
     try {
       new URL(newUrl)
     } catch (urlError) {
-      log(`壁纸URL格式无效: ${newUrl}`)
+      debugLog(`壁纸URL格式无效: ${newUrl}`)
       return false
     }
     
@@ -257,11 +264,11 @@ export function useWallpaper() {
       currentWallpaper.value = newUrl
       
       // 记录成功的过渡
-      log(`壁纸已成功过渡: ${previousWallpaper ? '从旧壁纸' : '初始加载'} -> ${newUrl.substring(0, 50)}...`)
+      debugLog(`壁纸已成功过渡: ${previousWallpaper ? '从旧壁纸' : '初始加载'} -> ${newUrl.substring(0, 50)}...`)
       
       return true
     } catch (preloadError) {
-      log(`壁纸预加载失败: ${preloadError.message}`)
+      debugLog(`壁纸预加载失败: ${preloadError.message}`)
       
       // 尝试使用fallback URL
       if (fallbackUrl && fallbackUrl !== newUrl && typeof fallbackUrl === 'string') {
@@ -271,21 +278,21 @@ export function useWallpaper() {
           
           await preloadWallpaper(fallbackUrl, 10000, 2) // 减少fallback的重试次数
           currentWallpaper.value = fallbackUrl
-          log(`使用fallback壁纸成功: ${fallbackUrl.substring(0, 50)}...`)
+          debugLog(`使用fallback壁纸成功: ${fallbackUrl.substring(0, 50)}...`)
           return true
         } catch (fallbackError) {
-          log(`Fallback壁纸也失败: ${fallbackError.message}`)
+          debugLog(`Fallback壁纸也失败: ${fallbackError.message}`)
         }
       }
       
       // 如果所有预加载都失败，但我们有当前壁纸，保持不变
       if (currentWallpaper.value) {
-        log('保持当前壁纸，避免显示空白')
+        debugLog('保持当前壁纸，避免显示空白')
         return false
       }
       
       // 最后的fallback：直接设置URL，让浏览器处理加载（仅在没有当前壁纸时）
-      log('使用直接设置作为最后的fallback')
+      debugLog('使用直接设置作为最后的fallback')
       currentWallpaper.value = newUrl
       return false
     }
@@ -340,7 +347,7 @@ export function useWallpaper() {
         
         // 成功返回数据
         if (attempt > 1) {
-          log(`API请求在第${attempt}次尝试后成功`)
+          debugLog(`API请求在第${attempt}次尝试后成功`)
         }
         return data
         
@@ -350,11 +357,11 @@ export function useWallpaper() {
         // 记录重试信息（仅用于调试，不显示给用户）
         if (attempt < retries) {
           const delayMs = calculateBackoffDelay(attempt)
-          log(`API请求失败，${delayMs}ms后进行第${attempt + 1}次重试: ${err.message}`)
+          debugLog(`API请求失败，${delayMs}ms后进行第${attempt + 1}次重试: ${err.message}`)
           await delay(delayMs)
         } else {
           // 最后一次重试失败，记录详细错误信息
-          log(`API请求在${retries}次重试后仍然失败: ${err.message}`)
+          debugLog(`API请求在${retries}次重试后仍然失败: ${err.message}`)
         }
       }
     }
@@ -448,9 +455,9 @@ export function useWallpaper() {
       setDailyRequestCache(date, data.imgurl)
       
       if (transitionSuccess) {
-        log('Bing壁纸更新成功')
+        debugLog('Bing壁纸更新成功')
       } else {
-        log('Bing壁纸更新完成（使用fallback机制）')
+        debugLog('Bing壁纸更新完成（使用fallback机制）')
       }
       
     } catch (err) {
@@ -465,18 +472,18 @@ export function useWallpaper() {
   
   // 处理壁纸获取错误的fallback策略
   const handleWallpaperFetchError = async (error, date) => {
-    log(`壁纸获取失败，启用fallback策略: ${error.message}`)
+    debugLog(`壁纸获取失败，启用fallback策略: ${error.message}`)
     
     // Fallback策略1: 尝试使用缓存的壁纸
     if (wallpaperSettings.wallpaperUrl && wallpaperSettings.wallpaperDate) {
       try {
         const fallbackSuccess = await transitionToWallpaper(wallpaperSettings.wallpaperUrl)
         if (fallbackSuccess) {
-          log('使用缓存壁纸作为fallback成功')
+          debugLog('使用缓存壁纸作为fallback成功')
           return
         }
       } catch (fallbackError) {
-        log(`缓存壁纸fallback失败: ${fallbackError.message}`)
+        debugLog(`缓存壁纸fallback失败: ${fallbackError.message}`)
       }
     }
     
@@ -487,7 +494,7 @@ export function useWallpaper() {
       const yesterdayStr = formatDateToString(yesterday)
       
       if (isValidDateString(yesterdayStr) && yesterdayStr !== date) {
-        log('尝试获取前一天的壁纸作为fallback')
+        debugLog('尝试获取前一天的壁纸作为fallback')
         const fallbackData = await fetchWithRetry(
           `https://bing.ee123.net/img/4k?type=json&date=${yesterdayStr}`,
           {},
@@ -500,20 +507,20 @@ export function useWallpaper() {
             // 不更新日期，保持当前日期以便下次重试
             wallpaperSettings.wallpaperUrl = fallbackData.imgurl
             await saveWallpaperSettings()
-            log('使用前一天壁纸作为fallback成功')
+            debugLog('使用前一天壁纸作为fallback成功')
             return
           }
         }
       }
     } catch (fallbackError) {
-      log(`前一天壁纸fallback失败: ${fallbackError.message}`)
+      debugLog(`前一天壁纸fallback失败: ${fallbackError.message}`)
     }
     
     // Fallback策略3: 保持当前壁纸不变
     if (currentWallpaper.value) {
-      log('保持当前壁纸，等待下次自动重试')
+      debugLog('保持当前壁纸，等待下次自动重试')
     } else {
-      log('无可用的fallback壁纸，将在下次检查时重试')
+      debugLog('无可用的fallback壁纸，将在下次检查时重试')
     }
   }
   
@@ -531,7 +538,7 @@ export function useWallpaper() {
         
         // 验证生成的日期格式
         if (!isValidDateString(dateStr)) {
-          log(`跳过无效日期: ${dateStr}`)
+          debugLog(`跳过无效日期: ${dateStr}`)
           continue
         }
         
@@ -553,12 +560,12 @@ export function useWallpaper() {
       currentPage.value = page
       
       if (wallpapers.length > 0) {
-        log(`成功加载${wallpapers.length}个固定壁纸选项`)
+        debugLog(`成功加载${wallpapers.length}个固定壁纸选项`)
       }
       
     } catch (err) {
       // 静默处理错误，记录用于调试
-      log(`获取壁纸列表失败: ${err.message}`)
+      debugLog(`获取壁纸列表失败: ${err.message}`)
     } finally {
       wallpaperLoading.value = false
     }
@@ -571,7 +578,7 @@ export function useWallpaper() {
       
       // 验证壁纸对象
       if (!wallpaper || !wallpaper.fullUrl || !wallpaper.date) {
-        log('无效的壁纸对象')
+        debugLog('无效的壁纸对象')
         return
       }
       
@@ -593,7 +600,7 @@ export function useWallpaper() {
       }
     } catch (err) {
       // 静默处理错误，记录用于调试
-      log(`设置壁纸失败: ${err.message}`)
+      debugLog(`设置壁纸失败: ${err.message}`)
     } finally {
       wallpaperLoading.value = false
     }
@@ -604,19 +611,19 @@ export function useWallpaper() {
     try {
       // 验证文件
       if (!file) {
-        log('未选择文件')
+        error('未选择文件')
         return
       }
       
       if (!file.type.startsWith('image/')) {
-        log('请选择有效的图片文件')
+        error('请选择有效的图片文件')
         return
       }
       
       // 检查文件大小（限制为10MB）
       const maxSize = 10 * 1024 * 1024 // 10MB
       if (file.size > maxSize) {
-        log('图片文件过大，请选择小于10MB的图片')
+        error('图片文件过大，请选择小于10MB的图片')
         return
       }
       
@@ -643,7 +650,7 @@ export function useWallpaper() {
       }
     } catch (err) {
       // 静默处理错误，记录用于调试
-      log(`上传本地壁纸失败: ${err.message}`)
+      debugLog(`上传本地壁纸失败: ${err.message}`)
     } finally {
       wallpaperLoading.value = false
     }
@@ -764,7 +771,7 @@ export function useWallpaper() {
         await activeRequest
         return true
       } catch (error) {
-        log(`等待现有请求完成时发生错误: ${error.message}`)
+        debugLog(`等待现有请求完成时发生错误: ${error.message}`)
         return false
       }
     }
@@ -775,13 +782,13 @@ export function useWallpaper() {
   const shouldExecuteRequest = (dateString) => {
     // 检查是否有活跃的请求
     if (hasActiveRequest(dateString)) {
-      log(`跳过重复请求，日期 ${dateString} 已有请求正在进行`)
+      debugLog(`跳过重复请求，日期 ${dateString} 已有请求正在进行`)
       return false
     }
     
     // 检查是否有当天的缓存
     if (hasDailyRequestCache(dateString)) {
-      log(`跳过重复请求，日期 ${dateString} 已有缓存结果`)
+      debugLog(`跳过重复请求，日期 ${dateString} 已有缓存结果`)
       return false
     }
     
@@ -795,7 +802,7 @@ export function useWallpaper() {
       
       // 验证当前日期格式
       if (!isValidDateString(today)) {
-        log('日期格式验证失败，跳过此次检查')
+        debugLog('日期格式验证失败，跳过此次检查')
         return
       }
       
@@ -814,12 +821,12 @@ export function useWallpaper() {
           await getBingDailyWallpaper()
           
           // 记录日期变化检测（用于调试）
-          log(`日期变化检测: 从 ${wallpaperSettings.wallpaperDate} 更新到 ${today}`)
+          debugLog(`日期变化检测: 从 ${wallpaperSettings.wallpaperDate} 更新到 ${today}`)
         }
       }
     } catch (err) {
       // 静默处理错误，避免影响定时器继续运行
-      log(`日期变化检测过程中发生错误: ${err.message}`)
+      debugLog(`日期变化检测过程中发生错误: ${err.message}`)
     }
   }
   
@@ -830,13 +837,13 @@ export function useWallpaper() {
       
       // 验证当前日期格式
       if (!isValidDateString(currentDate)) {
-        log('当前日期格式无效，跳过缓存验证')
+        debugLog('当前日期格式无效，跳过缓存验证')
         return false
       }
       
       // 验证缓存的壁纸日期
       if (wallpaperSettings.wallpaperDate && !isValidDateString(wallpaperSettings.wallpaperDate)) {
-        log('检测到无效的缓存日期格式，清理缓存')
+        debugLog('检测到无效的缓存日期格式，清理缓存')
         wallpaperSettings.wallpaperDate = ''
         wallpaperSettings.wallpaperUrl = ''
         await saveWallpaperSettings()
@@ -848,7 +855,7 @@ export function useWallpaper() {
         const hasCachedWallpaper = wallpaperSettings.wallpaperUrl && wallpaperSettings.wallpaperDate
         
         if (hasDateChanged || !hasCachedWallpaper) {
-          log(`日期变化检测触发更新: 缓存日期=${wallpaperSettings.wallpaperDate}, 当前日期=${currentDate}`)
+          debugLog(`日期变化检测触发更新: 缓存日期=${wallpaperSettings.wallpaperDate}, 当前日期=${currentDate}`)
           await getBingDailyWallpaper()
           return true
         }
@@ -857,7 +864,7 @@ export function useWallpaper() {
       return false
     } catch (err) {
       // 静默处理错误
-      log(`缓存验证过程中发生错误: ${err.message}`)
+      debugLog(`缓存验证过程中发生错误: ${err.message}`)
       return false
     }
   }
