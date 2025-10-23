@@ -216,8 +216,10 @@ onUnmounted(() => {
 
 <style scoped>
 .search-section {
-  margin-bottom: 3rem;
+  margin: 0 auto;
   position: relative;
+  width: 100%;
+  max-width: 700px;
 }
 
 .search-container {
@@ -228,14 +230,21 @@ onUnmounted(() => {
   position: relative;
   display: flex;
   align-items: center;
-  background: var(--input-bg, rgba(255, 255, 255, 0.1));
+  background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
-  border-radius: 50px 50px 50px 50px;
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
+  border-radius: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
   overflow: hidden;
   margin: 0 auto;
-  width: fit-content;
+  width: 100%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.search-box:hover,
+.search-box:focus-within {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 /* 搜索引擎图标按钮 */
@@ -295,12 +304,13 @@ onUnmounted(() => {
 
 /* 搜索输入框 */
 .search-input {
-  width: 500px;
+  flex: 1;
+  min-width: 300px;
   padding: 1rem 4rem 1rem 1rem;
   border: none;
   background: transparent;
   font-size: 1rem;
-  color: var(--text-color, white);
+  color: white;
   outline: none;
   height: 100%;
   position: relative;
@@ -308,7 +318,7 @@ onUnmounted(() => {
 }
 
 .search-input::placeholder {
-  color: var(--text-color-light, rgba(255, 255, 255, 0.6));
+  color: rgba(255, 255, 255, 0.5);
   transition: color 0.3s ease;
 }
 

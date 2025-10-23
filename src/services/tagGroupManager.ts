@@ -67,7 +67,22 @@ export const defaultTagGroups: TagGroupConfig = {
     ]
 };
 
-const storage = chrome.storage.sync;
+// Mock chrome.storage for development environment
+const storage = typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync 
+    ? chrome.storage.sync 
+    : {
+        get: async (key: string) => {
+            const item = localStorage.getItem(key);
+            return item ? { [key]: JSON.parse(item) } : {};
+        },
+        set: async (data: any) => {
+            const key = Object.keys(data)[0];
+            localStorage.setItem(key, JSON.stringify(data[key]));
+        },
+        onChanged: {
+            addListener: () => {}
+        }
+    };
 
 /**
  * Tag groups migration function
@@ -143,12 +158,14 @@ export async function setTagGroups(newTagGroups: TagGroupConfig): Promise<void> 
  * @param {function(TagGroupConfig): void} callback - Callback function called when tag groups change
  */
 export function onTagGroupsChange(callback: (tagGroups: TagGroupConfig) => void): void {
-    chrome.storage.onChanged.addListener((changes: { [key: string]: chrome.storage.StorageChange }, areaName: string) => {
-        if (areaName === 'sync') {
-            if (TAG_GROUPS_KEY in changes) {
-                const value = JSON.parse(changes[TAG_GROUPS_KEY].newValue) as TagGroupConfig;
-                callback(value);
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.onChanged) {
+        chrome.storage.onChanged.addListener((changes: { [key: string]: chrome.storage.StorageChange }, areaName: string) => {
+            if (areaName === 'sync') {
+                if (TAG_GROUPS_KEY in changes) {
+                    const value = JSON.parse(changes[TAG_GROUPS_KEY].newValue) as TagGroupConfig;
+                    callback(value);
+                }
             }
-        }
-    });
+        });
+    }
 }

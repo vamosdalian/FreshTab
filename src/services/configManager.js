@@ -24,7 +24,22 @@ export const defaultConfig = {
     wallpaperPath: '',
 };
 
-const storage = chrome.storage.sync;
+// Mock chrome.storage for development environment
+const storage = typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync 
+    ? chrome.storage.sync 
+    : {
+        get: async (key) => {
+            const item = localStorage.getItem(key);
+            return item ? { [key]: JSON.parse(item) } : {};
+        },
+        set: async (data) => {
+            const key = Object.keys(data)[0];
+            localStorage.setItem(key, JSON.stringify(data[key]));
+        },
+        onChanged: {
+            addListener: () => {}
+        }
+    };
 
 /**
  * 配置迁移函数

@@ -1,5 +1,8 @@
 <template>
   <section class="tags-section">
+    <h2 class="text-3xl font-bold text-center mb-4">快速访问</h2>
+    <p class="text-center text-gray-400 max-w-2xl mx-auto mb-12">您收藏的网站和书签，一键直达</p>
+    
     <!-- 标签组列表 -->
     <div v-for="group in tagGroups" :key="group.id" class="tag-group">
       <div class="group-header">
@@ -9,20 +12,22 @@
         </div>
       </div>
 
-      <div class="tags-grid" :class="['tag-size-' + (settings.bookmarkSize || 'medium')]" :style="{
-        '--items-per-row': settings.columnsPerRow || 6,
-        maxWidth: '100%'
-      }">
-        <div v-for="tag in (Array.isArray(group.tags) ? group.tags : [])" :key="tag.id" class="tag-item"
-          @click="openTag(tag.url)" :style="{ '--tag-color': group.themeColor }">
-          <div class="tag-icon" :style="{ backgroundColor: tag.backgroundColor }">
-            <span v-if="tag.iconType === 'emoji'">{{ tag.iconValue }}</span>
-            <span v-else-if="tag.iconType === 'text'">{{ tag.iconValue }}</span>
-            <img v-else-if="tag.iconType === 'favicon'" :src="getFaviconUrl(tag.url, tag)" :alt="tag.name"
-              :data-original-url="tag.url" @error="handleIconError" />
-            <span v-else>🔗</span>
+      <div class="tags-grid" :class="['tag-size-' + (settings.bookmarkSize || 'medium')]">
+        <div v-for="tag in (Array.isArray(group.tags) ? group.tags : [])" :key="tag.id" 
+          class="card-bg rounded-xl overflow-hidden tag-card"
+          @click="openTag(tag.url)">
+          <div class="tag-card-content p-6">
+            <div class="tag-icon-large mb-4" :style="{ backgroundColor: tag.backgroundColor }">
+              <span v-if="tag.iconType === 'emoji'" class="text-4xl">{{ tag.iconValue }}</span>
+              <span v-else-if="tag.iconType === 'text'" class="text-2xl font-bold">{{ tag.iconValue }}</span>
+              <img v-else-if="tag.iconType === 'favicon'" :src="getFaviconUrl(tag.url, tag)" :alt="tag.name"
+                :data-original-url="tag.url" @error="handleIconError" class="w-12 h-12" />
+              <span v-else class="text-4xl">🔗</span>
+            </div>
+            <h3 class="text-xl font-bold mb-2 text-white">{{ tag.name }}</h3>
+            <p class="text-gray-300 text-sm mb-4 line-clamp-2">{{ getTagDescription(tag.url) }}</p>
+            <a href="#" @click.prevent="openTag(tag.url)" class="text-blue-400 hover:text-blue-300 font-semibold">访问 &rarr;</a>
           </div>
-          <div class="tag-title">{{ tag.name }}</div>
         </div>
       </div>
     </div>
@@ -66,6 +71,15 @@ function getFaviconUrl(url: string, tag: Tag): string {
   }
 }
 
+function getTagDescription(url: string): string {
+  try {
+    const domain = new URL(url).hostname
+    return domain
+  } catch {
+    return '快速访问链接'
+  }
+}
+
 function handleIconError(event: Event): void {
   const img = event.target as HTMLImageElement
   const parent = img.parentElement
@@ -105,7 +119,7 @@ function handleIconError(event: Event): void {
   img.style.display = 'none'
   if (parent && !parent.querySelector('.fallback-icon')) {
     const fallback = document.createElement('span')
-    fallback.className = 'fallback-icon'
+    fallback.className = 'fallback-icon text-4xl'
     fallback.textContent = '🔗'
     parent.appendChild(fallback)
   }
@@ -143,154 +157,61 @@ function handleIconError(event: Event): void {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--card-bg, rgba(255, 255, 255, 0.1));
+  background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
   border-radius: 10px;
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .group-title h3 {
   color: white;
   font-size: 1.5rem;
-  font-weight: 400;
+  font-weight: 600;
   margin: 0;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  transition: color 0.3s ease, text-shadow 0.3s ease;
-}
-
-/* Dark mode adjustments */
-:root[data-theme="dark"] .group-title h3 {
-  color: #e0e0e0;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
 .tags-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
   max-width: 100%;
   margin: 0 auto;
 }
 
-/* 不同尺寸的标签容器 */
-.tag-size-small .tag-item {
-  width: 80px;
-  height: 80px;
+@media (max-width: 768px) {
+  .tags-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+  }
 }
 
-.tag-size-medium .tag-item {
-  width: 100px;
-  height: 100px;
-}
-
-.tag-size-large .tag-item {
-  width: 120px;
-  height: 120px;
-}
-
-.tag-item {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem;
-  background: var(--card-bg, rgba(255, 255, 255, 0.1));
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
+.tag-card {
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
-  flex-shrink: 0;
 }
 
-.tag-item:hover {
-  background: var(--button-hover-bg, rgba(255, 255, 255, 0.2));
-  transform: translateY(-2px);
-  box-shadow: 0 4px 20px var(--card-shadow, rgba(0, 0, 0, 0.2));
-  border-color: var(--tag-color, #667eea);
+.tag-card:hover {
+  border-color: #4a4a4a;
+  transform: translateY(-4px);
 }
 
-/* 不同尺寸下的图标大小 */
-.tag-size-small .tag-icon {
-  width: 32px;
-  height: 32px;
-  font-size: 16px;
-  margin-bottom: 0.25rem;
+.tag-card-content {
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
 }
 
-.tag-size-medium .tag-icon {
-  width: 40px;
-  height: 40px;
-  font-size: 20px;
-  margin-bottom: 0.375rem;
-}
-
-.tag-size-large .tag-icon {
-  width: 48px;
-  height: 48px;
-  font-size: 24px;
-  margin-bottom: 0.5rem;
-}
-
-/* 不同尺寸下的文字大小 */
-.tag-size-small .tag-title {
-  font-size: 0.7rem;
-  line-height: 1.2;
-}
-
-.tag-size-medium .tag-title {
-  font-size: 0.8rem;
-  line-height: 1.3;
-}
-
-.tag-size-large .tag-title {
-  font-size: 0.9rem;
-  line-height: 1.4;
-}
-
-.tag-icon {
-  border-radius: 8px;
-  overflow: hidden;
+.tag-icon-large {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* 不同尺寸下的图片大小 */
-.tag-size-small .tag-icon img {
-  width: 16px;
-  height: 16px;
-}
-
-.tag-size-medium .tag-icon img {
-  width: 20px;
-  height: 20px;
-}
-
-.tag-size-large .tag-icon img {
-  width: 24px;
-  height: 24px;
-}
-
-.tag-icon img {
-  object-fit: cover;
-}
-
-.tag-icon .fallback-icon {
-  font-size: 24px;
-  color: white;
-}
-
-.tag-title {
-  color: var(--text-color, white);
-  text-align: center;
-  word-break: break-word;
-  max-width: 100%;
-  transition: color 0.3s ease;
+.line-clamp-2 {
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -298,29 +219,7 @@ function handleIconError(event: Event): void {
   -webkit-box-orient: vertical;
 }
 
-.global-empty-state {
-  text-align: center;
-  padding: 4rem 1rem;
-  color: var(--text-color-light, rgba(255, 255, 255, 0.7));
-  transition: color 0.3s ease;
-}
-
-.empty-icon {
-  font-size: 4rem;
-  margin-bottom: 1rem;
-  opacity: 0.7;
-}
-
-.global-empty-state h3 {
-  color: var(--title-color, white);
-  font-size: 1.5rem;
-  font-weight: 500;
-  margin-bottom: 0.5rem;
-  transition: color 0.3s ease;
-}
-
-.global-empty-state p {
-  font-size: 1.1rem;
-  margin-bottom: 2rem;
+.fallback-icon {
+  color: white;
 }
 </style>

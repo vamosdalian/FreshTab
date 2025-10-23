@@ -1,7 +1,30 @@
 <template>
   <section class="time-section">
-    <div class="time-display" :class="timeFormatClass">{{ formattedTime }}</div>
-    <div v-if="showDate" class="date-display">{{ currentDate }}</div>
+    <h2 class="text-lg md:text-xl font-medium text-gray-300 mb-2">当前时间</h2>
+    <h1 class="text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6">{{ formattedTime }}</h1>
+    
+    <!-- Date Display as Countdown-style boxes -->
+    <div v-if="showDate" id="countdown" class="flex justify-center space-x-2 md:space-x-4 mb-8">
+      <div class="countdown-box rounded-lg p-3 md:p-5 w-auto min-w-[80px] md:min-w-[112px]">
+        <div class="text-3xl md:text-5xl font-bold">{{ dateComponents.year }}</div>
+        <div class="text-xs md:text-sm text-gray-400">年</div>
+      </div>
+      <div class="countdown-box rounded-lg p-3 md:p-5 w-20 md:w-28">
+        <div class="text-3xl md:text-5xl font-bold">{{ dateComponents.month }}</div>
+        <div class="text-xs md:text-sm text-gray-400">月</div>
+      </div>
+      <div class="countdown-box rounded-lg p-3 md:p-5 w-20 md:w-28">
+        <div class="text-3xl md:text-5xl font-bold">{{ dateComponents.day }}</div>
+        <div class="text-xs md:text-sm text-gray-400">日</div>
+      </div>
+    </div>
+
+    <!-- Weekday info -->
+    <div v-if="showDate" class="flex flex-wrap justify-center items-center gap-x-6 gap-y-2 text-gray-300">
+      <div class="flex items-center space-x-2">
+        <span>{{ dateComponents.weekday }}</span>
+      </div>
+    </div>
   </section>
 </template>
 
@@ -59,6 +82,17 @@ const currentDate = computed(() => {
   })
 })
 
+const dateComponents = computed(() => {
+  timeUpdateTrigger.value // trigger reactivity
+  const now = new Date()
+  return {
+    year: now.getFullYear().toString(),
+    month: String(now.getMonth() + 1).padStart(2, '0'),
+    day: String(now.getDate()).padStart(2, '0'),
+    weekday: now.toLocaleDateString('zh-CN', { weekday: 'long' })
+  }
+})
+
 let timeInterval
 
 onMounted(() => {
@@ -77,39 +111,29 @@ onUnmounted(() => {
   margin-bottom: 2rem;
 }
 
-.time-display {
-  font-size: 4rem;
-  font-weight: 200;
+h1 {
   color: white;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  margin-bottom: 1rem;
-  transition: color 0.3s ease, text-shadow 0.3s ease;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
 }
 
-/* Dark mode adjustments */
-:root[data-theme="dark"] .time-display {
-  color: #e0e0e0;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+h2 {
+  color: #d1d5db;
 }
 
-:root[data-theme="dark"] .date-display {
-  color: #e0e0e0;
+.countdown-box {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
 }
 
-.date-display {
-  font-size: 1rem;
+.countdown-box > div:first-child {
   color: white;
-  font-weight: 300;
-  margin-top: 0.5rem;
-  transition: color 0.3s ease;
+  font-weight: bold;
 }
 
-.time-12h {
-  font-family: 'Courier New', monospace;
-}
-
-.time-24h {
-  font-family: 'Courier New', monospace;
-  letter-spacing: 0.1em;
+.countdown-box .text-gray-400 {
+  color: #9ca3af;
 }
 </style>
