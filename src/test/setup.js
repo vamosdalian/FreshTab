@@ -7,6 +7,9 @@ global.chrome = {
       onChanged: {
         addListener: vi.fn()
       }
+    },
+    onChanged: {
+      addListener: vi.fn()
     }
   }
 }
