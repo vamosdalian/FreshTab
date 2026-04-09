@@ -1,4 +1,6 @@
 // 1. 定义默认配置和版本号
+import { addStorageChangeListener, getFromStorage, setToStorage } from './browserStorage.js'
+
 const SETTING_KEY = 'FRESH_TAB_SETTING';
 
 export const defaultConfig = {
@@ -23,8 +25,6 @@ export const defaultConfig = {
     wallpaperMode: 'bing', // 'bing', 'fixed', 'local'
     wallpaperPath: '',
 };
-
-const storage = chrome.storage.sync;
 
 /**
  * 配置迁移函数
@@ -72,7 +72,7 @@ function migrateConfig(savedConfig) {
  */
 export async function getConfig() {
     try {
-        const result = await storage.get(SETTING_KEY);
+        const result = await getFromStorage(SETTING_KEY);
         const savedConfig = result[SETTING_KEY] || {};
         
         // 版本迁移逻辑
@@ -96,7 +96,7 @@ export async function getConfig() {
  */
 export async function setConfig(newConfig) {
     try {
-        await storage.set({[SETTING_KEY]: newConfig});
+        await setToStorage({[SETTING_KEY]: newConfig});
     } catch (error) {
         throw error;
     }
@@ -107,7 +107,7 @@ export async function setConfig(newConfig) {
  * @param {function(object)} callback - 当配置变化时调用的回调函数
  */
 export function onConfigChange(callback) {
-    storage.onChanged.addListener((changes, areaName) => {
+    addStorageChangeListener((changes, areaName) => {
         if (areaName === 'sync') {
             if (SETTING_KEY in changes) {
                 callback(changes[SETTING_KEY].newValue);

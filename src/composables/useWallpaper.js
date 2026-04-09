@@ -1,5 +1,6 @@
 import { ref, reactive, onMounted, onUnmounted, watch } from 'vue'
 import { useToast } from './useToast'
+import { addStorageChangeListener, getFromStorage, setToStorage } from '../services/browserStorage.js'
 
 export function useWallpaper() {
   const { error, log } = useToast()
@@ -36,18 +37,44 @@ export function useWallpaper() {
   const activeRequests = ref(new Map()) // Map<dateString, Promise>
   const requestStates = ref(new Map()) // Map<dateString, 'pending' | 'completed' | 'failed'>
   const dailyRequestCache = ref(new Map()) // Map<dateString, { url: string, timestamp: number }>
+
+  const readFileAsDataUrl = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = () => reject(new Error('Failed to read local wallpaper file'))
+    reader.readAsDataURL(file)
+  })
+
+  const syncCurrentWallpaperFromSettings = () => {
+    switch (wallpaperSettings.wallpaperMode) {
+      case 'local':
+        currentWallpaper.value = wallpaperSettings.wallpaperLocalPath || wallpaperSettings.wallpaperUrl || ''
+        break
+      case 'fixed':
+      case 'bing':
+      default:
+        currentWallpaper.value = wallpaperSettings.wallpaperUrl || ''
+        break
+    }
+  }
+
+  const applyWallpaperSettingsState = (loadedData = {}) => {
+    Object.assign(wallpaperSettings, getDefaultWallpaperSettings(), loadedData)
+    syncCurrentWallpaperFromSettings()
+    isWallpaperLoaded.value = true
+  }
   
   // 加载壁纸设置 - 增强版本，带重试机制
   const loadWallpaperSettings = async (retries = 3) => {
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
-        const result = await chrome.storage.sync.get(['wallpaperSettings'])
-        const loadedData = result.wallpaperSettings || getDefaultWallpaperSettings()
+        const localResult = await getFromStorage(['wallpaperSettings'], 'local')
+        const syncResult = await getFromStorage(['wallpaperSettings'])
+        const loadedData = localResult.wallpaperSettings || syncResult.wallpaperSettings || getDefaultWallpaperSettings()
         
         // 验证加载的数据结构
         if (typeof loadedData === 'object' && loadedData !== null) {
-          Object.assign(wallpaperSettings, loadedData)
-          isWallpaperLoaded.value = true
+          applyWallpaperSettingsState(loadedData)
           
           if (attempt > 1) {
             debugLog(`壁纸设置在第${attempt}次尝试后成功加载`)
@@ -63,8 +90,7 @@ export function useWallpaper() {
           await delay(delayMs)
         } else {
           debugLog(`加载壁纸设置失败，使用默认设置: ${chromeError.message}`)
-          Object.assign(wallpaperSettings, getDefaultWallpaperSettings())
-          isWallpaperLoaded.value = true
+          applyWallpaperSettingsState(getDefaultWallpaperSettings())
         }
       }
     }
@@ -80,7 +106,7 @@ export function useWallpaper() {
           throw new Error('Invalid settings data to save')
         }
         
-        await chrome.storage.sync.set({ wallpaperSettings: settingsToSave })
+        await setToStorage({ wallpaperSettings: settingsToSave }, 'local')
         
         if (showToast) {
           log('壁纸设置已保存')
@@ -629,8 +655,7 @@ export function useWallpaper() {
       
       wallpaperLoading.value = true
       
-      // 创建本地 URL
-      const localUrl = URL.createObjectURL(file)
+      const localUrl = await readFileAsDataUrl(file)
       
       // 使用过渡系统应用本地壁纸
       const transitionSuccess = await transitionToWallpaper(
@@ -986,6 +1011,15 @@ export function useWallpaper() {
 
   onMounted(async () => {
     await loadWallpaperSettings()
+
+    addStorageChangeListener((changes, areaName) => {
+      if (areaName !== 'local' || !changes.wallpaperSettings?.newValue) {
+        return
+      }
+
+      applyWallpaperSettingsState(changes.wallpaperSettings.newValue)
+    }, 'local')
+
     // 如果已经加载完成，立即初始化
     if (isWallpaperLoaded.value) {
       initializeWallpaper()

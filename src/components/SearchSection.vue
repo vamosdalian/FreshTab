@@ -41,6 +41,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useSettingsStore } from '../stores/settingsStore';
+import { hasChromeSearch, runChromeSearch } from '../services/browserStorage.js'
 
 const settingsStore = useSettingsStore();
 const searchQuery = ref('')
@@ -63,35 +64,35 @@ const searchEngines = ref([
     id: 'google',
     name: 'Google',
     url: 'https://www.google.com/search?q=',
-    icon: 'https://www.google.com/favicon.ico',
+    icon: '/icons/google.png',
     fallbackIcon: '🔍'
   },
   {
     id: 'bing',
     name: 'Bing',
     url: 'https://www.bing.com/search?q=',
-    icon: 'https://www.bing.com/favicon.ico',
+    icon: '/icons/bing.png',
     fallbackIcon: '🅱️'
   },
   {
     id: 'baidu',
     name: '百度',
     url: 'https://www.baidu.com/s?wd=',
-    icon: 'https://www.baidu.com/favicon.ico',
+    icon: '/icons/baidu.png',
     fallbackIcon: '🟦'
   },
   {
     id: 'duckduckgo',
     name: 'DuckDuckGo',
     url: 'https://duckduckgo.com/?q=',
-    icon: 'https://duckduckgo.com/favicon.ico',
+    icon: '/icons/duckduckgo.png',
     fallbackIcon: '🦆'
   },
   {
     id: 'yahoo',
     name: 'Yahoo',
     url: 'https://search.yahoo.com/search?p=',
-    icon: 'https://search.yahoo.com/favicon.ico',
+    icon: '/icons/yahoo.png',
     fallbackIcon: '🟣'
   }
 ])
@@ -129,8 +130,8 @@ const performSearch = async (query = searchQuery.value) => {
   if (currentEngine.value.id === 'chrome-default') {
     try {
       // 使用Chrome搜索API
-      if (chrome && chrome.search && chrome.search.query) {
-        await chrome.search.query({
+      if (hasChromeSearch()) {
+        await runChromeSearch({
           text: query,
           disposition: 'CURRENT_TAB'
         })
