@@ -162,18 +162,18 @@ function handleIconError(event: Event): void {
 
 <style scoped>
 .tags-section {
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
 }
 
 .tag-group {
-  margin-bottom: 3rem;
+  margin-bottom: 1.5rem;
 }
 
 .group-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .group-title {
