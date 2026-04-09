@@ -352,7 +352,7 @@
                 <button @click="applyWallpaperSettings" class="apply-btn">应用</button>
               </div>
               <div class="preview-container">
-                <img :src="wallpaperSettings.wallpaperPath" alt="当前壁纸" class="preview-image" />
+                <img :src="wallpaperPreviewUrl" alt="当前壁纸" class="preview-image" />
               </div>
             </div>
           </div>
@@ -549,6 +549,7 @@ import TagModal from './TagModal.vue'
 import { CURRENT_VERSION } from '../services/version'
 import { useSettingsStore } from '../stores/settingsStore'
 import { useToast } from '../composables/useToast'
+import { getFromStorage, setToStorage } from '../services/browserStorage.js'
 const { log, error } = useToast()
 
 const settingsStore = useSettingsStore()
@@ -563,12 +564,20 @@ const themeColors = computed(() => [
 const settings = computed(() => settingsStore.settings as any) // TODO: Add proper settings type
 const wallpaperSettings = reactive<{
   wallpaperMode?: string
-  wallpaperPath?: string
+  wallpaperUrl?: string
+  wallpaperDate?: string
+  wallpaperLocalPath?: string
+  fixedWallpaperDate?: string
 }>({})
 const wallpaperLoading: Ref<boolean> = ref(false)
 const fixedWallpapers: Ref<Array<{ date: string; previewUrl: string; fullUrl: string }>> = ref([])
 const currentPage: Ref<number> = ref(0)
 const fixedWallpaperDate = ref("")
+const wallpaperPreviewUrl = computed(() => (
+  wallpaperSettings.wallpaperMode === 'local'
+    ? wallpaperSettings.wallpaperLocalPath || wallpaperSettings.wallpaperUrl || ''
+    : wallpaperSettings.wallpaperUrl || ''
+))
 
 // Define emits
 const emit = defineEmits(['close'])
@@ -802,7 +811,8 @@ const updateBingWallpaper = (): void => {
       if (data && data.imgurl) {
         const img = new Image()
         img.onload = () => {
-          wallpaperSettings.wallpaperPath = data.imgurl
+          wallpaperSettings.wallpaperUrl = data.imgurl
+          wallpaperSettings.wallpaperDate = today
         }
         img.onerror = () => {
           console.error('Failed to preload Bing wallpaper image:', data.imgurl)
@@ -853,7 +863,10 @@ const uploadLocalWallpaper = async (file: File): Promise<void> => {
 
     // 创建本地 URL
     const localUrl = URL.createObjectURL(file)
-    wallpaperSettings.wallpaperPath = localUrl
+    wallpaperSettings.wallpaperMode = 'local'
+    wallpaperSettings.wallpaperLocalPath = localUrl
+    wallpaperSettings.wallpaperUrl = localUrl
+    wallpaperSettings.fixedWallpaperDate = ''
     wallpaperLoading.value = false
   } catch (err) {
     wallpaperLoading.value = false
@@ -870,7 +883,9 @@ const selectFixedWallpaper = async (wallpaper: { date: string; fullUrl: string }
       if (data && data.imgurl) {
         const img = new Image()
         img.onload = () => {
-          wallpaperSettings.wallpaperPath = data.imgurl
+          wallpaperSettings.wallpaperMode = 'fixed'
+          wallpaperSettings.fixedWallpaperDate = wallpaper.date
+          wallpaperSettings.wallpaperUrl = data.imgurl
         }
         img.onerror = () => {
           console.error('Failed to preload Bing wallpaper image:', data.imgurl)
@@ -921,16 +936,31 @@ const loadMoreWallpapers = (): void => {
   getFixedWallpapers(currentPage.value + 1)
 }
 
-const applyWallpaperSettings = (): void => {
-  updateSetting('wallpaperMode', wallpaperSettings.wallpaperMode)
-  updateSetting('wallpaperPath', wallpaperSettings.wallpaperPath)
+const applyWallpaperSettings = async (): Promise<void> => {
+  await setToStorage({
+    wallpaperSettings: {
+      wallpaperMode: wallpaperSettings.wallpaperMode || 'bing',
+      wallpaperUrl: wallpaperSettings.wallpaperUrl || '',
+      wallpaperDate: wallpaperSettings.wallpaperDate || '',
+      wallpaperLocalPath: wallpaperSettings.wallpaperLocalPath || '',
+      fixedWallpaperDate: wallpaperSettings.fixedWallpaperDate || fixedWallpaperDate.value || ''
+    }
+  })
   log('壁纸设置已应用')
 }
 
 // Lifecycle hooks
 onMounted(async () => {
-  wallpaperSettings.wallpaperMode = settings.value.wallpaperMode
-  wallpaperSettings.wallpaperPath = settings.value.wallpaperPath
+  const result = await getFromStorage(['wallpaperSettings'])
+  const savedWallpaperSettings = result.wallpaperSettings || {}
+
+  wallpaperSettings.wallpaperMode = savedWallpaperSettings.wallpaperMode || settings.value.wallpaperMode || 'bing'
+  wallpaperSettings.wallpaperUrl = savedWallpaperSettings.wallpaperUrl || settings.value.wallpaperPath || ''
+  wallpaperSettings.wallpaperDate = savedWallpaperSettings.wallpaperDate || ''
+  wallpaperSettings.wallpaperLocalPath = savedWallpaperSettings.wallpaperLocalPath || ''
+  wallpaperSettings.fixedWallpaperDate = savedWallpaperSettings.fixedWallpaperDate || ''
+  fixedWallpaperDate.value = wallpaperSettings.fixedWallpaperDate || ""
+
   if (wallpaperSettings.wallpaperMode === 'fixed') {
     await getFixedWallpapers(0)
   }

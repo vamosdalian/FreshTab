@@ -1,4 +1,5 @@
 import type { TagGroupConfig, TagGroup, Tag } from '../types/tagGroup';
+import { addStorageChangeListener, getFromStorage, setToStorage } from './browserStorage.js'
 
 // Tag Groups configuration and storage management
 const TAG_GROUPS_KEY = 'FRESH_TAB_TAG_GROUPS';
@@ -67,8 +68,6 @@ export const defaultTagGroups: TagGroupConfig = {
     ]
 };
 
-const storage = chrome.storage.sync;
-
 /**
  * Tag groups migration function
  * Handle configuration changes between different versions
@@ -107,7 +106,7 @@ async function migrateTagGroups(savedTagGroups: Partial<TagGroupConfig>): Promis
  */
 export async function getTagGroups(): Promise<TagGroupConfig> {
     try {
-        const result = await storage.get(TAG_GROUPS_KEY);
+        const result = await getFromStorage(TAG_GROUPS_KEY);
         const data = result[TAG_GROUPS_KEY] || "{}";
         const savedTagGroups = JSON.parse(data) as Partial<TagGroupConfig>;
         const migratedTagGroups = await migrateTagGroups(savedTagGroups);
@@ -131,7 +130,7 @@ export async function setTagGroups(newTagGroups: TagGroupConfig): Promise<void> 
         };
 
         const data = JSON.stringify(dataToSave); 
-        await storage.set({[TAG_GROUPS_KEY]: data});
+        await setToStorage({[TAG_GROUPS_KEY]: data});
     } catch (error) {
         console.error('Failed to save tag groups:', error);
         throw error;
@@ -143,7 +142,7 @@ export async function setTagGroups(newTagGroups: TagGroupConfig): Promise<void> 
  * @param {function(TagGroupConfig): void} callback - Callback function called when tag groups change
  */
 export function onTagGroupsChange(callback: (tagGroups: TagGroupConfig) => void): void {
-    chrome.storage.onChanged.addListener((changes: { [key: string]: chrome.storage.StorageChange }, areaName: string) => {
+    addStorageChangeListener((changes: { [key: string]: { newValue: string } }, areaName: string) => {
         if (areaName === 'sync') {
             if (TAG_GROUPS_KEY in changes) {
                 const value = JSON.parse(changes[TAG_GROUPS_KEY].newValue) as TagGroupConfig;

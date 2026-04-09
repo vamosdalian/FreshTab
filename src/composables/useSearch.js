@@ -1,4 +1,5 @@
 import { ref, computed } from 'vue'
+import { hasChromeSearch, runChromeSearch } from '../services/browserStorage.js'
 
 export function useSearch(settings, saveSettings) {
   const searchQuery = ref('')
@@ -76,8 +77,8 @@ export function useSearch(settings, saveSettings) {
     if (currentEngine.value.id === 'chrome-default') {
       try {
         // 使用Chrome搜索API
-        if (chrome && chrome.search && chrome.search.query) {
-          await chrome.search.query({
+        if (hasChromeSearch()) {
+          await runChromeSearch({
             text: query,
             disposition: 'CURRENT_TAB'
           })

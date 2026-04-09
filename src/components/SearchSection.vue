@@ -41,6 +41,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useSettingsStore } from '../stores/settingsStore';
+import { hasChromeSearch, runChromeSearch } from '../services/browserStorage.js'
 
 const settingsStore = useSettingsStore();
 const searchQuery = ref('')
@@ -129,8 +130,8 @@ const performSearch = async (query = searchQuery.value) => {
   if (currentEngine.value.id === 'chrome-default') {
     try {
       // 使用Chrome搜索API
-      if (chrome && chrome.search && chrome.search.query) {
-        await chrome.search.query({
+      if (hasChromeSearch()) {
+        await runChromeSearch({
           text: query,
           disposition: 'CURRENT_TAB'
         })
