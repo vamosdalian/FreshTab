@@ -1,12 +1,19 @@
 const LOCAL_STORAGE_PREFIX = 'freshtab:'
-const localListeners = new Set()
-
-function getChromeStorageSync() {
-  return globalThis.chrome?.storage?.sync || null
+const localAreaListeners = {
+  sync: new Set(),
+  local: new Set()
 }
 
-function readLocalValue(key) {
-  const rawValue = globalThis.localStorage?.getItem(`${LOCAL_STORAGE_PREFIX}${key}`)
+function getChromeStorageArea(area = 'sync') {
+  return globalThis.chrome?.storage?.[area] || null
+}
+
+function getLocalStorageKey(area, key) {
+  return `${LOCAL_STORAGE_PREFIX}${area}:${key}`
+}
+
+function readLocalValue(area, key) {
+  const rawValue = globalThis.localStorage?.getItem(getLocalStorageKey(area, key))
   if (rawValue === null || rawValue === undefined) {
     return undefined
   }
@@ -18,9 +25,9 @@ function readLocalValue(key) {
   }
 }
 
-function writeLocalValue(key, value) {
-  const storageKey = `${LOCAL_STORAGE_PREFIX}${key}`
-  const oldValue = readLocalValue(key)
+function writeLocalValue(area, key, value) {
+  const storageKey = getLocalStorageKey(area, key)
+  const oldValue = readLocalValue(area, key)
 
   globalThis.localStorage?.setItem(storageKey, JSON.stringify(value))
 
@@ -31,22 +38,22 @@ function writeLocalValue(key, value) {
     }
   }
 
-  localListeners.forEach((listener) => listener(changes, 'sync'))
+  localAreaListeners[area]?.forEach((listener) => listener(changes, area))
 }
 
-export async function getFromStorage(key) {
-  const chromeStorageSync = getChromeStorageSync()
-  if (chromeStorageSync) {
-    return chromeStorageSync.get(key)
+export async function getFromStorage(key, area = 'sync') {
+  const chromeStorageArea = getChromeStorageArea(area)
+  if (chromeStorageArea) {
+    return chromeStorageArea.get(key)
   }
 
   if (typeof key === 'string') {
-    return { [key]: readLocalValue(key) }
+    return { [key]: readLocalValue(area, key) }
   }
 
   if (Array.isArray(key)) {
     return key.reduce((result, currentKey) => {
-      result[currentKey] = readLocalValue(currentKey)
+      result[currentKey] = readLocalValue(area, currentKey)
       return result
     }, {})
   }
@@ -54,25 +61,29 @@ export async function getFromStorage(key) {
   return {}
 }
 
-export async function setToStorage(items) {
-  const chromeStorageSync = getChromeStorageSync()
-  if (chromeStorageSync) {
-    return chromeStorageSync.set(items)
+export async function setToStorage(items, area = 'sync') {
+  const chromeStorageArea = getChromeStorageArea(area)
+  if (chromeStorageArea) {
+    return chromeStorageArea.set(items)
   }
 
   Object.entries(items).forEach(([key, value]) => {
-    writeLocalValue(key, value)
+    writeLocalValue(area, key, value)
   })
 }
 
-export function addStorageChangeListener(listener) {
+export function addStorageChangeListener(listener, area = 'sync') {
   const chromeStorageOnChanged = globalThis.chrome?.storage?.onChanged
   if (chromeStorageOnChanged?.addListener) {
-    chromeStorageOnChanged.addListener(listener)
+    chromeStorageOnChanged.addListener((changes, areaName) => {
+      if (areaName === area) {
+        listener(changes, areaName)
+      }
+    })
     return
   }
 
-  localListeners.add(listener)
+  localAreaListeners[area]?.add(listener)
 }
 
 export function hasChromeSearch() {

@@ -38,6 +38,13 @@ export function useWallpaper() {
   const requestStates = ref(new Map()) // Map<dateString, 'pending' | 'completed' | 'failed'>
   const dailyRequestCache = ref(new Map()) // Map<dateString, { url: string, timestamp: number }>
 
+  const readFileAsDataUrl = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = () => reject(new Error('Failed to read local wallpaper file'))
+    reader.readAsDataURL(file)
+  })
+
   const syncCurrentWallpaperFromSettings = () => {
     switch (wallpaperSettings.wallpaperMode) {
       case 'local':
@@ -61,8 +68,9 @@ export function useWallpaper() {
   const loadWallpaperSettings = async (retries = 3) => {
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
-        const result = await getFromStorage(['wallpaperSettings'])
-        const loadedData = result.wallpaperSettings || getDefaultWallpaperSettings()
+        const localResult = await getFromStorage(['wallpaperSettings'], 'local')
+        const syncResult = await getFromStorage(['wallpaperSettings'])
+        const loadedData = localResult.wallpaperSettings || syncResult.wallpaperSettings || getDefaultWallpaperSettings()
         
         // 验证加载的数据结构
         if (typeof loadedData === 'object' && loadedData !== null) {
@@ -98,7 +106,7 @@ export function useWallpaper() {
           throw new Error('Invalid settings data to save')
         }
         
-        await setToStorage({ wallpaperSettings: settingsToSave })
+        await setToStorage({ wallpaperSettings: settingsToSave }, 'local')
         
         if (showToast) {
           log('壁纸设置已保存')
@@ -647,8 +655,7 @@ export function useWallpaper() {
       
       wallpaperLoading.value = true
       
-      // 创建本地 URL
-      const localUrl = URL.createObjectURL(file)
+      const localUrl = await readFileAsDataUrl(file)
       
       // 使用过渡系统应用本地壁纸
       const transitionSuccess = await transitionToWallpaper(
@@ -1006,12 +1013,12 @@ export function useWallpaper() {
     await loadWallpaperSettings()
 
     addStorageChangeListener((changes, areaName) => {
-      if (areaName !== 'sync' || !changes.wallpaperSettings?.newValue) {
+      if (areaName !== 'local' || !changes.wallpaperSettings?.newValue) {
         return
       }
 
       applyWallpaperSettingsState(changes.wallpaperSettings.newValue)
-    })
+    }, 'local')
 
     // 如果已经加载完成，立即初始化
     if (isWallpaperLoaded.value) {

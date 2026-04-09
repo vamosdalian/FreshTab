@@ -3,6 +3,7 @@ import { addStorageChangeListener, getFromStorage, setToStorage } from './browse
 
 // Tag Groups configuration and storage management
 const TAG_GROUPS_KEY = 'FRESH_TAB_TAG_GROUPS';
+const TAG_GROUP_ICONS_KEY = 'FRESH_TAB_TAG_GROUP_ICONS';
 const TAG_GROUPS_VERSION = '1';
 
 export const defaultTagGroups: TagGroupConfig = {
@@ -68,6 +69,53 @@ export const defaultTagGroups: TagGroupConfig = {
     ]
 };
 
+function stripLargeIconData(tagGroups: TagGroupConfig): TagGroupConfig {
+    return {
+        ...tagGroups,
+        groups: tagGroups.groups.map((group) => ({
+            ...group,
+            tags: (group.tags || []).map((tag) => {
+                const { faviconData, ...rest } = tag;
+                return rest;
+            })
+        }))
+    };
+}
+
+function extractTagIcons(tagGroups: TagGroupConfig): Record<string, string> {
+    return tagGroups.groups.reduce((iconMap, group) => {
+        (group.tags || []).forEach((tag) => {
+            if (tag.faviconData) {
+                iconMap[tag.id] = tag.faviconData;
+            }
+        });
+        return iconMap;
+    }, {} as Record<string, string>);
+}
+
+function mergeTagIcons(tagGroups: TagGroupConfig, iconMap: Record<string, string>): TagGroupConfig {
+    return {
+        ...tagGroups,
+        groups: tagGroups.groups.map((group) => ({
+            ...group,
+            tags: (group.tags || []).map((tag) => ({
+                ...tag,
+                faviconData: iconMap[tag.id] || tag.faviconData
+            }))
+        }))
+    };
+}
+
+async function getTagGroupIcons(): Promise<Record<string, string>> {
+    try {
+        const result = await getFromStorage(TAG_GROUP_ICONS_KEY, 'local');
+        return result[TAG_GROUP_ICONS_KEY] || {};
+    } catch (error) {
+        console.error('Failed to get tag group icons:', error);
+        return {};
+    }
+}
+
 /**
  * Tag groups migration function
  * Handle configuration changes between different versions
@@ -110,7 +158,8 @@ export async function getTagGroups(): Promise<TagGroupConfig> {
         const data = result[TAG_GROUPS_KEY] || "{}";
         const savedTagGroups = JSON.parse(data) as Partial<TagGroupConfig>;
         const migratedTagGroups = await migrateTagGroups(savedTagGroups);
-        return migratedTagGroups;
+        const iconMap = await getTagGroupIcons();
+        return mergeTagIcons(migratedTagGroups, iconMap);
     } catch (error) {
         console.error('Failed to get tag groups:', error);
         return defaultTagGroups;
@@ -129,8 +178,11 @@ export async function setTagGroups(newTagGroups: TagGroupConfig): Promise<void> 
             lastModified: new Date().toISOString()
         };
 
-        const data = JSON.stringify(dataToSave); 
-        await setToStorage({[TAG_GROUPS_KEY]: data});
+        const data = JSON.stringify(stripLargeIconData(dataToSave));
+        const iconMap = extractTagIcons(dataToSave);
+
+        await setToStorage({[TAG_GROUPS_KEY]: data}, 'sync');
+        await setToStorage({[TAG_GROUP_ICONS_KEY]: iconMap}, 'local');
     } catch (error) {
         console.error('Failed to save tag groups:', error);
         throw error;
@@ -143,11 +195,17 @@ export async function setTagGroups(newTagGroups: TagGroupConfig): Promise<void> 
  */
 export function onTagGroupsChange(callback: (tagGroups: TagGroupConfig) => void): void {
     addStorageChangeListener((changes: { [key: string]: { newValue: string } }, areaName: string) => {
-        if (areaName === 'sync') {
-            if (TAG_GROUPS_KEY in changes) {
-                const value = JSON.parse(changes[TAG_GROUPS_KEY].newValue) as TagGroupConfig;
-                callback(value);
-            }
+        if (areaName === 'sync' && TAG_GROUPS_KEY in changes) {
+            const value = JSON.parse(changes[TAG_GROUPS_KEY].newValue) as TagGroupConfig;
+            void getTagGroupIcons().then((iconMap) => {
+                callback(mergeTagIcons(value, iconMap));
+            });
         }
-    });
+    }, 'sync');
+
+    addStorageChangeListener((_changes, areaName: string) => {
+        if (areaName === 'local') {
+            void getTagGroups().then(callback);
+        }
+    }, 'local');
 }

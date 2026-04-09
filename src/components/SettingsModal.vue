@@ -549,6 +549,13 @@ const wallpaperPreviewUrl = computed(() => (
     : wallpaperSettings.wallpaperUrl || ''
 ))
 
+const readFileAsDataUrl = (file: File): Promise<string> => new Promise((resolve, reject) => {
+  const reader = new FileReader()
+  reader.onload = () => resolve(String(reader.result || ''))
+  reader.onerror = () => reject(new Error('Failed to read local wallpaper file'))
+  reader.readAsDataURL(file)
+})
+
 const handlePreviewImageLoad = (): void => {
   previewImageLoading.value = false
 }
@@ -823,8 +830,7 @@ const uploadLocalWallpaper = async (file: File): Promise<void> => {
     wallpaperLoading.value = true
     previewImageLoading.value = true
 
-    // 创建本地 URL
-    const localUrl = URL.createObjectURL(file)
+    const localUrl = await readFileAsDataUrl(file)
     wallpaperSettings.wallpaperMode = 'local'
     wallpaperSettings.wallpaperLocalPath = localUrl
     wallpaperSettings.wallpaperUrl = localUrl
@@ -912,14 +918,15 @@ const applyWallpaperSettings = async (): Promise<void> => {
       wallpaperLocalPath: wallpaperSettings.wallpaperLocalPath || '',
       fixedWallpaperDate: wallpaperSettings.fixedWallpaperDate || fixedWallpaperDate.value || ''
     }
-  })
+  }, 'local')
   log('壁纸设置已应用')
 }
 
 // Lifecycle hooks
 onMounted(async () => {
-  const result = await getFromStorage(['wallpaperSettings'])
-  const savedWallpaperSettings = result.wallpaperSettings || {}
+  const localResult = await getFromStorage(['wallpaperSettings'], 'local')
+  const syncResult = await getFromStorage(['wallpaperSettings'])
+  const savedWallpaperSettings = localResult.wallpaperSettings || syncResult.wallpaperSettings || {}
 
   wallpaperSettings.wallpaperMode = savedWallpaperSettings.wallpaperMode || settings.value.wallpaperMode || 'bing'
   wallpaperSettings.wallpaperUrl = savedWallpaperSettings.wallpaperUrl || settings.value.wallpaperPath || ''

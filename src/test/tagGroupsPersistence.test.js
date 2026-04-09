@@ -3,42 +3,51 @@ import { createApp, nextTick } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 
 function createChromeStorageMock() {
-  const storageData = {}
+  const storageData = {
+    sync: {},
+    local: {}
+  }
   const listeners = []
+
+  const createArea = (area) => ({
+    get: vi.fn(async (key) => {
+      const areaStorage = storageData[area]
+
+      if (typeof key === 'string') {
+        return { [key]: areaStorage[key] }
+      }
+
+      if (Array.isArray(key)) {
+        return key.reduce((result, currentKey) => {
+          result[currentKey] = areaStorage[currentKey]
+          return result
+        }, {})
+      }
+
+      return { ...areaStorage }
+    }),
+    set: vi.fn(async (items) => {
+      const areaStorage = storageData[area]
+      const changes = {}
+
+      Object.entries(items).forEach(([key, value]) => {
+        changes[key] = {
+          oldValue: areaStorage[key],
+          newValue: value
+        }
+        areaStorage[key] = value
+      })
+
+      listeners.forEach((listener) => listener(changes, area))
+    })
+  })
 
   return {
     storageData,
     chrome: {
       storage: {
-        sync: {
-          get: vi.fn(async (key) => {
-            if (typeof key === 'string') {
-              return { [key]: storageData[key] }
-            }
-
-            if (Array.isArray(key)) {
-              return key.reduce((result, currentKey) => {
-                result[currentKey] = storageData[currentKey]
-                return result
-              }, {})
-            }
-
-            return { ...storageData }
-          }),
-          set: vi.fn(async (items) => {
-            const changes = {}
-
-            Object.entries(items).forEach(([key, value]) => {
-              changes[key] = {
-                oldValue: storageData[key],
-                newValue: value
-              }
-              storageData[key] = value
-            })
-
-            listeners.forEach((listener) => listener(changes, 'sync'))
-          })
-        },
+        sync: createArea('sync'),
+        local: createArea('local'),
         onChanged: {
           addListener: vi.fn((listener) => {
             listeners.push(listener)
@@ -87,8 +96,9 @@ describe('tag groups persistence', () => {
       tags: []
     })
 
-    const savedGroups = JSON.parse(storageData.FRESH_TAB_TAG_GROUPS)
+    const savedGroups = JSON.parse(storageData.sync.FRESH_TAB_TAG_GROUPS)
     expect(savedGroups.groups.some((group) => group.name === '测试分组')).toBe(true)
+    expect(storageData.local.FRESH_TAB_TAG_GROUP_ICONS || {}).toEqual({})
 
     setActivePinia(createPinia())
     const reloadedStore = useTagGroupsStore()
@@ -98,7 +108,7 @@ describe('tag groups persistence', () => {
   })
 
   it('renders the persisted group and tag after a reload', async () => {
-    const { chrome } = createChromeStorageMock()
+    const { chrome, storageData } = createChromeStorageMock()
     global.chrome = chrome
 
     const [{ default: TagsSection }, { useTagGroupsStore }, { useSettingsStore }] = await Promise.all([
@@ -129,10 +139,16 @@ describe('tag groups persistence', () => {
       id: 'qa_tag',
       name: 'Vitest',
       url: 'https://vitest.dev',
-      iconType: 'text',
-      iconValue: 'V',
-      backgroundColor: '#0ea5e9'
+      iconType: 'favicon',
+      iconValue: '',
+      backgroundColor: '#0ea5e9',
+      faviconData: 'data:image/png;base64,abc123'
     })
+
+    const savedGroups = JSON.parse(storageData.sync.FRESH_TAB_TAG_GROUPS)
+    const qaTag = savedGroups.groups.find((group) => group.id === 'qa_group').tags[0]
+    expect(qaTag.faviconData).toBeUndefined()
+    expect(storageData.local.FRESH_TAB_TAG_GROUP_ICONS.qa_tag).toBe('data:image/png;base64,abc123')
 
     setActivePinia(createPinia())
     const reloadedTagGroupsStore = useTagGroupsStore()
