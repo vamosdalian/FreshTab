@@ -53,15 +53,6 @@
               </div>
             </div>
             <div class="setting-row">
-              <span class="setting-label">每行显示个数</span>
-              <select class="setting-select" :value="settings.columnsPerRow"
-                @change="updateSetting('columnsPerRow', Number(($event.target as HTMLSelectElement).value))">
-                <option v-for="n in getMaxColumnsOptions()" :key="n" :value="n">
-                  {{ n }}
-                </option>
-              </select>
-            </div>
-            <div class="setting-row">
               <span class="setting-label">标签大小</span>
               <select class="setting-select" :value="settings.bookmarkSize"
                 @change="updateSetting('bookmarkSize', ($event.target as HTMLSelectElement).value)">
@@ -790,35 +781,6 @@ const updateDisplayWidth = (event: Event): void => {
 const getMaxDisplayWidth = (): number => {
   const maxWidth = Math.floor(windowWidth.value * 0.9)
   return Math.max(maxWidth, 800) // 最小保证800px
-}
-
-// 计算最大列数选项
-const getMaxColumnsOptions = (): number[] => {
-  const tagSizes = {
-    small: 80,   // 小标签宽度
-    medium: 100, // 中标签宽度
-    large: 120   // 大标签宽度
-  }
-  const tagWidth = tagSizes[settings.value.bookmarkSize] || 100
-  const gap = 16 // 1rem = 16px
-  const displayWidth = settings.value.displayWidth || 800
-
-  // 计算可以放置的标签数量
-  const maxColumns = Math.floor((displayWidth + gap) / (tagWidth + gap))
-  const actualMax = Math.max(1, Math.min(maxColumns, 15)) // 最少1个，最多15个
-
-  // 生成选项数组
-  const options: number[] = []
-  for (let i = 1; i <= actualMax; i++) {
-    options.push(i)
-  }
-
-  // 确保当前值在范围内
-  if (settings.value.columnsPerRow > actualMax) {
-    updateSetting('columnsPerRow', actualMax)
-  }
-
-  return options
 }
 
 // 获取主题状态文字

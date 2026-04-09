@@ -9,10 +9,7 @@
         </div>
       </div>
 
-      <div class="tags-grid" :class="['tag-size-' + (settings.bookmarkSize || 'medium')]" :style="{
-        '--items-per-row': settings.columnsPerRow || 6,
-        maxWidth: '100%'
-      }">
+      <div class="tags-grid" :class="['tag-size-' + (settings.bookmarkSize || 'medium')]" :style="layoutVars">
         <div v-for="tag in (Array.isArray(group.tags) ? group.tags : [])" :key="tag.id" class="tag-item"
           @click="openTag(tag.url)" :style="{ '--tag-color': group.themeColor }">
           <div class="tag-icon" :style="{ backgroundColor: tag.backgroundColor }">
@@ -30,7 +27,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed } from 'vue'
 import type { Tag } from '../types/tagGroup'
 import { useTagGroupsStore } from '../stores/tagGroupsStore'
 import { useSettingsStore } from '../stores/settingsStore'
@@ -40,6 +37,56 @@ const settingsStore = useSettingsStore();
 
 const tagGroups = computed(() => tagGroupsStore.tagGroups.groups || [])
 const settings = computed(() => settingsStore.settings as any) // TODO: Add proper settings type
+
+function getTagItemWidth(size: string): string {
+  switch (size) {
+    case 'small':
+      return '92px'
+    case 'large':
+      return '138px'
+    case 'medium':
+    default:
+      return '118px'
+  }
+}
+
+function getTagGridGap(columnsPerRow: number): string {
+  if (columnsPerRow <= 4) {
+    return '1.75rem'
+  }
+
+  if (columnsPerRow <= 6) {
+    return '1.25rem'
+  }
+
+  if (columnsPerRow <= 8) {
+    return '0.9rem'
+  }
+
+  return '0.65rem'
+}
+
+function getAutoColumns(displayWidth: number, size: string): number {
+  const itemWidth = parseInt(getTagItemWidth(size), 10)
+  const estimatedGap = 16
+  const safeWidth = Math.max(displayWidth - 24, itemWidth)
+  const columns = Math.floor((safeWidth + estimatedGap) / (itemWidth + estimatedGap))
+
+  return Math.max(1, columns)
+}
+
+const layoutVars = computed(() => {
+  const bookmarkSize = settings.value.bookmarkSize || 'medium'
+  const displayWidth = settings.value.displayWidth || 1200
+  const itemsPerRow = getAutoColumns(displayWidth, bookmarkSize)
+
+  return {
+    '--items-per-row': itemsPerRow,
+    '--tag-item-width': getTagItemWidth(bookmarkSize),
+    '--tag-grid-gap': getTagGridGap(itemsPerRow),
+    maxWidth: '100%'
+  }
+})
 
 function openTag(url: string): void {
   window.location.href = url
@@ -167,9 +214,13 @@ function handleIconError(event: Event): void {
 .tags-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: var(--tag-grid-gap);
+  width: min(100%, calc(var(--items-per-row) * var(--tag-item-width) + (var(--items-per-row) - 1) * var(--tag-grid-gap)));
   max-width: 100%;
   margin: 0 auto;
+  justify-content: flex-start;
+  padding: 0 0.75rem;
+  box-sizing: border-box;
 }
 
 /* 不同尺寸的标签容器 */
