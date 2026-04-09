@@ -4,7 +4,7 @@
     <div v-for="group in tagGroups" :key="group.id" class="tag-group">
       <div class="group-header">
         <div class="group-title">
-          <span class="group-emoji">{{ group.emoji }}</span>
+          <span class="group-emoji" :style="{ backgroundColor: group.themeColor }">{{ group.emoji }}</span>
           <h3>{{ group.name }}</h3>
         </div>
       </div>
@@ -143,10 +143,10 @@ function handleIconError(event: Event): void {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--card-bg, rgba(255, 255, 255, 0.1));
   backdrop-filter: blur(10px);
   border-radius: 10px;
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
 }
 
 .group-title h3 {
@@ -174,18 +174,18 @@ function handleIconError(event: Event): void {
 
 /* 不同尺寸的标签容器 */
 .tag-size-small .tag-item {
-  width: 80px;
-  height: 80px;
+  width: 92px;
+  min-height: 92px;
 }
 
 .tag-size-medium .tag-item {
-  width: 100px;
-  height: 100px;
+  width: 118px;
+  min-height: 118px;
 }
 
 .tag-size-large .tag-item {
-  width: 120px;
-  height: 120px;
+  width: 138px;
+  min-height: 138px;
 }
 
 .tag-item {
@@ -193,44 +193,35 @@ function handleIconError(event: Event): void {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 0.5rem;
-  background: var(--card-bg, rgba(255, 255, 255, 0.1));
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
+  justify-content: flex-start;
+  gap: 0.75rem;
+  padding: 0.35rem 0.15rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
   flex-shrink: 0;
 }
 
 .tag-item:hover {
-  background: var(--button-hover-bg, rgba(255, 255, 255, 0.2));
   transform: translateY(-2px);
-  box-shadow: 0 4px 20px var(--card-shadow, rgba(0, 0, 0, 0.2));
-  border-color: var(--tag-color, #667eea);
 }
 
 /* 不同尺寸下的图标大小 */
 .tag-size-small .tag-icon {
-  width: 32px;
-  height: 32px;
-  font-size: 16px;
-  margin-bottom: 0.25rem;
+  width: 46px;
+  height: 46px;
+  font-size: 20px;
 }
 
 .tag-size-medium .tag-icon {
-  width: 40px;
-  height: 40px;
-  font-size: 20px;
-  margin-bottom: 0.375rem;
+  width: 58px;
+  height: 58px;
+  font-size: 25px;
 }
 
 .tag-size-large .tag-icon {
-  width: 48px;
-  height: 48px;
-  font-size: 24px;
-  margin-bottom: 0.5rem;
+  width: 68px;
+  height: 68px;
+  font-size: 30px;
 }
 
 /* 不同尺寸下的文字大小 */
@@ -257,23 +248,30 @@ function handleIconError(event: Event): void {
   justify-content: center;
   color: white;
   transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+}
+
+.tag-item:hover .tag-icon {
+  transform: scale(1.05);
+  border-color: var(--tag-color, #667eea);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.24);
 }
 
 /* 不同尺寸下的图片大小 */
 .tag-size-small .tag-icon img {
-  width: 16px;
-  height: 16px;
+  width: 22px;
+  height: 22px;
 }
 
 .tag-size-medium .tag-icon img {
-  width: 20px;
-  height: 20px;
+  width: 28px;
+  height: 28px;
 }
 
 .tag-size-large .tag-icon img {
-  width: 24px;
-  height: 24px;
+  width: 34px;
+  height: 34px;
 }
 
 .tag-icon img {
@@ -286,7 +284,7 @@ function handleIconError(event: Event): void {
 }
 
 .tag-title {
-  color: var(--text-color, white);
+  color: white;
   text-align: center;
   word-break: break-word;
   max-width: 100%;
@@ -296,6 +294,11 @@ function handleIconError(event: Event): void {
   -webkit-line-clamp: 2;
   line-clamp: 2;
   -webkit-box-orient: vertical;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.22);
+}
+
+:root[data-theme="dark"] .tag-title {
+  color: #e0e0e0;
 }
 
 .global-empty-state {
