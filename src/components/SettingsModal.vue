@@ -352,7 +352,21 @@
                 <button @click="applyWallpaperSettings" class="apply-btn">应用</button>
               </div>
               <div class="preview-container">
-                <img :src="wallpaperPreviewUrl" alt="当前壁纸" class="preview-image" />
+                <div v-if="previewImageLoading && wallpaperPreviewUrl" class="preview-loading-overlay">
+                  <span class="loading-spinner preview-loading-spinner"></span>
+                </div>
+                <img
+                  v-if="wallpaperPreviewUrl"
+                  :src="wallpaperPreviewUrl"
+                  alt="当前壁纸"
+                  class="preview-image"
+                  :class="{ 'preview-image-loading': previewImageLoading }"
+                  @load="handlePreviewImageLoad"
+                  @error="handlePreviewImageError"
+                />
+                <div v-else class="empty-state">
+                  <p>暂无壁纸预览</p>
+                </div>
               </div>
             </div>
           </div>
@@ -540,7 +554,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, computed, watch } from 'vue'
 import type { Ref } from 'vue'
 import type { TagGroup, Tag } from '../types/tagGroup'
 import { useTagGroupsStore } from '../stores/tagGroupsStore.ts'
@@ -570,6 +584,7 @@ const wallpaperSettings = reactive<{
   fixedWallpaperDate?: string
 }>({})
 const wallpaperLoading: Ref<boolean> = ref(false)
+const previewImageLoading: Ref<boolean> = ref(false)
 const fixedWallpapers: Ref<Array<{ date: string; previewUrl: string; fullUrl: string }>> = ref([])
 const currentPage: Ref<number> = ref(0)
 const fixedWallpaperDate = ref("")
@@ -578,6 +593,22 @@ const wallpaperPreviewUrl = computed(() => (
     ? wallpaperSettings.wallpaperLocalPath || wallpaperSettings.wallpaperUrl || ''
     : wallpaperSettings.wallpaperUrl || ''
 ))
+
+const handlePreviewImageLoad = (): void => {
+  previewImageLoading.value = false
+}
+
+const handlePreviewImageError = (): void => {
+  previewImageLoading.value = false
+}
+
+watch(wallpaperPreviewUrl, (newUrl, oldUrl) => {
+  if (newUrl && newUrl !== oldUrl) {
+    previewImageLoading.value = true
+  } else if (!newUrl) {
+    previewImageLoading.value = false
+  }
+})
 
 // Define emits
 const emit = defineEmits(['close'])
@@ -803,6 +834,7 @@ const getThemeStatusText = (): string => {
 
 const updateBingWallpaper = (): void => {
   wallpaperLoading.value = true
+  previewImageLoading.value = true
 
   const today = new Date().toISOString().split('T')[0].replace(/-/g, '')
   fetch(`https://bing.ee123.net/img/4k?type=json&date=${today}`).
@@ -815,14 +847,17 @@ const updateBingWallpaper = (): void => {
           wallpaperSettings.wallpaperDate = today
         }
         img.onerror = () => {
+          previewImageLoading.value = false
           console.error('Failed to preload Bing wallpaper image:', data.imgurl)
         }
         img.src = data.imgurl
       } else {
+        previewImageLoading.value = false
         console.error('No image URL found in Bing response:', data)
       }
       wallpaperLoading.value = false
     }).catch(err => {
+      previewImageLoading.value = false
       console.error('Error fetching Bing wallpaper:', err)
       wallpaperLoading.value = false
     })
@@ -860,6 +895,7 @@ const uploadLocalWallpaper = async (file: File): Promise<void> => {
     }
 
     wallpaperLoading.value = true
+    previewImageLoading.value = true
 
     // 创建本地 URL
     const localUrl = URL.createObjectURL(file)
@@ -869,6 +905,7 @@ const uploadLocalWallpaper = async (file: File): Promise<void> => {
     wallpaperSettings.fixedWallpaperDate = ''
     wallpaperLoading.value = false
   } catch (err) {
+    previewImageLoading.value = false
     wallpaperLoading.value = false
   }
 }
@@ -876,6 +913,7 @@ const uploadLocalWallpaper = async (file: File): Promise<void> => {
 const selectFixedWallpaper = async (wallpaper: { date: string; fullUrl: string }): Promise<void> => {
   console.log("select fixed paper:", wallpaper)
   wallpaperLoading.value = true
+  previewImageLoading.value = true
   fixedWallpaperDate.value = wallpaper.date
   fetch(wallpaper.fullUrl).
     then(response => response.json()).
@@ -888,14 +926,17 @@ const selectFixedWallpaper = async (wallpaper: { date: string; fullUrl: string }
           wallpaperSettings.wallpaperUrl = data.imgurl
         }
         img.onerror = () => {
+          previewImageLoading.value = false
           console.error('Failed to preload Bing wallpaper image:', data.imgurl)
         }
         img.src = data.imgurl
       } else {
+        previewImageLoading.value = false
         console.error('No image URL found in Bing response:', data)
       }
       wallpaperLoading.value = false
     }).catch(err => {
+      previewImageLoading.value = false
       console.error('Error fetching Bing wallpaper:', err)
       wallpaperLoading.value = false
     })
@@ -2366,6 +2407,11 @@ onMounted(async () => {
   border-radius: 8px;
   overflow: hidden;
   background: #f8f9fa;
+  position: relative;
+  min-height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .preview-image {
@@ -2373,6 +2419,29 @@ onMounted(async () => {
   height: 240px;
   object-fit: cover;
   display: block;
+  transition: opacity 0.2s ease;
+}
+
+.preview-image-loading {
+  opacity: 0.35;
+}
+
+.preview-loading-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(248, 249, 250, 0.18);
+  backdrop-filter: blur(1px);
+  z-index: 1;
+}
+
+.preview-loading-spinner {
+  width: 28px;
+  height: 28px;
+  border-width: 3px;
+  color: #007bff;
 }
 
 .empty-state {
