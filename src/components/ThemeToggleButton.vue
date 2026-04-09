@@ -1,27 +1,14 @@
 <template>
   <button @click="toggleTheme" class="theme-toggle-button" :title="themeTooltip">
-    <svg v-if="settingsStore.settings.isDarkMode" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <!-- 太阳图标 (浅色模式) -->
-      <circle cx="12" cy="12" r="5"></circle>
-      <line x1="12" y1="1" x2="12" y2="3"></line>
-      <line x1="12" y1="21" x2="12" y2="23"></line>
-      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-      <line x1="1" y1="12" x2="3" y2="12"></line>
-      <line x1="21" y1="12" x2="23" y2="12"></line>
-      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-    </svg>
-    <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <!-- 月亮图标 (深色模式) -->
-      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-    </svg>
+    <Sun v-if="settingsStore.settings.isDarkMode" :size="20" :stroke-width="2.2" />
+    <Moon v-else :size="20" :stroke-width="2.2" />
   </button>
 </template>
 
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
 import { useSettingsStore } from '../stores/settingsStore'
+import { Moon, Sun } from 'lucide-vue-next'
 
 const settingsStore = useSettingsStore()
 
@@ -73,7 +60,7 @@ onMounted(() => {
   background: var(--button-bg, rgba(255, 255, 255, 0.15));
   backdrop-filter: blur(10px);
   border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
-  color: var(--text-color, white);
+  color: white;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
@@ -133,5 +120,9 @@ onMounted(() => {
 
 .theme-toggle-button:hover::before {
   opacity: 1;
+}
+
+:global([data-theme="dark"]) .theme-toggle-button {
+  color: #e0e0e0;
 }
 </style>

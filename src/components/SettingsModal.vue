@@ -6,10 +6,7 @@
         <div class="sidebar-header">
           <div class="user-info">
             <div class="user-avatar">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-              </svg>
+              <UserRound :size="24" />
             </div>
             <div class="user-details">
               <div class="user-name">FreshTab</div>
@@ -21,7 +18,7 @@
           <div class="nav-group">
             <button v-for="item in menuItems" :key="item.id" @click="activeMenu = item.id"
               :class="['menu-item', { active: activeMenu === item.id }]">
-              <span class="menu-icon" v-html="item.icon"></span>
+              <component :is="item.icon" :size="18" :stroke-width="2.25" class="menu-icon" />
               <span class="menu-text">{{ item.name }}</span>
               <span v-if="item.tag" class="menu-tag">{{ item.tag }}</span>
             </button>
@@ -171,10 +168,7 @@
           <div class="section-header">
             <h3>分组管理</h3>
             <button @click="showAddGroupModal = true" class="add-button">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
+              <Plus :size="16" />
               添加分组
             </button>
           </div>
@@ -188,11 +182,7 @@
                     <div class="group-title-row">
                       <h4>{{ group.name }}</h4>
                       <button @click="editGroupModal(group)" class="edit-btn inline-edit-btn" title="编辑分组">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                          stroke-width="2">
-                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                        </svg>
+                        <Pencil :size="14" />
                       </button>
                     </div>
                     <span class="tag-count">{{ Array.isArray(group.tags) ? group.tags.length : 0 }} 个标签</span>
@@ -201,10 +191,7 @@
                 <div class="group-actions">
                   <button v-if="group.id !== 'default'" @click="deleteGroupConfirm(group.id)" class="delete-btn"
                     title="删除分组">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="3,6 5,6 21,6"></polyline>
-                      <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6M8,6V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6"></path>
-                    </svg>
+                    <Trash2 :size="16" />
                   </button>
                 </div>
               </div>
@@ -224,28 +211,17 @@
                   <span class="tag-list-name">{{ tag.name }}</span>
                   <div class="tag-list-actions">
                     <button @click="editTagModal(group.id, tag)" class="edit-btn" title="编辑标签">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                      </svg>
+                      <Pencil :size="14" />
                     </button>
                     <button @click="deleteTagConfirm(group.id, tag.id)" class="delete-btn" title="删除标签">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2">
-                        <polyline points="3,6 5,6 21,6"></polyline>
-                        <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6M8,6V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6"></path>
-                      </svg>
+                      <Trash2 :size="14" />
                     </button>
                   </div>
                 </div>
 
                 <!-- 添加标签按钮 -->
                 <button @click="addTagModal(group.id)" class="add-tag-button">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                  </svg>
+                  <Plus :size="16" />
                   添加标签
                 </button>
               </div>
@@ -282,13 +258,7 @@
               </div>
               <div class="wallpaper-actions">
                 <button class="action-btn primary" @click="updateBingWallpaper" :disabled="wallpaperLoading">
-                  <svg v-if="!wallpaperLoading" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2">
-                    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
-                    <path d="M21 3v5h-5"></path>
-                    <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
-                    <path d="M3 21v-5h5"></path>
-                  </svg>
+                  <RefreshCw v-if="!wallpaperLoading" :size="16" />
                   <span v-if="wallpaperLoading" class="loading-spinner"></span>
                   {{ wallpaperLoading ? '获取中...' : '立即更新' }}
                 </button>
@@ -325,11 +295,7 @@
                 <input ref="fileInput" type="file" accept="image/*" @change="handleFileUpload" style="display: none" />
                 <div class="upload-box" @click="fileInput?.click()" @dragover.prevent
                   @drop.prevent="handleFileDrop">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                    <circle cx="9" cy="9" r="2"></circle>
-                    <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path>
-                  </svg>
+                  <Upload :size="48" />
                   <p v-if="!wallpaperLoading">点击选择图片或拖拽到此处</p>
                   <p v-else>上传中...</p>
                 </div>
@@ -383,11 +349,7 @@
               <div class="features-grid">
                 <div class="feature-item">
                   <div class="feature-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <rect x="3" y="4" width="18" height="16" rx="2"></rect>
-                      <path d="M7 2v4"></path>
-                      <path d="M17 2v4"></path>
-                    </svg>
+                    <FolderKanban :size="24" />
                   </div>
                   <div class="feature-content">
                     <h4>智能分组</h4>
@@ -396,10 +358,7 @@
                 </div>
                 <div class="feature-item">
                   <div class="feature-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <circle cx="11" cy="11" r="8"></circle>
-                      <path d="m21 21-4.35-4.35"></path>
-                    </svg>
+                    <Search :size="24" />
                   </div>
                   <div class="feature-content">
                     <h4>快速搜索</h4>
@@ -408,11 +367,7 @@
                 </div>
                 <div class="feature-item">
                   <div class="feature-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                      <circle cx="9" cy="9" r="2"></circle>
-                      <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path>
-                    </svg>
+                    <Image :size="24" />
                   </div>
                   <div class="feature-content">
                     <h4>个性壁纸</h4>
@@ -421,10 +376,7 @@
                 </div>
                 <div class="feature-item">
                   <div class="feature-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <polyline points="12,6 12,12 16,14"></polyline>
-                    </svg>
+                    <Clock3 :size="24" />
                   </div>
                   <div class="feature-content">
                     <h4>时间显示</h4>
@@ -460,18 +412,11 @@
                 <p>如果您在使用过程中遇到问题或有任何建议，欢迎通过以下方式联系我们：</p>
                 <div class="contact-links">
                   <a href="https://github.com/vamosdalian/FreshTab" class="contact-link">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path
-                        d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22">
-                      </path>
-                    </svg>
+                    <Github :size="18" />
                     GitHub
                   </a>
                   <a href="mailto:elve960520@gmail.com" class="contact-link">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                      <polyline points="22,6 12,13 2,6"></polyline>
-                    </svg>
+                    <Mail :size="18" />
                     邮箱反馈
                   </a>
                 </div>
@@ -496,10 +441,7 @@
         <div class="group-modal-header">
           <h3>{{ showEditGroupModal ? '编辑分组' : '添加分组' }}</h3>
           <button @click="closeGroupModal" class="close-btn">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
+            <X :size="20" />
           </button>
         </div>
 
@@ -548,6 +490,7 @@
 import { ref, reactive, onMounted, computed, watch } from 'vue'
 import type { Ref } from 'vue'
 import type { TagGroup, Tag } from '../types/tagGroup'
+import type { Component } from 'vue'
 import { useTagGroupsStore } from '../stores/tagGroupsStore.ts'
 import EmojiPicker from './EmojiPicker.vue'
 import TagModal from './TagModal.vue'
@@ -555,6 +498,27 @@ import { CURRENT_VERSION } from '../services/version'
 import { useSettingsStore } from '../stores/settingsStore'
 import { useToast } from '../composables/useToast'
 import { getFromStorage, setToStorage } from '../services/browserStorage.js'
+import {
+  CircleHelp,
+  Clock3,
+  FolderKanban,
+  Github,
+  Image,
+  Images,
+  Info,
+  LayoutGrid,
+  Mail,
+  Pencil,
+  Plus,
+  RefreshCw,
+  Search,
+  Settings,
+  SlidersHorizontal,
+  Trash2,
+  Upload,
+  UserRound,
+  X
+} from 'lucide-vue-next'
 const { log, error } = useToast()
 
 const settingsStore = useSettingsStore()
@@ -625,7 +589,7 @@ const groupForm = reactive({
 interface MenuItem {
   id: string
   name: string
-  icon: string
+  icon: Component
   tag?: string
 }
 
@@ -633,22 +597,22 @@ const menuItems: MenuItem[] = [
   {
     id: 'settings',
     name: '常规设置',
-    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>'
+    icon: SlidersHorizontal
   },
   {
     id: 'tagManagement',
     name: '分组管理',
-    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M7 2v4"></path><path d="M17 2v4"></path><path d="M14 14l-1-1"></path><circle cx="12" cy="12" r="2"></circle></svg>'
+    icon: LayoutGrid
   },
   {
     id: 'wallpaper',
     name: '壁纸',
-    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path></svg>'
+    icon: Images
   },
   {
     id: 'about',
     name: '关于我们',
-    icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
+    icon: Info
   }
 ]
 
