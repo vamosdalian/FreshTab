@@ -206,6 +206,13 @@ export default {
     groups: {
       default: 'Favorites',
       development: 'Development'
+    },
+    tags: {
+      google: 'Google',
+      github: 'GitHub',
+      stackOverflow: 'Stack Overflow',
+      vscode: 'VS Code',
+      npm: 'npm'
     }
   }
 }
