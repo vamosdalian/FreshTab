@@ -11,6 +11,7 @@ export function createDefaultTagGroups(locale: string = DEFAULT_LOCALE): TagGrou
     const resolvedLocale = resolveSupportedLocale(locale);
     const localeMessages = messages[resolvedLocale] || messages[DEFAULT_LOCALE];
     const seedGroups = localeMessages.seeds.groups;
+    const seedTags = localeMessages.seeds.tags;
 
     return {
         version: TAG_GROUPS_VERSION,
@@ -24,7 +25,7 @@ export function createDefaultTagGroups(locale: string = DEFAULT_LOCALE): TagGrou
                 tags: [
                     {
                         id: 'google',
-                        name: 'Google',
+                        name: seedTags.google,
                         url: 'https://www.google.com',
                         iconType: 'emoji',
                         iconValue: '🔍',
@@ -32,7 +33,7 @@ export function createDefaultTagGroups(locale: string = DEFAULT_LOCALE): TagGrou
                     },
                     {
                         id: 'github',
-                        name: 'GitHub',
+                        name: seedTags.github,
                         url: 'https://github.com',
                         iconType: 'emoji',
                         iconValue: '🐱',
@@ -40,7 +41,7 @@ export function createDefaultTagGroups(locale: string = DEFAULT_LOCALE): TagGrou
                     },
                     {
                         id: 'sto',
-                        name: 'Stack Overflow',
+                        name: seedTags.stackOverflow,
                         url: 'https://stackoverflow.com',
                         iconType: 'emoji',
                         iconValue: '📚',
@@ -56,7 +57,7 @@ export function createDefaultTagGroups(locale: string = DEFAULT_LOCALE): TagGrou
                 tags: [
                     {
                         id: 'vacode',
-                        name: 'VS Code',
+                        name: seedTags.vscode,
                         url: 'https://code.visualstudio.com',
                         iconType: 'emoji',
                         iconValue: '⚡',
@@ -64,7 +65,7 @@ export function createDefaultTagGroups(locale: string = DEFAULT_LOCALE): TagGrou
                     },
                     {
                         id: 'npm',
-                        name: 'npm',
+                        name: seedTags.npm,
                         url: 'https://www.npmjs.com',
                         iconType: 'emoji',
                         iconValue: '📦',

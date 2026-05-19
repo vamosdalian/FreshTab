@@ -206,6 +206,13 @@ export default {
     groups: {
       default: '常用网站',
       development: '开发工具'
+    },
+    tags: {
+      google: 'Google',
+      github: 'GitHub',
+      stackOverflow: 'Stack Overflow',
+      vscode: 'VS Code',
+      npm: 'npm'
     }
   }
 }
