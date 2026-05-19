@@ -415,10 +415,10 @@ describe('Wallpaper Preloading and Transitions', () => {
       const { saveWallpaperSettings } = useWallpaper()
       let attemptCount = 0
       
-      // Mock chrome.storage.sync to fail twice, then succeed
+      // Mock chrome.storage.local to fail twice, then succeed
       global.chrome = {
         storage: {
-          sync: {
+          local: {
             set: vi.fn().mockImplementation(() => {
               attemptCount++
               if (attemptCount <= 2) {
@@ -426,6 +426,10 @@ describe('Wallpaper Preloading and Transitions', () => {
               }
               return Promise.resolve()
             }),
+            get: vi.fn().mockResolvedValue({ wallpaperSettings: {} })
+          },
+          sync: {
+            set: vi.fn().mockResolvedValue(),
             get: vi.fn().mockResolvedValue({ wallpaperSettings: {} })
           }
         }

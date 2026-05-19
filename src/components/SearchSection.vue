@@ -15,18 +15,18 @@
 
         <!-- 搜索输入框 -->
         <input v-model="searchQuery" @keydown="handleKeydown" @compositionstart="handleCompositionStart"
-          @compositionend="handleCompositionEnd" type="text" placeholder="搜索或输入网址..." class="search-input"
+          @compositionend="handleCompositionEnd" type="text" :placeholder="t('search.placeholder')" class="search-input"
           ref="searchInput" />
 
         <!-- 搜索按钮 -->
         <button @click="handleSearch" class="search-button">
-          <img src="/icons/search-icon.svg" alt="搜索" class="search-icon" />
+          <img src="/icons/search-icon.svg" :alt="t('search.buttonAlt')" class="search-icon" />
         </button>
       </div>
 
       <!-- 搜索引擎下拉菜单 -->
       <div v-if="showEngineDropdown" class="engine-dropdown" ref="dropdown">
-        <div v-for="engine in searchEngines" :key="engine.id" @click="selectSearchEngine(engine)"
+        <div v-for="engine in localizedSearchEngines" :key="engine.id" @click="selectSearchEngine(engine)"
           :class="['engine-option', { active: currentEngine.id === engine.id }]">
           <img :src="engine.icon" :alt="engine.name" class="engine-option-icon"
             @error="(e) => { e.target.style.display = 'none'; e.target.nextElementSibling.style.display = 'block' }" />
@@ -40,62 +40,72 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useSettingsStore } from '../stores/settingsStore';
 import { hasChromeSearch, runChromeSearch } from '../services/browserStorage.js'
 
 const settingsStore = useSettingsStore();
+const { t } = useI18n()
 const searchQuery = ref('')
 const isComposing = ref(false)
 const showEngineDropdown = ref(false)
 const iconError = ref(false)
 const engineBtn = ref(null)
 const dropdown = ref(null)
-const currentEngine = computed(() => searchEngines.value.find(engine => engine.id === settingsStore.settings.searchEngine) || searchEngines.value[0])
 
 const searchEngines = ref([
   {
     id: 'chrome-default',
-    name: '默认搜索引擎',
+    nameKey: 'search.engines.chromeDefault',
     url: null, // 特殊标识，使用Chrome API
     icon: '',
     fallbackIcon: '🔍'
   },
   {
     id: 'google',
-    name: 'Google',
+    nameKey: 'search.engines.google',
     url: 'https://www.google.com/search?q=',
     icon: '/icons/google.png',
     fallbackIcon: '🔍'
   },
   {
     id: 'bing',
-    name: 'Bing',
+    nameKey: 'search.engines.bing',
     url: 'https://www.bing.com/search?q=',
     icon: '/icons/bing.png',
     fallbackIcon: '🅱️'
   },
   {
     id: 'baidu',
-    name: '百度',
+    nameKey: 'search.engines.baidu',
     url: 'https://www.baidu.com/s?wd=',
     icon: '/icons/baidu.png',
     fallbackIcon: '🟦'
   },
   {
     id: 'duckduckgo',
-    name: 'DuckDuckGo',
+    nameKey: 'search.engines.duckduckgo',
     url: 'https://duckduckgo.com/?q=',
     icon: '/icons/duckduckgo.png',
     fallbackIcon: '🦆'
   },
   {
     id: 'yahoo',
-    name: 'Yahoo',
+    nameKey: 'search.engines.yahoo',
     url: 'https://search.yahoo.com/search?p=',
     icon: '/icons/yahoo.png',
     fallbackIcon: '🟣'
   }
 ])
+
+const localizedSearchEngines = computed(() => (
+  searchEngines.value.map((engine) => ({
+    ...engine,
+    name: t(engine.nameKey)
+  }))
+))
+
+const currentEngine = computed(() => localizedSearchEngines.value.find(engine => engine.id === settingsStore.settings.searchEngine) || localizedSearchEngines.value[0])
 
 // URL检查函数
 const isURL = (string) => {
@@ -174,7 +184,6 @@ const handleCompositionEnd = (event) => {
 
 const setSearchEngine = (engine) => {
   console.log('Setting search engine to:', engine)
-  currentEngine.value = engine
   settingsStore.updateSettings({ searchEngine: engine.id })
   iconError.value = false
 }

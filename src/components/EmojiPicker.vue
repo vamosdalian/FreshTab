@@ -2,7 +2,7 @@
   <div class="emoji-picker-overlay" @click="handleOverlayClick">
     <div class="emoji-picker-modal" @click.stop>
       <div class="emoji-picker-header">
-        <h3>选择 Emoji</h3>
+        <h3>{{ t('emoji.title') }}</h3>
         <button @click="$emit('close')" class="close-button">×</button>
       </div>
       
@@ -19,7 +19,7 @@
           :show-categories="true"
           :show-skin-tones="true"
           :i18n="i18nData"
-          :title="'选择一个 Emoji'"
+          :title="t('emoji.pickerTitle')"
           :emoji="'point_up'"
           :color="'#ae65c5'"
           :native="true"
@@ -33,6 +33,7 @@
 
 <script>
 import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Picker, EmojiIndex } from 'emoji-mart-vue-fast/src'
 import data from 'emoji-mart-vue-fast/data/apple.json'
 
@@ -53,36 +54,36 @@ export default {
   },
   emits: ['select-emoji', 'close'],
   setup(props, { emit }) {
+    const { t } = useI18n()
     const emojiIndex = ref(null)
 
-    // 中文本地化数据
     const i18nData = {
-      search: '搜索',
-      clear: '清除',
-      notfound: '没找到 Emoji',
-      skintext: '选择默认肤色',
+      search: t('emoji.search'),
+      clear: t('emoji.clear'),
+      notfound: t('emoji.notfound'),
+      skintext: t('emoji.skintext'),
       categories: {
-        search: '搜索结果',
-        recent: '最近使用',
-        smileys: '笑脸表情',
-        people: '人物',
-        nature: '动物自然',
-        foods: '食物饮料',
-        activity: '活动',
-        places: '旅行地点',
-        objects: '物体',
-        symbols: '符号',
-        flags: '旗帜',
-        custom: '自定义'
+        search: t('emoji.categories.search'),
+        recent: t('emoji.categories.recent'),
+        smileys: t('emoji.categories.smileys'),
+        people: t('emoji.categories.people'),
+        nature: t('emoji.categories.nature'),
+        foods: t('emoji.categories.foods'),
+        activity: t('emoji.categories.activity'),
+        places: t('emoji.categories.places'),
+        objects: t('emoji.categories.objects'),
+        symbols: t('emoji.categories.symbols'),
+        flags: t('emoji.categories.flags'),
+        custom: t('emoji.categories.custom')
       },
-      categorieslabel: 'Emoji 类别',
+      categorieslabel: t('emoji.categorieslabel'),
       skintones: {
-        1: '默认肤色',
-        2: '浅肤色',
-        3: '中浅肤色',
-        4: '中等肤色',
-        5: '中深肤色',
-        6: '深肤色'
+        1: t('emoji.skintones.1'),
+        2: t('emoji.skintones.2'),
+        3: t('emoji.skintones.3'),
+        4: t('emoji.skintones.4'),
+        5: t('emoji.skintones.5'),
+        6: t('emoji.skintones.6')
       }
     }
 
@@ -118,6 +119,8 @@ export default {
       selectEmoji,
       onSkinChange,
       handleOverlayClick
+      ,
+      t
     }
   }
 }

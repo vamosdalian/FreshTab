@@ -2,7 +2,7 @@
   <div class="modal-overlay" @click="handleOverlayClick">
     <div class="modal-content" @click.stop>
       <div class="modal-header">
-        <h2>{{ isEditing ? '编辑标签' : '添加标签' }}</h2>
+        <h2>{{ isEditing ? t('tag.editTitle') : t('tag.addTitle') }}</h2>
         <button @click="$emit('close')" class="close-button">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -13,11 +13,11 @@
       
       <form @submit.prevent="handleSubmit" class="modal-body">
         <div class="form-group">
-          <label class="form-label">标签名称</label>
+          <label class="form-label">{{ t('tag.name') }}</label>
           <input
             v-model="formData.name"
             type="text"
-            placeholder="输入标签名称"
+            :placeholder="t('tag.namePlaceholder')"
             class="form-input"
             required
             ref="nameInput"
@@ -25,7 +25,7 @@
         </div>
         
         <div class="form-group">
-          <label class="form-label">网站地址</label>
+          <label class="form-label">{{ t('tag.url') }}</label>
           <input
             v-model="formData.url"
             type="url"
@@ -36,7 +36,7 @@
         </div>
         
         <div class="form-group">
-          <label class="form-label">图标类型</label>
+          <label class="form-label">{{ t('tag.iconType') }}</label>
           <div class="icon-type-selector">
             <button 
               type="button"
@@ -48,7 +48,7 @@
                 <circle cx="9" cy="9" r="2"></circle>
                 <path d="M21 15l-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path>
               </svg>
-              网站图标
+              {{ t('tag.iconTypes.favicon') }}
             </button>
             <button 
               type="button"
@@ -56,7 +56,7 @@
               :class="['icon-type-btn', { active: formData.iconType === 'emoji' }]"
             >
               <span>😀</span>
-              Emoji
+              {{ t('tag.iconTypes.emoji') }}
             </button>
             <button 
               type="button"
@@ -64,14 +64,14 @@
               :class="['icon-type-btn', { active: formData.iconType === 'text' }]"
             >
               <span>A</span>
-              文字
+              {{ t('tag.iconTypes.text') }}
             </button>
           </div>
         </div>
         
         <!-- Emoji选择器 -->
         <div v-if="formData.iconType === 'emoji'" class="form-group">
-          <label class="form-label">选择Emoji</label>
+          <label class="form-label">{{ t('tag.chooseEmoji') }}</label>
           <div class="emoji-selector">
             <button 
               type="button"
@@ -79,18 +79,18 @@
               class="emoji-select-button"
             >
               <span class="emoji-preview">{{ formData.iconValue || '🔗' }}</span>
-              <span class="emoji-select-text">点击选择 Emoji</span>
+              <span class="emoji-select-text">{{ t('tag.chooseEmojiButton') }}</span>
             </button>
           </div>
         </div>
         
         <!-- 文字输入 -->
         <div v-if="formData.iconType === 'text'" class="form-group">
-          <label class="form-label">图标文字</label>
+          <label class="form-label">{{ t('tag.iconText') }}</label>
           <input
             v-model="formData.iconValue"
             type="text"
-            placeholder="输入1-2个字符"
+            :placeholder="t('tag.iconTextPlaceholder')"
             class="form-input"
             maxlength="2"
           />
@@ -98,7 +98,7 @@
         
         <!-- Favicon选择器 -->
         <div v-if="formData.iconType === 'favicon' && showFaviconSelector && availableFavicons.length > 1" class="form-group">
-          <label class="form-label">选择图标源 (找到 {{ availableFavicons.length }} 个可用图标)</label>
+          <label class="form-label">{{ t('tag.faviconSource', { count: availableFavicons.length }) }}</label>
           <div class="favicon-selector">
             <div 
               v-for="favicon in availableFavicons" 
@@ -119,7 +119,7 @@
         </div>
         
         <div class="form-group">
-          <label class="form-label">背景颜色</label>
+          <label class="form-label">{{ t('tag.backgroundColor') }}</label>
           <div class="color-grid">
             <div 
               v-for="color in themeColors" 
@@ -132,7 +132,7 @@
         </div>
         
         <div class="form-group">
-          <label class="form-label">预览</label>
+          <label class="form-label">{{ t('common.preview') }}</label>
           <div class="tag-preview-container">
             <div 
               class="tag-preview-item"
@@ -155,16 +155,16 @@
               </div>
               <span v-else>🔗</span>
             </div>
-            <span class="preview-name">{{ formData.name || '标签名称' }}</span>
+            <span class="preview-name">{{ formData.name || t('tag.previewNameFallback') }}</span>
           </div>
         </div>
         
         <div class="form-actions">
           <button type="button" @click="$emit('close')" class="cancel-button">
-            取消
+            {{ t('common.cancel') }}
           </button>
           <button type="submit" class="submit-button">
-            {{ isEditing ? '保存' : '添加' }}
+            {{ isEditing ? t('common.save') : t('common.add') }}
           </button>
         </div>
       </form>
@@ -185,9 +185,12 @@
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue'
 import type { Ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import EmojiPicker from './EmojiPicker.vue'
 import type { IconType } from '../types/tagGroup'
 import { FaviconUtils } from '../services/favicons.js'
+
+const { t } = useI18n()
 
 // 定义类型
 interface TagFormData {

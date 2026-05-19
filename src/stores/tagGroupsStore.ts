@@ -2,12 +2,13 @@ import { defineStore } from 'pinia';
 import { ref, type Ref } from 'vue';
 import type { TagGroupConfig, TagGroup, Tag } from '../types/tagGroup';
 import { setTagGroups, onTagGroupsChange, getTagGroups } from '../services/tagGroupManager';
+import { DEFAULT_LOCALE } from '../i18n';
 
 export const useTagGroupsStore = defineStore('tagGroups', () => {
   const tagGroups: Ref<TagGroupConfig> = ref({} as TagGroupConfig);
 
-  async function initialize(): Promise<void> {
-    const data = await getTagGroups();
+  async function initialize(locale: string = DEFAULT_LOCALE): Promise<void> {
+    const data = await getTagGroups(locale);
     tagGroups.value = data;
     
     console.log('[Pinia] Tag groups initialized.', tagGroups.value);
