@@ -184,4 +184,94 @@ describe('tag groups persistence', () => {
     app.unmount()
     root.remove()
   })
+
+  it('persists reordered tags within the same group', async () => {
+    const { chrome, storageData } = createChromeStorageMock()
+    global.chrome = chrome
+
+    const { useTagGroupsStore } = await loadStores()
+
+    setActivePinia(createPinia())
+    const store = useTagGroupsStore()
+    await store.initialize()
+
+    const groups = store.tagGroups.groups.map((group) => ({
+      ...group,
+      tags: [...group.tags]
+    }))
+
+    const defaultGroup = groups.find((group) => group.id === 'default')
+    defaultGroup.tags = [
+      defaultGroup.tags[1],
+      defaultGroup.tags[2],
+      defaultGroup.tags[0]
+    ]
+
+    await store.saveGroupsOrder(groups)
+
+    const savedGroups = JSON.parse(storageData.sync.FRESH_TAB_TAG_GROUPS)
+    expect(savedGroups.groups.find((group) => group.id === 'default').tags.map((tag) => tag.id)).toEqual([
+      'github',
+      'sto',
+      'google'
+    ])
+
+    setActivePinia(createPinia())
+    const reloadedStore = useTagGroupsStore()
+    await reloadedStore.initialize()
+
+    expect(reloadedStore.tagGroups.groups.find((group) => group.id === 'default').tags.map((tag) => tag.id)).toEqual([
+      'github',
+      'sto',
+      'google'
+    ])
+  })
+
+  it('persists moving a tag to another group', async () => {
+    const { chrome, storageData } = createChromeStorageMock()
+    global.chrome = chrome
+
+    const { useTagGroupsStore } = await loadStores()
+
+    setActivePinia(createPinia())
+    const store = useTagGroupsStore()
+    await store.initialize()
+
+    const groups = store.tagGroups.groups.map((group) => ({
+      ...group,
+      tags: [...group.tags]
+    }))
+
+    const sourceGroup = groups.find((group) => group.id === 'default')
+    const targetGroup = groups.find((group) => group.id === 'dev_tools')
+    const [movedTag] = sourceGroup.tags.splice(0, 1)
+    targetGroup.tags.splice(1, 0, movedTag)
+
+    await store.saveGroupsOrder(groups)
+
+    const savedGroups = JSON.parse(storageData.sync.FRESH_TAB_TAG_GROUPS)
+    expect(savedGroups.groups.find((group) => group.id === 'default').tags.map((tag) => tag.id)).toEqual([
+      'github',
+      'sto'
+    ])
+    expect(savedGroups.groups.find((group) => group.id === 'dev_tools').tags.map((tag) => tag.id)).toEqual([
+      'vacode',
+      'google',
+      'npm'
+    ])
+
+    setActivePinia(createPinia())
+    const reloadedStore = useTagGroupsStore()
+    await reloadedStore.initialize()
+
+    expect(reloadedStore.tagGroups.groups.find((group) => group.id === 'default').tags.map((tag) => tag.id)).toEqual([
+      'github',
+      'sto'
+    ])
+    expect(reloadedStore.tagGroups.groups.find((group) => group.id === 'dev_tools').tags.map((tag) => tag.id)).toEqual([
+      'vacode',
+      'google',
+      'npm'
+    ])
+  })
 })

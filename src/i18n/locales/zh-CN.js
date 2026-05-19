@@ -94,6 +94,7 @@ export default {
       themeColor: '主题颜色',
       emptyAddFirstTag: '添加第一个标签',
       tagCount: '{count} 个标签',
+      dragHandle: '拖动调整顺序',
       saveFailed: '保存分组失败'
     },
     wallpaper: {

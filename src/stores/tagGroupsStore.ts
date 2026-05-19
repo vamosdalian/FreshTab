@@ -7,6 +7,13 @@ import { DEFAULT_LOCALE } from '../i18n';
 export const useTagGroupsStore = defineStore('tagGroups', () => {
   const tagGroups: Ref<TagGroupConfig> = ref({} as TagGroupConfig);
 
+  function cloneGroups(groups: TagGroup[]): TagGroup[] {
+    return groups.map((group) => ({
+      ...group,
+      tags: [...(group.tags || [])]
+    }));
+  }
+
   async function initialize(locale: string = DEFAULT_LOCALE): Promise<void> {
     const data = await getTagGroups(locale);
     tagGroups.value = data;
@@ -22,6 +29,15 @@ export const useTagGroupsStore = defineStore('tagGroups', () => {
   async function updateTagGroups(newTagGroups: TagGroupConfig): Promise<void> {
     tagGroups.value = { ...newTagGroups };
     await setTagGroups(tagGroups.value);
+  }
+
+  async function saveGroupsOrder(groups: TagGroup[]): Promise<void> {
+    const updatedTagGroups: TagGroupConfig = {
+      ...tagGroups.value,
+      groups: cloneGroups(groups)
+    };
+
+    await updateTagGroups(updatedTagGroups);
   }
 
   async function addGroup(group: Partial<TagGroup>): Promise<TagGroup> {
@@ -169,6 +185,7 @@ export const useTagGroupsStore = defineStore('tagGroups', () => {
   return {
     tagGroups,
     initialize,
+    saveGroupsOrder,
     addGroup,
     updateGroup,
     removeGroup,
