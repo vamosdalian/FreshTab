@@ -1,6 +1,7 @@
 import { ref, reactive, onMounted, onUnmounted, watch } from 'vue'
 import { useToast } from './useToast'
 import { addStorageChangeListener, getFromStorage, setToStorage } from '../services/browserStorage.js'
+import { DEFAULT_LOCALE, i18nInstance, translate } from '../i18n'
 
 export function useWallpaper() {
   const { error, log } = useToast()
@@ -109,7 +110,7 @@ export function useWallpaper() {
         await setToStorage({ wallpaperSettings: settingsToSave }, 'local')
         
         if (showToast) {
-          log('壁纸设置已保存')
+          log(translate('settings.wallpaper.saved'))
         }
         
         if (attempt > 1) {
@@ -573,7 +574,7 @@ export function useWallpaper() {
           date: dateStr,
           previewUrl: imageUrl,
           fullUrl: `https://bing.ee123.net/img/?date=${dateStr}&size=4k`,
-          displayDate: targetDate.toLocaleDateString('zh-CN')
+          displayDate: targetDate.toLocaleDateString(i18nInstance?.global.locale.value || DEFAULT_LOCALE)
         })
       }
       
@@ -620,9 +621,9 @@ export function useWallpaper() {
       await saveWallpaperSettings()
       
       if (transitionSuccess) {
-        log(`已选择 ${wallpaper.displayDate} 的壁纸`)
+        log(translate('settings.wallpaper.selected', { date: wallpaper.displayDate }))
       } else {
-        log(`已选择 ${wallpaper.displayDate} 的壁纸（使用fallback机制）`)
+        log(translate('settings.wallpaper.selectedFallback', { date: wallpaper.displayDate }))
       }
     } catch (err) {
       // 静默处理错误，记录用于调试
@@ -637,19 +638,19 @@ export function useWallpaper() {
     try {
       // 验证文件
       if (!file) {
-        error('未选择文件')
+        error(translate('settings.wallpaper.noFile'))
         return
       }
       
       if (!file.type.startsWith('image/')) {
-        error('请选择有效的图片文件')
+        error(translate('settings.wallpaper.invalidImage'))
         return
       }
       
       // 检查文件大小（限制为10MB）
       const maxSize = 10 * 1024 * 1024 // 10MB
       if (file.size > maxSize) {
-        error('图片文件过大，请选择小于10MB的图片')
+        error(translate('settings.wallpaper.fileTooLarge'))
         return
       }
       
@@ -669,9 +670,9 @@ export function useWallpaper() {
       await saveWallpaperSettings()
       
       if (transitionSuccess) {
-        log('本地壁纸设置成功')
+        log(translate('settings.wallpaper.localSuccess'))
       } else {
-        log('本地壁纸设置成功（使用fallback机制）')
+        log(translate('settings.wallpaper.localSuccessFallback'))
       }
     } catch (err) {
       // 静默处理错误，记录用于调试

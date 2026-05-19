@@ -6,14 +6,16 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
+import { computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useSettingsStore } from '../stores/settingsStore'
 import { Moon, Sun } from 'lucide-vue-next'
 
 const settingsStore = useSettingsStore()
+const { t } = useI18n()
 
 const themeMode = computed(() => settingsStore.settings.theme || 'auto')
-const themeTooltip = computed(() =>  settingsStore.settings.isDarkMode ? '切换到浅色模式' : '切换到深色模式')
+const themeTooltip = computed(() => settingsStore.settings.isDarkMode ? t('themeToggle.toLight') : t('themeToggle.toDark'))
 
 const toggleTheme = async () => {
   const currentIsDark = settingsStore.settings.isDarkMode
@@ -28,11 +30,6 @@ const setDocumentTheme = (theme) => {
   document.documentElement.setAttribute('data-theme',theme)
 }
 
-watch(settingsStore.settings.isDarkMode, (value) => {
-  console.log('Theme changed:', value ? 'dark' : 'light')
-  setDocumentTheme(value ? 'dark' : 'light')
-})
-
 watch(() => settingsStore.settings.isDarkMode, (value) => {
   console.log('Theme changed:', value ? 'dark' : 'light')
   setDocumentTheme(value ? 'dark' : 'light')
@@ -43,9 +40,6 @@ darkModeQuery.addEventListener('change', (e) => {
   if (themeMode.value === 'auto') {
     settingsStore.updateSettings({ isDarkMode: e.matches })
   }
-})
-
-onMounted(() => {
 })
 </script>
 

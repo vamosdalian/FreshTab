@@ -91,8 +91,7 @@ const handleKeydown = (event) => {
 // 生命周期
 onMounted(async () => {
   document.addEventListener('keydown', handleKeydown)
-  await settingsStore.initialize()
-  await tagGroupsStore.initialize()
+  await tagGroupsStore.initialize(settingsStore.settings.uiLocale)
 })
 
 onUnmounted(() => {

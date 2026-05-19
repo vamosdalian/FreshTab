@@ -1,6 +1,6 @@
 {
-  "name": "FreshTab",
-  "description": "程序员最受欢迎的新标签页",
+  "name": "__MSG_appName__",
+  "description": "__MSG_appDescription__",
   "version": "1.0.6",
   "manifest_version": 3,
   "chrome_url_overrides": {
@@ -20,7 +20,7 @@
   },
   "action": {
     "default_popup": "newtab.html",
-    "default_title": "FreshTab"
+    "default_title": "__MSG_actionTitle__"
   },
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"

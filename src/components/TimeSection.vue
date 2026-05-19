@@ -7,9 +7,11 @@
 
 <script setup>
 import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useSettingsStore } from '../stores/settingsStore'
 
 const settingsStore = useSettingsStore()
+const { locale } = useI18n()
 const timeUpdateTrigger = ref(0)
 
 const timeFormat = computed(() => settingsStore.settings.timeFormat || '24h')
@@ -30,33 +32,28 @@ const timeFormatClass = computed(() => {
 const formattedTime = computed(() => {
   timeUpdateTrigger.value // trigger reactivity
   const now = new Date()
+  const activeLocale = settingsStore.settings.uiLocale || locale.value
   
-  if (timeFormat.value === '12h') {
-    return now.toLocaleTimeString('en-US', {
-      hour12: true,
-      hour: 'numeric',
-      minute: '2-digit',
-      second: showSeconds.value ? '2-digit' : undefined
-    })
-  } else {
-    return now.toLocaleTimeString('zh-CN', {
-      hour12: false,
-      hour: '2-digit',
-      minute: '2-digit',
-      second: showSeconds.value ? '2-digit' : undefined
-    })
-  }
+  return new Intl.DateTimeFormat(activeLocale, {
+    hour12: timeFormat.value === '12h',
+    hour: timeFormat.value === '12h' ? 'numeric' : '2-digit',
+    minute: '2-digit',
+    second: showSeconds.value ? '2-digit' : undefined
+  }).format(now)
 })
 
 const currentDate = computed(() => {
   timeUpdateTrigger.value // trigger reactivity
   const now = new Date()
-  return now.toLocaleDateString('zh-CN', {
+  const activeLocale = settingsStore.settings.uiLocale || locale.value
+
+  return new Intl.DateTimeFormat(activeLocale, {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
     weekday: 'long'
   })
+    .format(now)
 })
 
 let timeInterval

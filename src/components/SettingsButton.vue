@@ -1,10 +1,11 @@
 <template>
-  <button @click="$emit('openSettings')" class="settings-button" title="设置">
+  <button @click="$emit('openSettings')" class="settings-button" :title="t('settingsButton.title')">
     <Settings :size="20" :stroke-width="2.2" />
   </button>
 </template>
 
 <script>
+import { useI18n } from 'vue-i18n'
 import { Settings } from 'lucide-vue-next'
 
 export default {
@@ -12,6 +13,13 @@ export default {
   emits: ['openSettings'],
   components: {
     Settings
+  },
+  setup() {
+    const { t } = useI18n()
+
+    return {
+      t
+    }
   }
 }
 </script>

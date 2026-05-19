@@ -37,9 +37,17 @@
 
           <!-- 标签页 -->
           <div class="settings-group">
-            <h3>标签页</h3>
+            <h3>{{ t('settings.tabs.title') }}</h3>
             <div class="setting-row">
-              <span class="setting-label">显示区域宽度</span>
+              <span class="setting-label">{{ t('settings.language.label') }}</span>
+              <select class="setting-select" :value="settings.uiLocale"
+                @change="updateSetting('uiLocale', ($event.target as HTMLSelectElement).value)">
+                <option value="zh-CN">{{ t('settings.language.zhCN') }}</option>
+                <option value="en-US">{{ t('settings.language.enUS') }}</option>
+              </select>
+            </div>
+            <div class="setting-row">
+              <span class="setting-label">{{ t('settings.tabs.displayWidth') }}</span>
               <div class="range-control">
                 <input type="range" min="300" :max="getMaxDisplayWidth()" :value="settings.displayWidth"
                   @input="updateDisplayWidth" class="setting-range">
@@ -50,21 +58,21 @@
               </div>
             </div>
             <div class="setting-row">
-              <span class="setting-label">标签大小</span>
+              <span class="setting-label">{{ t('settings.tabs.bookmarkSize') }}</span>
               <select class="setting-select" :value="settings.bookmarkSize"
                 @change="updateSetting('bookmarkSize', ($event.target as HTMLSelectElement).value)">
-                <option value="large">大</option>
-                <option value="medium">中</option>
-                <option value="small">小</option>
+                <option value="large">{{ t('settings.tabs.sizes.large') }}</option>
+                <option value="medium">{{ t('settings.tabs.sizes.medium') }}</option>
+                <option value="small">{{ t('settings.tabs.sizes.small') }}</option>
               </select>
             </div>
           </div>
 
           <!-- 日期时间 -->
           <div class="settings-group">
-            <h3>日期时间</h3>
+            <h3>{{ t('settings.datetime.title') }}</h3>
             <div class="setting-row">
-              <span class="setting-label">显示时间</span>
+              <span class="setting-label">{{ t('settings.datetime.showTime') }}</span>
               <label class="toggle-switch">
                 <input type="checkbox" :checked="settings.showTime"
                   @change="updateSetting('showTime', ($event.target as HTMLInputElement).checked)">
@@ -72,7 +80,7 @@
               </label>
             </div>
             <div class="setting-row">
-              <span class="setting-label">显示日期</span>
+              <span class="setting-label">{{ t('settings.datetime.showDate') }}</span>
               <label class="toggle-switch">
                 <input type="checkbox" :checked="settings.showDate"
                   @change="updateSetting('showDate', ($event.target as HTMLInputElement).checked)">
@@ -80,29 +88,29 @@
               </label>
             </div>
             <div class="setting-row">
-              <span class="setting-label">时间格式</span>
+              <span class="setting-label">{{ t('settings.datetime.timeFormat') }}</span>
               <select class="setting-select" :value="settings.timeFormat"
                 @change="updateSetting('timeFormat', ($event.target as HTMLSelectElement).value)">
-                <option value="24h">24小时制</option>
-                <option value="12h">12小时制</option>
+                <option value="24h">{{ t('settings.datetime.format24') }}</option>
+                <option value="12h">{{ t('settings.datetime.format12') }}</option>
               </select>
             </div>
           </div>
 
           <!-- 主题切换 -->
           <div class="settings-group">
-            <h3>主题切换</h3>
+            <h3>{{ t('settings.theme.title') }}</h3>
             <div class="setting-row">
-              <span class="setting-label">外观主题</span>
+              <span class="setting-label">{{ t('settings.theme.appearance') }}</span>
               <select class="setting-select" :value="settings.theme"
                 @change="updateSetting('theme', ($event.target as HTMLSelectElement).value)">
-                <option value="auto">跟随系统</option>
-                <option value="light">浅色主题</option>
-                <option value="dark">深色主题</option>
+                <option value="auto">{{ t('settings.theme.options.auto') }}</option>
+                <option value="light">{{ t('settings.theme.options.light') }}</option>
+                <option value="dark">{{ t('settings.theme.options.dark') }}</option>
               </select>
             </div>
             <div class="setting-row theme-status-row">
-              <span class="setting-label">当前状态</span>
+              <span class="setting-label">{{ t('settings.theme.currentStatus') }}</span>
               <span class="theme-status">
                 <span class="status-indicator" :class="{ dark: settings.isDarkMode }"></span>
                 {{ getThemeStatusText() }}
@@ -123,7 +131,7 @@
                       <div class="preview-text short"></div>
                     </div>
                   </div>
-                  <span class="preview-label">跟随系统</span>
+                  <span class="preview-label">{{ t('settings.theme.options.auto') }}</span>
                 </div>
 
                 <div class="theme-preview-item" :class="{ active: settings.theme === 'light' }"
@@ -139,7 +147,7 @@
                       <div class="preview-text short"></div>
                     </div>
                   </div>
-                  <span class="preview-label">浅色主题</span>
+                  <span class="preview-label">{{ t('settings.theme.options.light') }}</span>
                 </div>
 
                 <div class="theme-preview-item" :class="{ active: settings.theme === 'dark' }"
@@ -155,7 +163,7 @@
                       <div class="preview-text short"></div>
                     </div>
                   </div>
-                  <span class="preview-label">深色主题</span>
+                  <span class="preview-label">{{ t('settings.theme.options.dark') }}</span>
                 </div>
               </div>
             </div>
@@ -166,10 +174,10 @@
         <!-- 分组管理页面 -->
         <div v-if="activeMenu === 'tagManagement'" class="content-section">
           <div class="section-header">
-            <h3>分组管理</h3>
+            <h3>{{ t('settings.groups.title') }}</h3>
             <button @click="showAddGroupModal = true" class="add-button">
               <Plus :size="16" />
-              添加分组
+              {{ t('settings.groups.addGroup') }}
             </button>
           </div>
 
@@ -181,16 +189,16 @@
                   <div class="group-details">
                     <div class="group-title-row">
                       <h4>{{ group.name }}</h4>
-                      <button @click="editGroupModal(group)" class="edit-btn inline-edit-btn" title="编辑分组">
+                      <button @click="editGroupModal(group)" class="edit-btn inline-edit-btn" :title="t('settings.groups.editGroup')">
                         <Pencil :size="14" />
                       </button>
                     </div>
-                    <span class="tag-count">{{ Array.isArray(group.tags) ? group.tags.length : 0 }} 个标签</span>
+                    <span class="tag-count">{{ t('settings.groups.tagCount', { count: Array.isArray(group.tags) ? group.tags.length : 0 }) }}</span>
                   </div>
                 </div>
                 <div class="group-actions">
                   <button v-if="group.id !== 'default'" @click="deleteGroupConfirm(group.id)" class="delete-btn"
-                    title="删除分组">
+                    :title="t('settings.groups.deleteGroup')">
                     <Trash2 :size="16" />
                   </button>
                 </div>
@@ -210,10 +218,10 @@
                   </div>
                   <span class="tag-list-name">{{ tag.name }}</span>
                   <div class="tag-list-actions">
-                    <button @click="editTagModal(group.id, tag)" class="edit-btn" title="编辑标签">
+                    <button @click="editTagModal(group.id, tag)" class="edit-btn" :title="t('common.edit')">
                       <Pencil :size="14" />
                     </button>
-                    <button @click="deleteTagConfirm(group.id, tag.id)" class="delete-btn" title="删除标签">
+                    <button @click="deleteTagConfirm(group.id, tag.id)" class="delete-btn" :title="t('common.delete')">
                       <Trash2 :size="14" />
                     </button>
                   </div>
@@ -222,14 +230,14 @@
                 <!-- 添加标签按钮 -->
                 <button @click="addTagModal(group.id)" class="add-tag-button">
                   <Plus :size="16" />
-                  添加标签
+                  {{ t('common.add') }}
                 </button>
               </div>
 
               <!-- 空状态 -->
               <div v-else class="empty-tags-state">
                 <button @click="addTagModal(group.id)" class="add-first-tag-button">
-                  添加第一个标签
+                  {{ t('settings.groups.emptyAddFirstTag') }}
                 </button>
               </div>
             </div>
@@ -239,9 +247,9 @@
         <!-- 壁纸页面 -->
         <div v-if="activeMenu === 'wallpaper'" class="content-section">
           <div class="settings-group">
-            <h3>壁纸设置</h3>
+            <h3>{{ t('settings.wallpaper.title') }}</h3>
             <div class="setting-row">
-              <span class="setting-label">壁纸模式</span>
+              <span class="setting-label">{{ t('settings.wallpaper.mode') }}</span>
               <select class="setting-select" :value="wallpaperSettings.wallpaperMode"
                 @change="updateWallpaperSetting(($event.target as HTMLSelectElement).value)">
                 <option v-for="option in wallpaperModeOptions" :key="option.value" :value="option.value">
@@ -253,14 +261,14 @@
             <!-- Bing每日一图模式 -->
             <div v-if="wallpaperSettings.wallpaperMode === 'bing'" class="wallpaper-mode-content">
               <div class="setting-row">
-                <span class="setting-label">自动更新</span>
-                <span class="setting-desc">每天自动获取Bing精美壁纸</span>
+                <span class="setting-label">{{ t('settings.wallpaper.autoUpdate') }}</span>
+                <span class="setting-desc">{{ t('settings.wallpaper.autoUpdateDesc') }}</span>
               </div>
               <div class="wallpaper-actions">
                 <button class="action-btn primary" @click="updateBingWallpaper" :disabled="wallpaperLoading">
                   <RefreshCw v-if="!wallpaperLoading" :size="16" />
                   <span v-if="wallpaperLoading" class="loading-spinner"></span>
-                  {{ wallpaperLoading ? '获取中...' : '立即更新' }}
+                  {{ wallpaperLoading ? t('settings.wallpaper.updating') : t('settings.wallpaper.updateNow') }}
                 </button>
               </div>
             </div>
@@ -268,8 +276,8 @@
             <!-- 固定壁纸模式 -->
             <div v-if="wallpaperSettings.wallpaperMode === 'fixed'" class="wallpaper-mode-content">
               <div class="setting-row">
-                <span class="setting-label">选择壁纸</span>
-                <span class="setting-desc">从历史Bing壁纸中选择喜欢的图片</span>
+                <span class="setting-label">{{ t('settings.wallpaper.chooseWallpaper') }}</span>
+                <span class="setting-desc">{{ t('settings.wallpaper.chooseWallpaperDesc') }}</span>
               </div>
               <div class="wallpaper-grid" v-if="fixedWallpapers.length > 0">
                 <div v-for="wallpaper in fixedWallpapers" :key="wallpaper.date" class="wallpaper-item"
@@ -280,7 +288,7 @@
               <div class="wallpaper-actions">
                 <button v-if="fixedWallpapers.length > 0 && currentPage >= 0" @click="loadMoreWallpapers"
                   class="action-btn" :disabled="wallpaperLoading">
-                  {{ wallpaperLoading ? '加载中...' : '加载更多' }}
+                  {{ wallpaperLoading ? t('common.loading') : t('settings.wallpaper.loadMore') }}
                 </button>
               </div>
             </div>
@@ -288,16 +296,16 @@
             <!-- 本地上传模式 -->
             <div v-if="wallpaperSettings.wallpaperMode === 'local'" class="wallpaper-mode-content">
               <div class="setting-row">
-                <span class="setting-label">上传图片</span>
-                <span class="setting-desc">选择本地图片作为壁纸（建议4K分辨率，最大5MB）</span>
+                <span class="setting-label">{{ t('settings.wallpaper.uploadImage') }}</span>
+                <span class="setting-desc">{{ t('settings.wallpaper.uploadImageDesc') }}</span>
               </div>
               <div class="upload-area">
                 <input ref="fileInput" type="file" accept="image/*" @change="handleFileUpload" style="display: none" />
                 <div class="upload-box" @click="fileInput?.click()" @dragover.prevent
                   @drop.prevent="handleFileDrop">
                   <Upload :size="48" />
-                  <p v-if="!wallpaperLoading">点击选择图片或拖拽到此处</p>
-                  <p v-else>上传中...</p>
+                  <p v-if="!wallpaperLoading">{{ t('settings.wallpaper.uploadHint') }}</p>
+                  <p v-else>{{ t('settings.wallpaper.uploading') }}</p>
                 </div>
               </div>
             </div>
@@ -305,8 +313,8 @@
             <!-- 壁纸预览 -->
             <div class="wallpaper-preview">
               <div class="setting-row">
-                <span class="setting-label">当前壁纸预览</span>
-                <button @click="applyWallpaperSettings" class="apply-btn">应用</button>
+                <span class="setting-label">{{ t('settings.wallpaper.currentPreview') }}</span>
+                <button @click="applyWallpaperSettings" class="apply-btn">{{ t('common.apply') }}</button>
               </div>
               <div class="preview-container">
                 <div v-if="previewImageLoading && wallpaperPreviewUrl" class="preview-loading-overlay">
@@ -315,14 +323,14 @@
                 <img
                   v-if="wallpaperPreviewUrl"
                   :src="wallpaperPreviewUrl"
-                  alt="当前壁纸"
+                  :alt="t('settings.wallpaper.previewAlt')"
                   class="preview-image"
                   :class="{ 'preview-image-loading': previewImageLoading }"
                   @load="handlePreviewImageLoad"
                   @error="handlePreviewImageError"
                 />
                 <div v-else class="empty-state">
-                  <p>暂无壁纸预览</p>
+                  <p>{{ t('settings.wallpaper.emptyPreview') }}</p>
                 </div>
               </div>
             </div>
@@ -336,24 +344,24 @@
             <div class="about-section app-info">
               <div class="app-details">
                 <h2 class="app-title">FreshTab</h2>
-                <p class="app-version">版本 {{ CURRENT_VERSION }}</p>
+                <p class="app-version">{{ t('common.version', { version: CURRENT_VERSION }) }}</p>
                 <p class="app-description">
-                  一个简洁优雅的浏览器新标签页扩展，让您的浏览体验更加高效和美观。
+                  {{ t('settings.about.appDescription') }}
                 </p>
               </div>
             </div>
 
             <!-- 功能特性 -->
             <div class="about-section features">
-              <h3>功能特性</h3>
+              <h3>{{ t('settings.about.featuresTitle') }}</h3>
               <div class="features-grid">
                 <div class="feature-item">
                   <div class="feature-icon">
                     <FolderKanban :size="24" />
                   </div>
                   <div class="feature-content">
-                    <h4>智能分组</h4>
-                    <p>支持自定义分组管理，让您的书签井井有条</p>
+                    <h4>{{ t('settings.about.featureGroupsTitle') }}</h4>
+                    <p>{{ t('settings.about.featureGroupsDesc') }}</p>
                   </div>
                 </div>
                 <div class="feature-item">
@@ -361,8 +369,8 @@
                     <Search :size="24" />
                   </div>
                   <div class="feature-content">
-                    <h4>快速搜索</h4>
-                    <p>支持多搜索引擎，一键切换，搜索更便捷</p>
+                    <h4>{{ t('settings.about.featureSearchTitle') }}</h4>
+                    <p>{{ t('settings.about.featureSearchDesc') }}</p>
                   </div>
                 </div>
                 <div class="feature-item">
@@ -370,8 +378,8 @@
                     <Image :size="24" />
                   </div>
                   <div class="feature-content">
-                    <h4>个性壁纸</h4>
-                    <p>丰富的壁纸选择，打造属于您的专属桌面</p>
+                    <h4>{{ t('settings.about.featureWallpaperTitle') }}</h4>
+                    <p>{{ t('settings.about.featureWallpaperDesc') }}</p>
                   </div>
                 </div>
                 <div class="feature-item">
@@ -379,8 +387,8 @@
                     <Clock3 :size="24" />
                   </div>
                   <div class="feature-content">
-                    <h4>时间显示</h4>
-                    <p>实时时间和日期显示，支持多种格式选择</p>
+                    <h4>{{ t('settings.about.featureTimeTitle') }}</h4>
+                    <p>{{ t('settings.about.featureTimeDesc') }}</p>
                   </div>
                 </div>
               </div>
@@ -388,18 +396,18 @@
 
             <!-- 开发信息 -->
             <div class="about-section developer-info">
-              <h3>开发信息</h3>
+              <h3>{{ t('settings.about.developerTitle') }}</h3>
               <div class="developer-content">
                 <div class="info-row">
-                  <span class="info-label">开发者：</span>
-                  <span class="info-value">vamosdalian</span>
+                  <span class="info-label">{{ t('settings.about.developer') }}</span>
+                  <span class="info-value">{{ t('common.developerName') }}</span>
                 </div>
                 <div class="info-row">
-                  <span class="info-label">发布日期：</span>
-                  <span class="info-value">2025年</span>
+                  <span class="info-label">{{ t('settings.about.releaseDate') }}</span>
+                  <span class="info-value">{{ t('settings.about.releaseYear') }}</span>
                 </div>
                 <div class="info-row">
-                  <span class="info-label">许可证：</span>
+                  <span class="info-label">{{ t('settings.about.license') }}</span>
                   <span class="info-value">MIT License</span>
                 </div>
               </div>
@@ -407,9 +415,9 @@
 
             <!-- 联系方式 -->
             <div class="about-section contact-info">
-              <h3>联系我们</h3>
+              <h3>{{ t('settings.about.contactTitle') }}</h3>
               <div class="contact-content">
-                <p>如果您在使用过程中遇到问题或有任何建议，欢迎通过以下方式联系我们：</p>
+                <p>{{ t('settings.about.contactDesc') }}</p>
                 <div class="contact-links">
                   <a href="https://github.com/vamosdalian/FreshTab" class="contact-link">
                     <Github :size="18" />
@@ -417,7 +425,7 @@
                   </a>
                   <a href="mailto:elve960520@gmail.com" class="contact-link">
                     <Mail :size="18" />
-                    邮箱反馈
+                    {{ t('settings.about.emailFeedback') }}
                   </a>
                 </div>
               </div>
@@ -426,8 +434,8 @@
             <!-- 版权信息 -->
             <div class="about-section copyright">
               <div class="copyright-content">
-                <p>&copy; 2025 FreshTab Team. All rights reserved.</p>
-                <p class="thanks-text">感谢您选择 FreshTab，让我们一起打造更美好的浏览体验！</p>
+                <p>{{ t('common.copyright') }}</p>
+                <p class="thanks-text">{{ t('settings.about.thanks') }}</p>
               </div>
             </div>
           </div>
@@ -439,7 +447,7 @@
     <div v-if="showAddGroupModal || showEditGroupModal" class="group-modal-overlay" @click="closeGroupModal">
       <div class="group-modal-content" @click.stop>
         <div class="group-modal-header">
-          <h3>{{ showEditGroupModal ? '编辑分组' : '添加分组' }}</h3>
+          <h3>{{ showEditGroupModal ? t('settings.groups.editGroup') : t('settings.groups.addGroup') }}</h3>
           <button @click="closeGroupModal" class="close-btn">
             <X :size="20" />
           </button>
@@ -447,20 +455,20 @@
 
         <div class="group-modal-body">
           <div class="form-group">
-            <label>分组名称</label>
-            <input v-model="groupForm.name" type="text" placeholder="输入分组名称" class="form-input" />
+            <label>{{ t('settings.groups.name') }}</label>
+            <input v-model="groupForm.name" type="text" :placeholder="t('settings.groups.namePlaceholder')" class="form-input" />
           </div>
 
           <div class="form-group">
-            <label>选择图标</label>
+            <label>{{ t('settings.groups.chooseIcon') }}</label>
             <button type="button" @click="showEmojiPicker = true" class="emoji-select-button">
               <span class="emoji-preview">{{ groupForm.emoji || '📁' }}</span>
-              <span class="emoji-select-text">点击选择 Emoji</span>
+              <span class="emoji-select-text">{{ t('settings.groups.chooseEmoji') }}</span>
             </button>
           </div>
 
           <div class="form-group">
-            <label>主题颜色</label>
+            <label>{{ t('settings.groups.themeColor') }}</label>
             <div class="color-selector">
               <div v-for="color in themeColors" :key="color" @click="groupForm.themeColor = color"
                 :class="['color-option', { selected: groupForm.themeColor === color }]"
@@ -470,8 +478,8 @@
         </div>
 
         <div class="group-modal-footer">
-          <button @click="closeGroupModal" class="cancel-btn">取消</button>
-          <button @click="saveGroup" class="save-btn">保存</button>
+          <button @click="closeGroupModal" class="cancel-btn">{{ t('common.cancel') }}</button>
+          <button @click="saveGroup" class="save-btn">{{ t('common.save') }}</button>
         </div>
       </div>
     </div>
@@ -491,6 +499,7 @@ import { ref, reactive, onMounted, computed, watch } from 'vue'
 import type { Ref } from 'vue'
 import type { TagGroup, Tag } from '../types/tagGroup'
 import type { Component } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useTagGroupsStore } from '../stores/tagGroupsStore.ts'
 import EmojiPicker from './EmojiPicker.vue'
 import TagModal from './TagModal.vue'
@@ -520,6 +529,7 @@ import {
   X
 } from 'lucide-vue-next'
 const { log, error } = useToast()
+const { t } = useI18n()
 
 const settingsStore = useSettingsStore()
 const tagGroupsStore = useTagGroupsStore()
@@ -600,35 +610,34 @@ interface MenuItem {
   tag?: string
 }
 
-const menuItems: MenuItem[] = [
+const menuItems = computed<MenuItem[]>(() => [
   {
     id: 'settings',
-    name: '常规设置',
+    name: t('settings.menu.general'),
     icon: SlidersHorizontal
   },
   {
     id: 'tagManagement',
-    name: '分组管理',
+    name: t('settings.menu.groups'),
     icon: LayoutGrid
   },
   {
     id: 'wallpaper',
-    name: '壁纸',
+    name: t('settings.menu.wallpaper'),
     icon: Images
   },
   {
     id: 'about',
-    name: '关于我们',
+    name: t('settings.menu.about'),
     icon: Info
   }
-]
+])
 
-// Wallpaper mode options
-const wallpaperModeOptions = [
-  { value: 'bing', label: 'Bing每日一图' },
-  { value: 'fixed', label: '固定壁纸' },
-  { value: 'local', label: '本地上传' }
-]
+const wallpaperModeOptions = computed(() => [
+  { value: 'bing', label: t('settings.wallpaper.modes.bing') },
+  { value: 'fixed', label: t('settings.wallpaper.modes.fixed') },
+  { value: 'local', label: t('settings.wallpaper.modes.local') }
+])
 
 // Methods
 const handleOverlayClick = (): void => {
@@ -682,7 +691,7 @@ const saveGroup = async () => {
     }
     closeGroupModal()
   } catch (error) {
-    console.error('保存分组失败:', error)
+    console.error(t('settings.groups.saveFailed'), error)
   }
 }
 
@@ -719,7 +728,7 @@ const saveTag = async (tagData: Partial<Tag>): Promise<void> => {
     }
     closeTagModal()
   } catch (error) {
-    console.error('保存标签失败:', error)
+    console.error(t('tag.saveFailed'), error)
   }
 }
 
@@ -757,11 +766,11 @@ const getMaxDisplayWidth = (): number => {
 // 获取主题状态文字
 const getThemeStatusText = (): string => {
   if (settings.value.theme === 'auto') {
-    return settings.value.isDarkMode ? '系统深色模式' : '系统浅色模式'
+    return settings.value.isDarkMode ? t('settings.theme.status.autoDark') : t('settings.theme.status.autoLight')
   } else if (settings.value.theme === 'light') {
-    return '浅色模式'
+    return t('settings.theme.status.light')
   } else {
-    return '深色模式'
+    return t('settings.theme.status.dark')
   }
 }
 
@@ -823,7 +832,7 @@ const handleFileDrop = (event: DragEvent): void => {
 const uploadLocalWallpaper = async (file: File): Promise<void> => {
   try {
     if (!file || !file.type.startsWith('image/')) {
-      error('请选择有效的图片文件')
+      error(t('settings.wallpaper.invalidImage'))
       return
     }
 
@@ -919,7 +928,7 @@ const applyWallpaperSettings = async (): Promise<void> => {
       fixedWallpaperDate: wallpaperSettings.fixedWallpaperDate || fixedWallpaperDate.value || ''
     }
   }, 'local')
-  log('壁纸设置已应用')
+  log(t('settings.wallpaper.applied'))
 }
 
 // Lifecycle hooks

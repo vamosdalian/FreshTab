@@ -1,10 +1,12 @@
 // 1. 定义默认配置和版本号
 import { addStorageChangeListener, getFromStorage, setToStorage } from './browserStorage.js'
+import { detectBrowserLocale } from '../i18n'
 
 const SETTING_KEY = 'FRESH_TAB_SETTING';
 
 export const defaultConfig = {
     version: "1", // config version, not the app version
+    uiLocale: detectBrowserLocale(),
     // bookmarks
     showBookmarks: true,
     displayWidth: 1200,
