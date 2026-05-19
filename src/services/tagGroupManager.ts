@@ -1,6 +1,6 @@
 import type { TagGroupConfig, TagGroup, Tag } from '../types/tagGroup';
 import { addStorageChangeListener, getFromStorage, setToStorage } from './browserStorage.js'
-import { DEFAULT_LOCALE, resolveSupportedLocale } from '../i18n'
+import { DEFAULT_LOCALE, messages, resolveSupportedLocale } from '../i18n'
 
 // Tag Groups configuration and storage management
 const TAG_GROUPS_KEY = 'FRESH_TAB_TAG_GROUPS';
@@ -9,7 +9,8 @@ const TAG_GROUPS_VERSION = '1';
 
 export function createDefaultTagGroups(locale: string = DEFAULT_LOCALE): TagGroupConfig {
     const resolvedLocale = resolveSupportedLocale(locale);
-    const isEnglish = resolvedLocale === 'en-US';
+    const localeMessages = messages[resolvedLocale] || messages[DEFAULT_LOCALE];
+    const seedGroups = localeMessages.seeds.groups;
 
     return {
         version: TAG_GROUPS_VERSION,
@@ -17,7 +18,7 @@ export function createDefaultTagGroups(locale: string = DEFAULT_LOCALE): TagGrou
         groups: [
             {
                 id: 'default',
-                name: isEnglish ? 'Favorites' : '常用网站',
+                name: seedGroups.default,
                 emoji: '🌟',
                 themeColor: '#667eea',
                 tags: [
@@ -49,7 +50,7 @@ export function createDefaultTagGroups(locale: string = DEFAULT_LOCALE): TagGrou
             },
             {
                 id: 'dev_tools',
-                name: isEnglish ? 'Development' : '开发工具',
+                name: seedGroups.development,
                 emoji: '💻',
                 themeColor: '#38b2ac',
                 tags: [

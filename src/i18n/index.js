@@ -10,6 +10,8 @@ const messages = {
   'en-US': enUS
 }
 
+export { messages }
+
 export function resolveSupportedLocale(locale) {
   if (!locale || typeof locale !== 'string') {
     return DEFAULT_LOCALE
