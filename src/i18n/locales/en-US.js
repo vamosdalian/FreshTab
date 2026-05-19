@@ -94,6 +94,7 @@ export default {
       themeColor: 'Theme color',
       emptyAddFirstTag: 'Add the first tag',
       tagCount: '{count} tags',
+      dragHandle: 'Drag to reorder',
       saveFailed: 'Failed to save group'
     },
     wallpaper: {

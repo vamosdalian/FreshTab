@@ -182,7 +182,17 @@
           </div>
 
           <div class="groups-list">
-            <div v-for="group in tagGroups" :key="group.id" class="group-item">
+            <div
+              v-for="group in tagGroups"
+              :key="group.id"
+              :class="[
+                'group-item',
+                {
+                  'group-item--drag-source': draggingGroupId === group.id,
+                  'group-item--drag-target': dragOverGroupId === group.id && draggingGroupId !== group.id
+                }
+              ]"
+            >
               <div class="group-header">
                 <div class="group-info">
                   <span class="group-emoji">{{ group.emoji }}</span>
@@ -207,25 +217,52 @@
               <div class="group-color-preview" :style="{ backgroundColor: group.themeColor }"></div>
 
               <!-- 标签列表显示 -->
-              <div v-if="Array.isArray(group.tags) && group.tags.length > 0" class="tags-list">
-                <div v-for="tag in group.tags" :key="tag.id" class="tag-list-item">
-                  <div class="tag-list-icon">
-                    <span v-if="tag.iconType === 'emoji'">{{ tag.iconValue }}</span>
-                    <span v-else-if="tag.iconType === 'text'">{{ tag.iconValue }}</span>
-                    <img v-else-if="tag.iconType === 'favicon'" :src="getFaviconUrl(tag.url,tag)" :alt="tag.name"
-                      @error="($event.target as HTMLImageElement).style.display = 'none'" />
-                    <span v-else>🔗</span>
-                  </div>
-                  <span class="tag-list-name">{{ tag.name }}</span>
-                  <div class="tag-list-actions">
-                    <button @click="editTagModal(group.id, tag)" class="edit-btn" :title="t('common.edit')">
-                      <Pencil :size="14" />
-                    </button>
-                    <button @click="deleteTagConfirm(group.id, tag.id)" class="delete-btn" :title="t('common.delete')">
-                      <Trash2 :size="14" />
-                    </button>
-                  </div>
-                </div>
+              <div v-if="hasTags(group)" class="tags-list">
+                <draggable
+                  :list="group.tags"
+                  item-key="id"
+                  tag="div"
+                  class="tags-draggable"
+                  :group="TAG_DRAG_GROUP"
+                  handle=".tag-drag-handle"
+                  ghost-class="tag-list-item--ghost"
+                  chosen-class="tag-list-item--chosen"
+                  drag-class="tag-list-item--dragging"
+                  @start="handleTagsDragStart(group.id)"
+                  @change="markTagOrderDirty"
+                  @end="handleTagsDragEnd"
+                  @dragenter="handleTagsDragEnter(group.id)"
+                  @dragleave="handleTagsDragLeave(group.id)"
+                >
+                  <template #item="{ element: tag }">
+                    <div class="tag-list-item">
+                      <button
+                        type="button"
+                        class="tag-drag-handle"
+                        :title="t('settings.groups.dragHandle')"
+                        :aria-label="t('settings.groups.dragHandle')"
+                      >
+                        <GripVertical :size="16" />
+                      </button>
+                      <div class="tag-list-icon">
+                        <span v-if="tag.iconType === 'emoji'">{{ tag.iconValue }}</span>
+                        <span v-else-if="tag.iconType === 'text'">{{ tag.iconValue }}</span>
+                        <img v-else-if="tag.iconType === 'favicon'" :src="getFaviconUrl(tag.url,tag)" :alt="tag.name"
+                          @error="($event.target as HTMLImageElement).style.display = 'none'" />
+                        <span v-else>🔗</span>
+                      </div>
+                      <span class="tag-list-name">{{ tag.name }}</span>
+                      <div class="tag-list-actions">
+                        <button @click="editTagModal(group.id, tag)" class="edit-btn" :title="t('common.edit')">
+                          <Pencil :size="14" />
+                        </button>
+                        <button @click="deleteTagConfirm(group.id, tag.id)" class="delete-btn" :title="t('common.delete')">
+                          <Trash2 :size="14" />
+                        </button>
+                      </div>
+                    </div>
+                  </template>
+                </draggable>
 
                 <!-- 添加标签按钮 -->
                 <button @click="addTagModal(group.id)" class="add-tag-button">
@@ -503,6 +540,7 @@ import { useI18n } from 'vue-i18n'
 import { useTagGroupsStore } from '../stores/tagGroupsStore.ts'
 import EmojiPicker from './EmojiPicker.vue'
 import TagModal from './TagModal.vue'
+import draggable from 'vuedraggable'
 import { CURRENT_VERSION } from '../services/version'
 import { useSettingsStore } from '../stores/settingsStore'
 import { useToast } from '../composables/useToast'
@@ -512,6 +550,7 @@ import {
   Clock3,
   FolderKanban,
   Github,
+  GripVertical,
   Image,
   Images,
   Info,
@@ -594,8 +633,12 @@ const showTagModal = ref(false)
 const editingGroupId: Ref<string> = ref('')
 const currentGroupId: Ref<string | null> = ref(null)
 const currentEditingTag: Ref<Tag | null> = ref(null)
+const draggingGroupId: Ref<string | null> = ref(null)
+const dragOverGroupId: Ref<string | null> = ref(null)
+const tagOrderDirty = ref(false)
 const windowWidth = ref(window.innerWidth)
 const fileInput = ref<HTMLInputElement>()
+const TAG_DRAG_GROUP = 'settings-tag-items'
 
 const groupForm = reactive({
   name: '',
@@ -656,6 +699,8 @@ const updateTheme = (theme: string): void => {
 const updateSetting = async (key: string, value: any): Promise<void> => {
   await settingsStore.updateSettings({ [key]: value })
 }
+
+const hasTags = (group: TagGroup): boolean => Array.isArray(group.tags) && group.tags.length > 0
 
 // 分组管理方法
 const editGroupModal = (group: TagGroup): void => {
@@ -735,6 +780,43 @@ const saveTag = async (tagData: Partial<Tag>): Promise<void> => {
 const deleteTagConfirm = async (groupId: string, tagId: string): Promise<void> => {
   await tagGroupsStore.removeTag(groupId, tagId)
 }
+
+const handleTagsDragStart = (groupId: string): void => {
+  draggingGroupId.value = groupId
+  dragOverGroupId.value = groupId
+  tagOrderDirty.value = false
+}
+
+const handleTagsDragEnter = (groupId: string): void => {
+  if (draggingGroupId.value) {
+    dragOverGroupId.value = groupId
+  }
+}
+
+const handleTagsDragLeave = (groupId: string): void => {
+  if (dragOverGroupId.value === groupId && draggingGroupId.value !== groupId) {
+    dragOverGroupId.value = null
+  }
+}
+
+const markTagOrderDirty = (): void => {
+  tagOrderDirty.value = true
+}
+
+const handleTagsDragEnd = async (): Promise<void> => {
+  try {
+    if (tagOrderDirty.value) {
+      await tagGroupsStore.saveGroupsOrder(tagGroupsStore.tagGroups.groups || [])
+    }
+  } catch (error) {
+    console.error(t('settings.groups.saveFailed'), error)
+  } finally {
+    draggingGroupId.value = null
+    dragOverGroupId.value = null
+    tagOrderDirty.value = false
+  }
+}
+
 function getFaviconUrl(url: string, tag: Tag): string {
   // Note: validFaviconUrl is not part of the Tag interface but may exist in runtime
   const tagWithExtras = tag as Tag & { validFaviconUrl?: string }
@@ -1540,6 +1622,16 @@ onMounted(async () => {
   box-shadow: 0 4px 12px rgba(0, 123, 255, 0.1);
 }
 
+.group-item--drag-source {
+  border-color: #6c757d;
+  box-shadow: 0 6px 18px rgba(108, 117, 125, 0.14);
+}
+
+.group-item--drag-target {
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.16), 0 8px 20px rgba(0, 123, 255, 0.12);
+}
+
 .group-header {
   display: flex;
   justify-content: space-between;
@@ -1687,6 +1779,10 @@ onMounted(async () => {
   overflow: hidden;
 }
 
+.tags-draggable {
+  min-height: 0;
+}
+
 .tag-list-item {
   display: flex;
   align-items: center;
@@ -1701,6 +1797,42 @@ onMounted(async () => {
 
 .tag-list-item:hover {
   background-color: #f8f9fa;
+}
+
+.tag-list-item--ghost {
+  opacity: 0.4;
+  background: #e9f2ff;
+}
+
+.tag-list-item--chosen,
+.tag-list-item--dragging {
+  background: #eef5ff;
+}
+
+.tag-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-right: 10px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #adb5bd;
+  cursor: grab;
+  flex-shrink: 0;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.tag-drag-handle:hover {
+  background: #eef2f7;
+  color: #6c757d;
+}
+
+.tag-drag-handle:active {
+  cursor: grabbing;
 }
 
 .tag-list-icon {
