@@ -818,13 +818,22 @@ const handleTagsDragEnd = async (): Promise<void> => {
 }
 
 function getFaviconUrl(url: string, tag: Tag): string {
-  // Note: validFaviconUrl is not part of the Tag interface but may exist in runtime
-  const tagWithExtras = tag as Tag & { validFaviconUrl?: string }
-  if (tagWithExtras && tagWithExtras.validFaviconUrl) {
+  const tagWithExtras = tag as Tag & { faviconData?: string; validFaviconUrl?: string }
+
+  if (tagWithExtras.faviconData) {
+    return tagWithExtras.faviconData
+  }
+
+  if (tagWithExtras.validFaviconUrl) {
     return tagWithExtras.validFaviconUrl
   }
-  const domain = new URL(url).hostname
-  return `https://${domain}/favicon.ico`
+
+  try {
+    const domain = new URL(url).hostname
+    return `https://${domain}/favicon.ico`
+  } catch (error) {
+    return `https://www.google.com/s2/favicons?domain=${url}&sz=32`
+  }
 }
 
 // emoji相关方法
