@@ -1,17 +1,18 @@
 {
   "name": "freshtab-vue",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "基于 Vue.js 3 构建的美观且功能丰富的新标签页替换 Chrome 扩展程序",
   "type": "module",
   "main": "src/main.js",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:extension": "vite build && npm run fix:extension && rm -f \"freshtab-$npm_package_version.zip\" && cd dist && zip -r \"../freshtab-$npm_package_version.zip\" .",
+    "build:extension": "node scripts/release-extension.mjs build",
     "fix:extension": "mv dist/index.html dist/newtab.html",
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "echo \"No linter configured\"",
+    "set:version": "node scripts/release-extension.mjs set",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run"
