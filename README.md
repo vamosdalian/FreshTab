@@ -48,10 +48,16 @@ npm run dev
 ### 构建扩展
 
 ```bash
-# 构建生产版本
+# 使用当前版本构建扩展
 npm run build:extension
 
-# 输出示例: freshtab-1.1.1.zip
+# 指定版本后再构建，同时同步 package.json、package-lock.json、public/manifest.json 和前端显示版本
+npm run build:extension -- 1.1.2
+
+# 只同步版本，不执行打包
+npm run set:version -- 1.1.2
+
+# 输出示例: freshtab-1.1.2.zip
 
 # 清理构建文件
 npm run clean
@@ -99,7 +105,8 @@ FreshTab/
 
 - `npm run dev` - 启动开发服务器
 - `npm run build` - 构建生产版本
-- `npm run build:extension` - 构建 Chrome 扩展，并在项目根目录生成 `freshtab-<version>.zip`
+- `npm run build:extension` - 构建 Chrome 扩展；可通过 `npm run build:extension -- 1.1.2` 指定版本，并在项目根目录生成 `freshtab-<version>.zip`
+- `npm run set:version` - 只同步版本号到项目配置和扩展清单
 - `npm run preview` - 预览生产构建
 - `npm run clean` - 清理构建文件
 
