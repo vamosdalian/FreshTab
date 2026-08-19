@@ -38,6 +38,7 @@
   "homepage": "https://github.com/username/freshtab#readme",
   "dependencies": {
     "@vitejs/plugin-vue": "^5.2.4",
+    "Coloris": "https://github.com/mdbassit/Coloris/archive/refs/tags/v0.25.0.tar.gz",
     "emoji-mart-vue-fast": "^15.0.4",
     "lucide-vue-next": "^1.0.0",
     "pinia": "^3.0.3",

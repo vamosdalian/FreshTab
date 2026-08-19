@@ -120,15 +120,11 @@
         
         <div class="form-group">
           <label class="form-label">{{ t('tag.backgroundColor') }}</label>
-          <div class="color-grid">
-            <div 
-              v-for="color in themeColors" 
-              :key="color"
-              @click="formData.backgroundColor = color"
-              :class="['color-item', { selected: formData.backgroundColor === color }]"
-              :style="{ backgroundColor: color }"
-            ></div>
-          </div>
+          <ColorPicker
+            v-model="formData.backgroundColor"
+            :swatches="themeColors"
+            :aria-label="t('tag.backgroundColor')"
+          />
         </div>
         
         <div class="form-group">
@@ -187,6 +183,7 @@ import { ref, watch, nextTick } from 'vue'
 import type { Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import EmojiPicker from './EmojiPicker.vue'
+import ColorPicker from './ColorPicker.vue'
 import type { IconType } from '../types/tagGroup'
 import { FaviconUtils } from '../services/favicons.js'
 
@@ -642,7 +639,7 @@ watch(
   border-color: rgba(100, 200, 255, 0.5);
 }
 
-.emoji-grid, .color-grid {
+.emoji-grid {
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   gap: 0.5rem;
@@ -654,7 +651,7 @@ watch(
   border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
 }
 
-.emoji-item, .color-item {
+.emoji-item {
   width: 40px;
   height: 40px;
   display: flex;
@@ -742,15 +739,6 @@ watch(
   background: rgba(100, 200, 255, 0.3);
   border-color: rgba(100, 200, 255, 0.8);
   color: white;
-}
-
-.color-item:hover {
-  transform: scale(1.1);
-}
-
-.color-item.selected {
-  border-color: white;
-  transform: scale(1.1);
 }
 
 .tag-preview-container {
