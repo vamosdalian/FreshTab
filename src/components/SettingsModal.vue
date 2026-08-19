@@ -506,11 +506,11 @@
 
           <div class="form-group">
             <label>{{ t('settings.groups.themeColor') }}</label>
-            <div class="color-selector">
-              <div v-for="color in themeColors" :key="color" @click="groupForm.themeColor = color"
-                :class="['color-option', { selected: groupForm.themeColor === color }]"
-                :style="{ backgroundColor: color }"></div>
-            </div>
+            <ColorPicker
+              v-model="groupForm.themeColor"
+              :swatches="themeColors"
+              :aria-label="t('settings.groups.themeColor')"
+            />
           </div>
         </div>
 
@@ -539,6 +539,7 @@ import type { Component } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTagGroupsStore } from '../stores/tagGroupsStore.ts'
 import EmojiPicker from './EmojiPicker.vue'
+import ColorPicker from './ColorPicker.vue'
 import TagModal from './TagModal.vue'
 import draggable from 'vuedraggable'
 import { CURRENT_VERSION } from '../services/version'
@@ -575,8 +576,8 @@ const tagGroupsStore = useTagGroupsStore()
 
 const tagGroups = computed(() => tagGroupsStore.tagGroups.groups || [])
 const themeColors = computed(() => [
-  '#667eea', '#764ba2', '#ff6b6b', '#f7b733', '#4ecdc4', '#556270',
-  '#c7f464', '#ff9a8b', '#dfe6e9', '#2d3436', '#00cec9', '#0984e3'
+  '#e53935', '#fb8c00', '#fdd835', '#7cb342', '#43a047', '#00897b', '#00acc1', '#1e88e5',
+  '#3949ab', '#8e24aa', '#d81b60', '#6d4c41', '#546e7a', '#9e9e9e', '#ffffff', '#000000'
 ])
 
 const settings = computed(() => settingsStore.settings as any) // TODO: Add proper settings type
@@ -2017,30 +2018,6 @@ onMounted(async () => {
   outline: none;
   border-color: #007bff;
   box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-}
-
-.color-selector {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 8px;
-}
-
-.color-option {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  cursor: pointer;
-  border: 2px solid transparent;
-  transition: all 0.3s ease;
-}
-
-.color-option:hover {
-  transform: scale(1.1);
-}
-
-.color-option.selected {
-  border-color: #333;
-  transform: scale(1.1);
 }
 
 .group-modal-footer {
