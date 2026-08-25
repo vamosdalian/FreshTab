@@ -15,8 +15,9 @@
           <div class="tag-icon" :style="{ backgroundColor: tag.backgroundColor }">
             <span v-if="tag.iconType === 'emoji'" class="tag-icon-content">{{ tag.iconValue }}</span>
             <span v-else-if="tag.iconType === 'text'" class="tag-icon-content">{{ tag.iconValue }}</span>
-            <img v-else-if="tag.iconType === 'favicon'" :src="getFaviconUrl(tag.url, tag)" :alt="tag.name"
-              :data-original-url="tag.url" class="tag-icon-content" @error="handleIconError" />
+            <img v-else-if="(tag.iconType === 'favicon' || tag.iconType === 'image') && getTagIconUrl(tag)"
+              :src="getTagIconUrl(tag)" :alt="tag.name" :data-original-url="tag.url"
+              :data-icon-type="tag.iconType" class="tag-icon-content" @error="handleIconError" />
             <span v-else class="tag-icon-content">🔗</span>
           </div>
           <div class="tag-title">{{ tag.name }}</div>
@@ -97,12 +98,15 @@ function openTag(url: string): void {
   window.location.href = url
 }
 
-function getFaviconUrl(url: string, tag: Tag): string {
-  // 优先使用保存的 base64 favicon 数据
-  const tagWithExtras = tag as Tag & { faviconData?: string; validFaviconUrl?: string }
+function getTagIconUrl(tag: Tag): string {
+  const tagWithExtras = tag as Tag & { validFaviconUrl?: string }
   
-  if (tagWithExtras.faviconData) {
-    return tagWithExtras.faviconData
+  if (tagWithExtras.iconData || tagWithExtras.faviconData) {
+    return tagWithExtras.iconData || tagWithExtras.faviconData || ''
+  }
+
+  if (tag.iconType === 'image') {
+    return ''
   }
   
   if (tagWithExtras.validFaviconUrl) {
@@ -111,10 +115,10 @@ function getFaviconUrl(url: string, tag: Tag): string {
   
   // 回退到默认 favicon 路径
   try {
-    const domain = new URL(url).hostname
+    const domain = new URL(tag.url).hostname
     return `https://${domain}/favicon.ico`
   } catch (e) {
-    return `https://www.google.com/s2/favicons?domain=${url}&sz=32`
+    return `https://www.google.com/s2/favicons?domain=${tag.url}&sz=32`
   }
 }
 
@@ -122,11 +126,16 @@ function handleIconError(event: Event): void {
   const img = event.target as HTMLImageElement
   const parent = img.parentElement
 
+  if (img.dataset.iconType === 'image') {
+    showFallbackIcon(img, parent)
+    return
+  }
+
   // 获取当前使用的URL
   const currentSrc = img.src
 
   // 获取备用favicon服务列表
-  const url = img.alt || img.dataset.originalUrl
+  const url = img.dataset.originalUrl
   if (url) {
     const domain = new URL(url).hostname
     const backupServices = [
@@ -154,6 +163,10 @@ function handleIconError(event: Event): void {
   }
 
   // 所有服务都失败了，显示默认图标
+  showFallbackIcon(img, parent)
+}
+
+function showFallbackIcon(img: HTMLImageElement, parent: HTMLElement | null): void {
   img.style.display = 'none'
   if (parent && !parent.querySelector('.fallback-icon')) {
     const fallback = document.createElement('span')

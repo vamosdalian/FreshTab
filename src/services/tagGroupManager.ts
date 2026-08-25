@@ -85,7 +85,7 @@ function stripLargeIconData(tagGroups: TagGroupConfig): TagGroupConfig {
         groups: tagGroups.groups.map((group) => ({
             ...group,
             tags: (group.tags || []).map((tag) => {
-                const { faviconData, ...rest } = tag;
+                const { iconData, faviconData, ...rest } = tag;
                 return rest;
             })
         }))
@@ -95,8 +95,9 @@ function stripLargeIconData(tagGroups: TagGroupConfig): TagGroupConfig {
 function extractTagIcons(tagGroups: TagGroupConfig): Record<string, string> {
     return tagGroups.groups.reduce((iconMap, group) => {
         (group.tags || []).forEach((tag) => {
-            if (tag.faviconData) {
-                iconMap[tag.id] = tag.faviconData;
+            const iconData = tag.iconData || tag.faviconData;
+            if (iconData) {
+                iconMap[tag.id] = iconData;
             }
         });
         return iconMap;
@@ -108,10 +109,11 @@ function mergeTagIcons(tagGroups: TagGroupConfig, iconMap: Record<string, string
         ...tagGroups,
         groups: tagGroups.groups.map((group) => ({
             ...group,
-            tags: (group.tags || []).map((tag) => ({
-                ...tag,
-                faviconData: iconMap[tag.id] || tag.faviconData
-            }))
+            tags: (group.tags || []).map((tag) => {
+                const { faviconData, ...rest } = tag;
+                const iconData = iconMap[tag.id] || tag.iconData || faviconData;
+                return iconData ? { ...rest, iconData } : rest;
+            })
         }))
     };
 }

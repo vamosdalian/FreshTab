@@ -66,6 +66,14 @@
               <span>A</span>
               {{ t('tag.iconTypes.text') }}
             </button>
+            <button
+              type="button"
+              @click="formData.iconType = 'image'"
+              :class="['icon-type-btn', { active: formData.iconType === 'image' }]"
+            >
+              <ImageUp :size="16" />
+              {{ t('tag.iconTypes.image') }}
+            </button>
           </div>
         </div>
         
@@ -94,6 +102,46 @@
             class="form-input"
             maxlength="2"
           />
+        </div>
+
+        <!-- 自定义图片上传 -->
+        <div v-if="formData.iconType === 'image'" class="form-group">
+          <label class="form-label">{{ t('tag.customIcon.title') }}</label>
+          <input
+            ref="customIconInput"
+            class="custom-icon-file-input"
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            @change="handleCustomIconInput"
+          />
+          <button
+            type="button"
+            :class="['custom-icon-upload', { dragging: isDraggingCustomIcon }]"
+            :disabled="isCustomIconProcessing"
+            @click="customIconInput?.click()"
+            @dragenter.prevent="isDraggingCustomIcon = true"
+            @dragover.prevent="isDraggingCustomIcon = true"
+            @dragleave.prevent="isDraggingCustomIcon = false"
+            @drop.prevent="handleCustomIconDrop"
+          >
+            <img v-if="customIconData" :src="customIconData" :alt="t('tag.customIcon.previewAlt')" />
+            <ImageUp v-else :size="30" />
+            <span class="custom-icon-upload-title">
+              {{ isCustomIconProcessing
+                ? t('tag.customIcon.processing')
+                : customIconData
+                  ? t('tag.customIcon.replace')
+                  : t('tag.customIcon.upload') }}
+            </span>
+            <span class="custom-icon-upload-hint">{{ t('tag.customIcon.hint') }}</span>
+          </button>
+          <div v-if="customIconData" class="custom-icon-actions">
+            <button type="button" class="remove-custom-icon" @click="removeCustomIcon">
+              <Trash2 :size="15" />
+              {{ t('tag.customIcon.remove') }}
+            </button>
+          </div>
+          <p v-if="customIconError" class="custom-icon-error">{{ customIconError }}</p>
         </div>
         
         <!-- Favicon选择器 -->
@@ -140,7 +188,7 @@
             >
               <span v-if="formData.iconType === 'emoji'">{{ formData.iconValue || '🔗' }}</span>
               <span v-else-if="formData.iconType === 'text'">{{ formData.iconValue || formData.name.charAt(0).toUpperCase() }}</span>
-              <div v-else-if="formData.iconType === 'favicon'" class="favicon-container">
+              <div v-else-if="formData.iconType === 'favicon'" class="icon-image-container">
                 <div v-if="faviconLoading" class="favicon-loading">
                   <div class="loading-spinner"></div>
                 </div>
@@ -153,6 +201,15 @@
                 />
                 <span v-else class="favicon-fallback">🔗</span>
               </div>
+              <div v-else-if="formData.iconType === 'image'" class="icon-image-container">
+                <img
+                  v-if="customIconData"
+                  :src="customIconData"
+                  :alt="formData.name"
+                  class="favicon-preview-img"
+                />
+                <ImageUp v-else class="custom-icon-fallback" />
+              </div>
               <span v-else>🔗</span>
             </div>
             <span class="preview-name">{{ formData.name || t('tag.previewNameFallback') }}</span>
@@ -163,7 +220,7 @@
           <button type="button" @click="$emit('close')" class="cancel-button">
             {{ t('common.cancel') }}
           </button>
-          <button type="submit" class="submit-button">
+          <button type="submit" class="submit-button" :disabled="isSubmitDisabled">
             {{ isEditing ? t('common.save') : t('common.add') }}
           </button>
         </div>
@@ -186,10 +243,12 @@
 import { computed, nextTick, ref, watch } from 'vue'
 import type { Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { ImageUp, Trash2 } from 'lucide-vue-next'
 import EmojiPicker from './EmojiPicker.vue'
 import ColorPicker from './ColorPicker.vue'
 import type { IconType } from '../types/tagGroup'
 import { FaviconUtils } from '../services/favicons.js'
+import { CustomIconError, processCustomIcon } from '../services/iconImageProcessor'
 import { useSettingsStore } from '../stores/settingsStore'
 
 const { t } = useI18n()
@@ -206,11 +265,12 @@ interface TagFormData {
   iconType: IconType
   iconValue: string
   backgroundColor: string
-  faviconData?: string
 }
 
 interface TagData extends TagFormData {
   id?: string
+  iconData?: string
+  faviconData?: string
   validFaviconUrl?: string
 }
 
@@ -246,8 +306,7 @@ const formData: Ref<TagFormData> = ref({
   url: '',
   iconType: 'favicon',
   iconValue: '',
-  backgroundColor: '#667eea',
-  faviconData: undefined
+  backgroundColor: '#667eea'
 })
 
 const nameInput: Ref<HTMLInputElement | null> = ref(null)
@@ -257,6 +316,14 @@ const faviconLoading: Ref<boolean> = ref(false)
 const availableFavicons: Ref<FaviconService[]> = ref([])
 const showFaviconSelector: Ref<boolean> = ref(false)
 const showEmojiPicker: Ref<boolean> = ref(false)
+const customIconInput: Ref<HTMLInputElement | null> = ref(null)
+const customIconData: Ref<string> = ref('')
+const customIconError: Ref<string> = ref('')
+const isCustomIconProcessing: Ref<boolean> = ref(false)
+const isDraggingCustomIcon: Ref<boolean> = ref(false)
+const isSubmitDisabled = computed(() => (
+  isCustomIconProcessing.value || (formData.value.iconType === 'image' && !customIconData.value)
+))
 
 // 监听 props 变化，初始化表单数据
 watch(
@@ -269,14 +336,16 @@ watch(
         url: newTag.url,
         iconType: newTag.iconType || 'favicon',
         iconValue: newTag.iconValue || '',
-        backgroundColor: newTag.backgroundColor || '#667eea',
-        faviconData: newTag.faviconData
+        backgroundColor: newTag.backgroundColor || '#667eea'
       }
+
+      const savedIconData = newTag.iconData || newTag.faviconData || ''
+      customIconData.value = formData.value.iconType === 'image' ? savedIconData : ''
 
       // 如果是favicon类型，加载现有的图标或重新获取
       if (formData.value.iconType === 'favicon') {
-        if (newTag.faviconData) {
-          currentFaviconUrl.value = newTag.faviconData
+        if (savedIconData) {
+          currentFaviconUrl.value = savedIconData
         } else if (newTag.validFaviconUrl) {
           currentFaviconUrl.value = newTag.validFaviconUrl
         } else {
@@ -290,11 +359,13 @@ watch(
         url: '',
         iconType: 'favicon',
         iconValue: '',
-        backgroundColor: '#667eea',
-        faviconData: undefined
+        backgroundColor: '#667eea'
       }
       currentFaviconUrl.value = ''
+      customIconData.value = ''
     }
+    customIconError.value = ''
+    isDraggingCustomIcon.value = false
   },
   { immediate: true }
 )
@@ -350,7 +421,7 @@ const handleSubmit = (): void => {
     iconType: formData.value.iconType,
     iconValue: formData.value.iconValue,
     backgroundColor: formData.value.backgroundColor,
-    faviconData: formData.value.faviconData
+    iconData: undefined
   }
 
   // 确保 URL 有协议
@@ -363,10 +434,14 @@ const handleSubmit = (): void => {
     tagData.iconValue = tagData.name.charAt(0).toUpperCase()
   }
 
+  if (tagData.iconType === 'image') {
+    tagData.iconData = customIconData.value || undefined
+  }
+
   // 如果是favicon类型，保存base64数据或验证过的URL
   if (tagData.iconType === 'favicon') {
-    if (formData.value.faviconData) {
-      tagData.faviconData = formData.value.faviconData
+    if (currentFaviconUrl.value.startsWith('data:')) {
+      tagData.iconData = currentFaviconUrl.value
     } else if (currentFaviconUrl.value) {
       tagData.validFaviconUrl = currentFaviconUrl.value
     }
@@ -443,25 +518,64 @@ const updateFavicon = async (): Promise<void> => {
       
       if (faviconData && faviconData !== FaviconUtils.getDefaultFavicon()) {
         currentFaviconUrl.value = faviconData
-        // 将 base64 数据存储到 formData 中，稍后保存到标签数据
-        formData.value.faviconData = faviconData
       } else {
         currentFaviconUrl.value = FaviconUtils.getDefaultFavicon()
-        formData.value.faviconData = undefined
       }
     } catch (error) {
       console.warn('获取favicon失败:', error)
       currentFaviconUrl.value = FaviconUtils.getDefaultFavicon()
-      formData.value.faviconData = undefined
     } finally {
       faviconLoading.value = false
     }
   } else {
     currentFaviconUrl.value = ''
-    formData.value.faviconData = undefined
     availableFavicons.value = []
     showFaviconSelector.value = false
   }
+}
+
+const getCustomIconErrorMessage = (error: unknown): string => {
+  if (error instanceof CustomIconError) {
+    if (error.code === 'unsupported-type') {
+      return t('tag.customIcon.errors.unsupportedType')
+    }
+    if (error.code === 'file-too-large') {
+      return t('tag.customIcon.errors.fileTooLarge')
+    }
+  }
+  return t('tag.customIcon.errors.processFailed')
+}
+
+const handleCustomIconFile = async (file?: File): Promise<void> => {
+  isDraggingCustomIcon.value = false
+  if (!file) {
+    return
+  }
+
+  customIconError.value = ''
+  isCustomIconProcessing.value = true
+  try {
+    customIconData.value = await processCustomIcon(file)
+  } catch (error) {
+    customIconError.value = getCustomIconErrorMessage(error)
+  } finally {
+    isCustomIconProcessing.value = false
+  }
+}
+
+const handleCustomIconInput = async (event: Event): Promise<void> => {
+  const input = event.target as HTMLInputElement
+  await handleCustomIconFile(input.files?.[0])
+  input.value = ''
+}
+
+const handleCustomIconDrop = (event: DragEvent): void => {
+  void handleCustomIconFile(event.dataTransfer?.files?.[0])
+}
+
+const removeCustomIcon = (): void => {
+  customIconData.value = ''
+  customIconError.value = ''
 }
 
 // 选择favicon
@@ -620,12 +734,12 @@ watch(
 }
 
 .icon-type-selector {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.5rem;
 }
 
 .icon-type-btn {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -638,6 +752,84 @@ watch(
   cursor: pointer;
   transition: all 0.3s ease;
   font-size: 0.875rem;
+  min-width: 0;
+}
+
+.custom-icon-file-input {
+  display: none;
+}
+
+.custom-icon-upload {
+  width: 100%;
+  min-height: 150px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border: 1px dashed var(--border-color, rgba(255, 255, 255, 0.4));
+  border-radius: 10px;
+  background: var(--grid-bg, rgba(255, 255, 255, 0.05));
+  color: var(--text-color, white);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.custom-icon-upload:hover,
+.custom-icon-upload.dragging {
+  border-color: rgba(100, 200, 255, 0.8);
+  background: rgba(100, 200, 255, 0.12);
+}
+
+.custom-icon-upload:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.custom-icon-upload img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.custom-icon-upload-title {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.custom-icon-upload-hint {
+  font-size: 0.75rem;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+}
+
+.custom-icon-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.6rem;
+}
+
+.remove-custom-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid rgba(220, 53, 69, 0.35);
+  border-radius: 6px;
+  background: transparent;
+  color: #dc3545;
+  cursor: pointer;
+}
+
+.remove-custom-icon:hover {
+  background: rgba(220, 53, 69, 0.08);
+}
+
+.custom-icon-error {
+  margin: 0.55rem 0 0;
+  color: #dc3545;
+  font-size: 0.8rem;
 }
 
 .icon-type-btn:hover {
@@ -792,7 +984,7 @@ watch(
 }
 
 .tag-preview-item > span,
-.tag-preview-item > .favicon-container {
+.tag-preview-item > .icon-image-container {
   position: relative;
   z-index: 1;
 }
@@ -801,13 +993,18 @@ watch(
   font-size: var(--icon-content-size);
 }
 
-.favicon-container {
+.icon-image-container {
   width: var(--icon-content-size);
   height: var(--icon-content-size);
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
+}
+
+.custom-icon-fallback {
+  width: 70%;
+  height: 70%;
 }
 
 .favicon-loading {
@@ -884,6 +1081,12 @@ watch(
 .submit-button:hover {
   background: rgba(100, 200, 255, 0.5);
   transform: translateY(-1px);
+}
+
+.submit-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
 }
 
 /* 自定义滚动条 */

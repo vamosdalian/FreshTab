@@ -255,7 +255,8 @@
                       <div class="tag-list-icon">
                         <span v-if="tag.iconType === 'emoji'">{{ tag.iconValue }}</span>
                         <span v-else-if="tag.iconType === 'text'">{{ tag.iconValue }}</span>
-                        <img v-else-if="tag.iconType === 'favicon'" :src="getFaviconUrl(tag.url,tag)" :alt="tag.name"
+                        <img v-else-if="(tag.iconType === 'favicon' || tag.iconType === 'image') && getTagIconUrl(tag)"
+                          :src="getTagIconUrl(tag)" :alt="tag.name"
                           @error="($event.target as HTMLImageElement).style.display = 'none'" />
                         <span v-else>🔗</span>
                       </div>
@@ -826,11 +827,15 @@ const handleTagsDragEnd = async (): Promise<void> => {
   }
 }
 
-function getFaviconUrl(url: string, tag: Tag): string {
-  const tagWithExtras = tag as Tag & { faviconData?: string; validFaviconUrl?: string }
+function getTagIconUrl(tag: Tag): string {
+  const tagWithExtras = tag as Tag & { validFaviconUrl?: string }
 
-  if (tagWithExtras.faviconData) {
-    return tagWithExtras.faviconData
+  if (tagWithExtras.iconData || tagWithExtras.faviconData) {
+    return tagWithExtras.iconData || tagWithExtras.faviconData || ''
+  }
+
+  if (tag.iconType === 'image') {
+    return ''
   }
 
   if (tagWithExtras.validFaviconUrl) {
@@ -838,10 +843,10 @@ function getFaviconUrl(url: string, tag: Tag): string {
   }
 
   try {
-    const domain = new URL(url).hostname
+    const domain = new URL(tag.url).hostname
     return `https://${domain}/favicon.ico`
   } catch (error) {
-    return `https://www.google.com/s2/favicons?domain=${url}&sz=32`
+    return `https://www.google.com/s2/favicons?domain=${tag.url}&sz=32`
   }
 }
 

@@ -162,13 +162,28 @@ export default {
     iconTypes: {
       favicon: 'Website icon',
       emoji: 'Emoji',
-      text: 'Text'
+      text: 'Text',
+      image: 'Custom image'
     },
     chooseEmoji: 'Choose Emoji',
     chooseEmojiButton: 'Choose an Emoji',
     iconText: 'Icon text',
     iconTextPlaceholder: 'Enter 1-2 characters',
     faviconSource: 'Choose icon source ({count} available)',
+    customIcon: {
+      title: 'Custom image',
+      upload: 'Click or drop an icon here',
+      replace: 'Click or drop to replace the icon',
+      processing: 'Processing image...',
+      hint: 'PNG, JPEG or WebP, up to 2MB',
+      remove: 'Remove image',
+      previewAlt: 'Custom icon preview',
+      errors: {
+        unsupportedType: 'Choose a PNG, JPEG or WebP image',
+        fileTooLarge: 'Image must be smaller than 2MB',
+        processFailed: 'Could not process this image. Try another file.'
+      }
+    },
     backgroundColor: 'Background color',
     previewNameFallback: 'Tag name',
     saveFailed: 'Failed to save tag'

@@ -139,14 +139,15 @@ describe('tag groups persistence', () => {
       id: 'qa_tag',
       name: 'Vitest',
       url: 'https://vitest.dev',
-      iconType: 'favicon',
+      iconType: 'image',
       iconValue: '',
       backgroundColor: '#0ea5e9',
-      faviconData: 'data:image/png;base64,abc123'
+      iconData: 'data:image/png;base64,abc123'
     })
 
     const savedGroups = JSON.parse(storageData.sync.FRESH_TAB_TAG_GROUPS)
     const qaTag = savedGroups.groups.find((group) => group.id === 'qa_group').tags[0]
+    expect(qaTag.iconData).toBeUndefined()
     expect(qaTag.faviconData).toBeUndefined()
     expect(storageData.local.FRESH_TAB_TAG_GROUP_ICONS.qa_tag).toBe('data:image/png;base64,abc123')
 
@@ -184,9 +185,53 @@ describe('tag groups persistence', () => {
     expect(root.textContent).toContain('QA 分组')
     expect(root.textContent).toContain('Vitest')
     expect(root.querySelector('.tags-grid').style.getPropertyValue('--icon-content-size')).toBe('100%')
+    expect(root.querySelector('.tag-icon img').getAttribute('src')).toBe('data:image/png;base64,abc123')
+    expect(root.querySelector('.tag-icon img').dataset.iconType).toBe('image')
 
     app.unmount()
     root.remove()
+
+    await reloadedTagGroupsStore.updateTag('qa_group', 'qa_tag', {
+      iconType: 'emoji',
+      iconValue: '🧪',
+      iconData: undefined
+    })
+    expect(storageData.local.FRESH_TAB_TAG_GROUP_ICONS.qa_tag).toBeUndefined()
+  })
+
+  it('restores legacy local icon data as generic iconData', async () => {
+    const { chrome, storageData } = createChromeStorageMock()
+    global.chrome = chrome
+    storageData.sync.FRESH_TAB_TAG_GROUPS = JSON.stringify({
+      version: '1',
+      lastModified: new Date().toISOString(),
+      groups: [{
+        id: 'legacy',
+        name: 'Legacy',
+        emoji: '📁',
+        themeColor: '#123456',
+        tags: [{
+          id: 'legacy_tag',
+          name: 'Legacy icon',
+          url: 'https://example.com',
+          iconType: 'favicon',
+          iconValue: '',
+          backgroundColor: '#654321'
+        }]
+      }]
+    })
+    storageData.local.FRESH_TAB_TAG_GROUP_ICONS = {
+      legacy_tag: 'data:image/png;base64,legacy'
+    }
+
+    const { useTagGroupsStore } = await loadStores()
+    setActivePinia(createPinia())
+    const store = useTagGroupsStore()
+    await store.initialize()
+
+    const tag = store.tagGroups.groups[0].tags[0]
+    expect(tag.iconData).toBe('data:image/png;base64,legacy')
+    expect(tag.faviconData).toBeUndefined()
   })
 
   it('persists reordered tags within the same group', async () => {

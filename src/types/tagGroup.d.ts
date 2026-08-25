@@ -9,7 +9,8 @@ export interface Tag {
     iconType: IconType;
     iconValue: string;
     backgroundColor: string;
-    faviconData?: string; // Base64 encoded favicon data
+    iconData?: string; // Base64 encoded icon data stored in local storage
+    faviconData?: string; // Legacy field kept for backward compatibility
 }
 
 export interface TagGroup {

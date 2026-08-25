@@ -105,7 +105,7 @@ export const useTagGroupsStore = defineStore('tagGroups', () => {
       iconType: tag.iconType || 'emoji',
       iconValue: tag.iconValue || '🔗',
       backgroundColor: tag.backgroundColor || '#666',
-      faviconData: tag.faviconData
+      iconData: tag.iconData || tag.faviconData
     };
     
     const groups = tagGroups.value.groups;
