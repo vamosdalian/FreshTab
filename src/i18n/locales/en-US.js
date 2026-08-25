@@ -52,6 +52,7 @@ export default {
       title: 'Tabs',
       displayWidth: 'Content width',
       bookmarkSize: 'Tile size',
+      iconScale: 'Icon content size',
       sizes: {
         large: 'Large',
         medium: 'Medium',

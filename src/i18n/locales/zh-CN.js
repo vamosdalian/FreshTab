@@ -52,6 +52,7 @@ export default {
       title: '标签页',
       displayWidth: '显示区域宽度',
       bookmarkSize: '标签大小',
+      iconScale: '图标内容大小',
       sizes: {
         large: '大',
         medium: '中',

@@ -66,6 +66,14 @@
                 <option value="small">{{ t('settings.tabs.sizes.small') }}</option>
               </select>
             </div>
+            <div class="setting-row">
+              <span class="setting-label">{{ t('settings.tabs.iconScale') }}</span>
+              <div class="range-control">
+                <input type="range" min="20" max="100" step="1" :value="settings.iconScale || 50"
+                  :aria-label="t('settings.tabs.iconScale')" @input="updateIconScale" class="setting-range">
+                <span class="range-value">{{ settings.iconScale || 50 }}%</span>
+              </div>
+            </div>
           </div>
 
           <!-- 日期时间 -->
@@ -847,6 +855,11 @@ const handleSelectGroupEmoji = (emoji: string): void => {
 const updateDisplayWidth = (event: Event): void => {
   const width = Number((event.target as HTMLInputElement).value)
   updateSetting('displayWidth', width)
+}
+
+const updateIconScale = (event: Event): void => {
+  const scale = Number((event.target as HTMLInputElement).value)
+  updateSetting('iconScale', scale)
 }
 
 // 计算最大显示宽度（窗口的90%）

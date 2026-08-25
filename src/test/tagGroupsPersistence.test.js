@@ -173,13 +173,17 @@ describe('tag groups persistence', () => {
     const mountedSettingsStore = useSettingsStore()
 
     mountedTagGroupsStore.tagGroups = reloadedTagGroupsStore.tagGroups
-    mountedSettingsStore.settings = reloadedSettingsStore.settings
+    mountedSettingsStore.settings = {
+      ...reloadedSettingsStore.settings,
+      iconScale: 100
+    }
 
     app.mount(root)
     await nextTick()
 
     expect(root.textContent).toContain('QA 分组')
     expect(root.textContent).toContain('Vitest')
+    expect(root.querySelector('.tags-grid').style.getPropertyValue('--icon-content-size')).toBe('100%')
 
     app.unmount()
     root.remove()

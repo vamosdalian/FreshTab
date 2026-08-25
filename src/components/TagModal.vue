@@ -124,6 +124,7 @@
             v-model="formData.backgroundColor"
             :swatches="themeColors"
             :aria-label="t('tag.backgroundColor')"
+            alpha
           />
         </div>
         
@@ -132,7 +133,10 @@
           <div class="tag-preview-container">
             <div 
               class="tag-preview-item"
-              :style="{ backgroundColor: formData.backgroundColor }"
+              :style="{
+                '--preview-color': formData.backgroundColor,
+                '--icon-content-size': `${iconScale}%`
+              }"
             >
               <span v-if="formData.iconType === 'emoji'">{{ formData.iconValue || '🔗' }}</span>
               <span v-else-if="formData.iconType === 'text'">{{ formData.iconValue || formData.name.charAt(0).toUpperCase() }}</span>
@@ -179,15 +183,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import type { Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import EmojiPicker from './EmojiPicker.vue'
 import ColorPicker from './ColorPicker.vue'
 import type { IconType } from '../types/tagGroup'
 import { FaviconUtils } from '../services/favicons.js'
+import { useSettingsStore } from '../stores/settingsStore'
 
 const { t } = useI18n()
+const settingsStore = useSettingsStore()
+const iconScale = computed(() => {
+  const value = Number(settingsStore.settings.iconScale)
+  return Number.isFinite(value) ? Math.min(100, Math.max(20, value)) : 50
+})
 
 // 定义类型
 interface TagFormData {
@@ -753,26 +763,47 @@ watch(
 }
 
 .tag-preview-item {
+  position: relative;
+  overflow: hidden;
   width: 48px;
   height: 48px;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: 48px;
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.2);
+  background-color: #fff;
+  background-image:
+    linear-gradient(45deg, #d7d7d7 25%, transparent 25%),
+    linear-gradient(-45deg, #d7d7d7 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #d7d7d7 75%),
+    linear-gradient(-45deg, transparent 75%, #d7d7d7 75%);
+  background-position: 0 0, 0 6px, 6px -6px, -6px 0;
+  background-size: 12px 12px;
 }
 
-.tag-preview-item img {
-  width: 24px;
-  height: 24px;
-  border-radius: 4px;
+.tag-preview-item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--preview-color);
+}
+
+.tag-preview-item > span,
+.tag-preview-item > .favicon-container {
+  position: relative;
+  z-index: 1;
+}
+
+.tag-preview-item > span {
+  font-size: var(--icon-content-size);
 }
 
 .favicon-container {
-  width: 24px;
-  height: 24px;
+  width: var(--icon-content-size);
+  height: var(--icon-content-size);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -807,8 +838,8 @@ watch(
 }
 
 .favicon-preview-img {
-  width: 20px;
-  height: 20px;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
   border-radius: 2px;
 }

@@ -13,11 +13,11 @@
         <div v-for="tag in (Array.isArray(group.tags) ? group.tags : [])" :key="tag.id" class="tag-item"
           @click="openTag(tag.url)" :style="{ '--tag-color': group.themeColor }">
           <div class="tag-icon" :style="{ backgroundColor: tag.backgroundColor }">
-            <span v-if="tag.iconType === 'emoji'">{{ tag.iconValue }}</span>
-            <span v-else-if="tag.iconType === 'text'">{{ tag.iconValue }}</span>
+            <span v-if="tag.iconType === 'emoji'" class="tag-icon-content">{{ tag.iconValue }}</span>
+            <span v-else-if="tag.iconType === 'text'" class="tag-icon-content">{{ tag.iconValue }}</span>
             <img v-else-if="tag.iconType === 'favicon'" :src="getFaviconUrl(tag.url, tag)" :alt="tag.name"
-              :data-original-url="tag.url" @error="handleIconError" />
-            <span v-else>🔗</span>
+              :data-original-url="tag.url" class="tag-icon-content" @error="handleIconError" />
+            <span v-else class="tag-icon-content">🔗</span>
           </div>
           <div class="tag-title">{{ tag.name }}</div>
         </div>
@@ -79,11 +79,16 @@ const layoutVars = computed(() => {
   const bookmarkSize = settings.value.bookmarkSize || 'medium'
   const displayWidth = settings.value.displayWidth || 1200
   const itemsPerRow = getAutoColumns(displayWidth, bookmarkSize)
+  const configuredIconScale = Number(settings.value.iconScale)
+  const iconScale = Number.isFinite(configuredIconScale)
+    ? Math.min(100, Math.max(20, configuredIconScale))
+    : 50
 
   return {
     '--items-per-row': itemsPerRow,
     '--tag-item-width': getTagItemWidth(bookmarkSize),
     '--tag-grid-gap': getTagGridGap(itemsPerRow),
+    '--icon-content-size': `${iconScale}%`,
     maxWidth: '100%'
   }
 })
@@ -258,21 +263,21 @@ function handleIconError(event: Event): void {
 
 /* 不同尺寸下的图标大小 */
 .tag-size-small .tag-icon {
+  --tag-icon-size: 46px;
   width: 46px;
   height: 46px;
-  font-size: 20px;
 }
 
 .tag-size-medium .tag-icon {
+  --tag-icon-size: 58px;
   width: 58px;
   height: 58px;
-  font-size: 25px;
 }
 
 .tag-size-large .tag-icon {
+  --tag-icon-size: 68px;
   width: 68px;
   height: 68px;
-  font-size: 30px;
 }
 
 /* 不同尺寸下的文字大小 */
@@ -297,6 +302,7 @@ function handleIconError(event: Event): void {
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: var(--tag-icon-size);
   color: white;
   transition: all 0.3s ease;
   border: 1px solid rgba(255, 255, 255, 0.22);
@@ -309,28 +315,19 @@ function handleIconError(event: Event): void {
   box-shadow: 0 14px 30px rgba(0, 0, 0, 0.24);
 }
 
-/* 不同尺寸下的图片大小 */
-.tag-size-small .tag-icon img {
-  width: 22px;
-  height: 22px;
-}
-
-.tag-size-medium .tag-icon img {
-  width: 28px;
-  height: 28px;
-}
-
-.tag-size-large .tag-icon img {
-  width: 34px;
-  height: 34px;
-}
-
 .tag-icon img {
+  width: var(--icon-content-size);
+  height: var(--icon-content-size);
   object-fit: cover;
 }
 
+.tag-icon > span {
+  font-size: var(--icon-content-size);
+  line-height: 1;
+}
+
 .tag-icon .fallback-icon {
-  font-size: 24px;
+  font-size: var(--icon-content-size);
   color: white;
 }
 
