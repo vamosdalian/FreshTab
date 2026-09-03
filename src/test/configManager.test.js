@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-describe('configManager locale migration', () => {
+describe('configManager migration', () => {
   beforeEach(() => {
     vi.resetModules()
     global.chrome = {
@@ -30,6 +30,26 @@ describe('configManager locale migration', () => {
 
     expect(config.uiLocale).toBe('en-US')
     expect(config.showBookmarks).toBe(false)
-    expect(config.version).toBe('1')
+    expect(config.iconScale).toBe(50)
+    expect(config.version).toBe('2')
+  })
+
+  it('adds iconScale when migrating version 1 settings', async () => {
+    global.chrome.storage.sync.get.mockResolvedValueOnce({
+      FRESH_TAB_SETTING: {
+        version: '1',
+        bookmarkSize: 'large'
+      }
+    })
+
+    const { getConfig } = await import('../services/configManager.js')
+    const config = await getConfig()
+
+    expect(config.bookmarkSize).toBe('large')
+    expect(config.iconScale).toBe(50)
+    expect(config.version).toBe('2')
+    expect(global.chrome.storage.sync.set).toHaveBeenCalledWith({
+      FRESH_TAB_SETTING: config
+    })
   })
 })

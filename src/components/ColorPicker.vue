@@ -3,18 +3,19 @@
     <button
       type="button"
       class="color-preview"
-      :style="{ backgroundColor: modelValue }"
       :aria-label="ariaLabel"
       @click="openPicker"
-    ></button>
+    >
+      <span class="color-preview-swatch" :style="{ backgroundColor: modelValue }"></span>
+    </button>
     <input
       ref="inputRef"
       class="fresh-color-input color-value"
       type="text"
       :value="modelValue"
       :aria-label="ariaLabel"
-      maxlength="7"
-      placeholder="#667eea"
+      :maxlength="alpha ? 9 : 7"
+      :placeholder="alpha ? '#667eea80' : '#667eea'"
       autocomplete="off"
       spellcheck="false"
       @click="syncColorisOptions"
@@ -55,11 +56,13 @@ interface Props {
   modelValue: string
   swatches?: string[]
   ariaLabel?: string
+  alpha?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   swatches: () => [],
-  ariaLabel: 'Choose color'
+  ariaLabel: 'Choose color',
+  alpha: false
 })
 
 const emit = defineEmits<{
@@ -67,7 +70,7 @@ const emit = defineEmits<{
 }>()
 
 const inputRef = ref<HTMLInputElement | null>(null)
-const HEX_COLOR_PATTERN = /^#(?:[\da-f]{3}|[\da-f]{6})$/i
+const HEX_COLOR_PATTERN = /^#(?:[\da-f]{3}|[\da-f]{4}|[\da-f]{6}|[\da-f]{8})$/i
 
 const getThemeMode = (): 'light' | 'dark' => (
   document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light'
@@ -76,7 +79,8 @@ const getThemeMode = (): 'light' | 'dark' => (
 const syncColorisOptions = (): void => {
   window.Coloris?.({
     themeMode: getThemeMode(),
-    swatches: props.swatches
+    swatches: props.swatches,
+    alpha: props.alpha
   })
 }
 
@@ -114,7 +118,7 @@ onMounted(() => {
     theme: 'large',
     themeMode: getThemeMode(),
     format: 'hex',
-    alpha: false,
+    alpha: props.alpha,
     focusInput: false,
     swatches: props.swatches
   })
@@ -130,6 +134,8 @@ onMounted(() => {
 }
 
 .color-preview {
+  position: relative;
+  overflow: hidden;
   width: 42px;
   height: 42px;
   flex: 0 0 42px;
@@ -137,7 +143,20 @@ onMounted(() => {
   border-radius: 10px;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(0, 0, 0, 0.12);
   cursor: pointer;
+  background-color: #fff;
+  background-image:
+    linear-gradient(45deg, #d7d7d7 25%, transparent 25%),
+    linear-gradient(-45deg, #d7d7d7 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #d7d7d7 75%),
+    linear-gradient(-45deg, transparent 75%, #d7d7d7 75%);
+  background-position: 0 0, 0 6px, 6px -6px, -6px 0;
+  background-size: 12px 12px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.color-preview-swatch {
+  position: absolute;
+  inset: 0;
 }
 
 .color-preview:hover {

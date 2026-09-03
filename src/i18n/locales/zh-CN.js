@@ -52,6 +52,7 @@ export default {
       title: '标签页',
       displayWidth: '显示区域宽度',
       bookmarkSize: '标签大小',
+      iconScale: '图标内容大小',
       sizes: {
         large: '大',
         medium: '中',
@@ -161,13 +162,28 @@ export default {
     iconTypes: {
       favicon: '网站图标',
       emoji: 'Emoji',
-      text: '文字'
+      text: '文字',
+      image: '自定义图片'
     },
     chooseEmoji: '选择 Emoji',
     chooseEmojiButton: '点击选择 Emoji',
     iconText: '图标文字',
     iconTextPlaceholder: '输入 1-2 个字符',
     faviconSource: '选择图标源（找到 {count} 个可用图标）',
+    customIcon: {
+      title: '自定义图片',
+      upload: '点击或拖拽上传图标',
+      replace: '点击或拖拽更换图标',
+      processing: '正在处理图片...',
+      hint: '支持 PNG、JPEG、WebP，最大 2MB',
+      remove: '移除图片',
+      previewAlt: '自定义图标预览',
+      errors: {
+        unsupportedType: '请选择 PNG、JPEG 或 WebP 图片',
+        fileTooLarge: '图片不能超过 2MB',
+        processFailed: '图片处理失败，请尝试其他图片'
+      }
+    },
     backgroundColor: '背景颜色',
     previewNameFallback: '标签名称',
     saveFailed: '保存标签失败'

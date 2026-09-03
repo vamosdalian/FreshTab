@@ -5,13 +5,14 @@ import { detectBrowserLocale } from '../i18n'
 const SETTING_KEY = 'FRESH_TAB_SETTING';
 
 export const defaultConfig = {
-    version: "1", // config version, not the app version
+    version: "2", // config version, not the app version
     uiLocale: detectBrowserLocale(),
     // bookmarks
     showBookmarks: true,
     displayWidth: 1200,
     columnsPerRow: 6,
     bookmarkSize: 'medium',
+    iconScale: 50,
     // search
     showSearch: true,
     searchEngine: 'chrome-default',
