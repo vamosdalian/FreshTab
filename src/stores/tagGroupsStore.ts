@@ -27,8 +27,15 @@ export const useTagGroupsStore = defineStore('tagGroups', () => {
   }
 
   async function updateTagGroups(newTagGroups: TagGroupConfig): Promise<void> {
+    const previousTagGroups = tagGroups.value;
     tagGroups.value = { ...newTagGroups };
-    await setTagGroups(tagGroups.value);
+    try {
+      await setTagGroups(tagGroups.value);
+    } catch (error) {
+      // Roll back so the UI does not show changes that were never persisted
+      tagGroups.value = previousTagGroups;
+      throw error;
+    }
   }
 
   async function saveGroupsOrder(groups: TagGroup[]): Promise<void> {

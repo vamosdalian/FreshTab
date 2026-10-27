@@ -1,11 +1,87 @@
 import type { TagGroupConfig, TagGroup, Tag } from '../types/tagGroup';
-import { addStorageChangeListener, getFromStorage, setToStorage } from './browserStorage.js'
+import { addStorageChangeListener, getFromStorage, removeFromStorage, setToStorage } from './browserStorage.js'
 import { DEFAULT_LOCALE, messages, resolveSupportedLocale } from '../i18n'
 
 // Tag Groups configuration and storage management
+// Legacy single-key storage; exceeds chrome.storage.sync QUOTA_BYTES_PER_ITEM (8KB) once there are many tags
 const TAG_GROUPS_KEY = 'FRESH_TAB_TAG_GROUPS';
+// Current storage: the serialized config split across chunk keys, with the chunk count stored separately
+const TAG_GROUPS_CHUNK_COUNT_KEY = 'FRESH_TAB_TAG_GROUPS_CHUNKS';
+const TAG_GROUPS_CHUNK_KEY_PREFIX = 'FRESH_TAB_TAG_GROUPS_CHUNK_';
+// Below the 8192-byte per-item quota, leaving room for the key name and JSON quoting
+const TAG_GROUPS_CHUNK_MAX_BYTES = 7800;
 const TAG_GROUP_ICONS_KEY = 'FRESH_TAB_TAG_GROUP_ICONS';
 const TAG_GROUPS_VERSION = '1';
+
+const textEncoder = new TextEncoder();
+
+function getChunkKey(index: number): string {
+    return `${TAG_GROUPS_CHUNK_KEY_PREFIX}${index}`;
+}
+
+function isTagGroupsStorageKey(key: string): boolean {
+    return key === TAG_GROUPS_KEY || key === TAG_GROUPS_CHUNK_COUNT_KEY || key.startsWith(TAG_GROUPS_CHUNK_KEY_PREFIX);
+}
+
+/**
+ * Split a string into chunks whose stored size (UTF-8 bytes after JSON encoding) fits the sync per-item quota.
+ */
+export function splitIntoChunks(data: string, maxBytes: number = TAG_GROUPS_CHUNK_MAX_BYTES): string[] {
+    const chunks: string[] = [];
+    let current = '';
+    let currentBytes = 0;
+
+    for (const char of data) {
+        const charBytes = textEncoder.encode(JSON.stringify(char).slice(1, -1)).length;
+        if (currentBytes + charBytes > maxBytes && current) {
+            chunks.push(current);
+            current = '';
+            currentBytes = 0;
+        }
+        current += char;
+        currentBytes += charBytes;
+    }
+
+    if (current || chunks.length === 0) {
+        chunks.push(current);
+    }
+
+    return chunks;
+}
+
+async function readStoredTagGroups(): Promise<string | undefined> {
+    const result = await getFromStorage([TAG_GROUPS_CHUNK_COUNT_KEY, TAG_GROUPS_KEY]);
+    const chunkCount = result[TAG_GROUPS_CHUNK_COUNT_KEY];
+
+    if (typeof chunkCount !== 'number') {
+        return result[TAG_GROUPS_KEY];
+    }
+
+    const chunkKeys = Array.from({ length: chunkCount }, (_, index) => getChunkKey(index));
+    const chunkResult = await getFromStorage(chunkKeys);
+    return chunkKeys.map((key) => chunkResult[key] || '').join('');
+}
+
+async function writeStoredTagGroups(data: string): Promise<void> {
+    const previous = await getFromStorage(TAG_GROUPS_CHUNK_COUNT_KEY);
+    const previousChunkCount = previous[TAG_GROUPS_CHUNK_COUNT_KEY];
+
+    const chunks = splitIntoChunks(data);
+    const items: Record<string, string | number> = { [TAG_GROUPS_CHUNK_COUNT_KEY]: chunks.length };
+    chunks.forEach((chunk, index) => {
+        items[getChunkKey(index)] = chunk;
+    });
+
+    await setToStorage(items, 'sync');
+
+    const staleKeys = [TAG_GROUPS_KEY];
+    if (typeof previousChunkCount === 'number') {
+        for (let index = chunks.length; index < previousChunkCount; index++) {
+            staleKeys.push(getChunkKey(index));
+        }
+    }
+    await removeFromStorage(staleKeys, 'sync');
+}
 
 export function createDefaultTagGroups(locale: string = DEFAULT_LOCALE): TagGroupConfig {
     const resolvedLocale = resolveSupportedLocale(locale);
@@ -166,8 +242,7 @@ async function migrateTagGroups(savedTagGroups: Partial<TagGroupConfig>, locale:
  */
 export async function getTagGroups(locale: string = DEFAULT_LOCALE): Promise<TagGroupConfig> {
     try {
-        const result = await getFromStorage(TAG_GROUPS_KEY);
-        const data = result[TAG_GROUPS_KEY];
+        const data = await readStoredTagGroups();
 
         if (!data) {
             const seededTagGroups = createDefaultTagGroups(locale);
@@ -200,7 +275,7 @@ export async function setTagGroups(newTagGroups: TagGroupConfig): Promise<void> 
         const data = JSON.stringify(stripLargeIconData(dataToSave));
         const iconMap = extractTagIcons(dataToSave);
 
-        await setToStorage({[TAG_GROUPS_KEY]: data}, 'sync');
+        await writeStoredTagGroups(data);
         await setToStorage({[TAG_GROUP_ICONS_KEY]: iconMap}, 'local');
     } catch (error) {
         console.error('Failed to save tag groups:', error);
@@ -213,13 +288,22 @@ export async function setTagGroups(newTagGroups: TagGroupConfig): Promise<void> 
  * @param {function(TagGroupConfig): void} callback - Callback function called when tag groups change
  */
 export function onTagGroupsChange(callback: (tagGroups: TagGroupConfig) => void): void {
-    addStorageChangeListener((changes: { [key: string]: { newValue: string } }, areaName: string) => {
-        if (areaName === 'sync' && TAG_GROUPS_KEY in changes) {
-            const value = JSON.parse(changes[TAG_GROUPS_KEY].newValue) as TagGroupConfig;
-            void getTagGroupIcons().then((iconMap) => {
-                callback(mergeTagIcons(value, iconMap));
-            });
+    addStorageChangeListener((changes: { [key: string]: unknown }, areaName: string) => {
+        if (areaName !== 'sync' || !Object.keys(changes).some(isTagGroupsStorageKey)) {
+            return;
         }
+
+        // Chunks may change across several events, so re-read the whole config instead of using newValue
+        void readStoredTagGroups().then(async (data) => {
+            if (!data) {
+                return;
+            }
+            const value = JSON.parse(data) as TagGroupConfig;
+            const iconMap = await getTagGroupIcons();
+            callback(mergeTagIcons(value, iconMap));
+        }).catch((error) => {
+            console.error('Failed to reload tag groups after storage change:', error);
+        });
     }, 'sync');
 
     addStorageChangeListener((_changes, areaName: string) => {

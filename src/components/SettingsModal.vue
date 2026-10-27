@@ -745,8 +745,9 @@ const saveGroup = async () => {
       await tagGroupsStore.addGroup(groupForm)
     }
     closeGroupModal()
-  } catch (error) {
-    console.error(t('settings.groups.saveFailed'), error)
+  } catch (err) {
+    console.error(t('settings.groups.saveFailed'), err)
+    error(t('settings.groups.saveFailed'))
   }
 }
 
@@ -782,8 +783,9 @@ const saveTag = async (tagData: Partial<Tag>): Promise<void> => {
       await tagGroupsStore.addTag(currentGroupId.value!, tagData)
     }
     closeTagModal()
-  } catch (error) {
-    console.error(t('tag.saveFailed'), error)
+  } catch (err) {
+    console.error(t('tag.saveFailed'), err)
+    error(t('tag.saveFailed'))
   }
 }
 
@@ -818,8 +820,9 @@ const handleTagsDragEnd = async (): Promise<void> => {
     if (tagOrderDirty.value) {
       await tagGroupsStore.saveGroupsOrder(tagGroupsStore.tagGroups.groups || [])
     }
-  } catch (error) {
-    console.error(t('settings.groups.saveFailed'), error)
+  } catch (err) {
+    console.error(t('settings.groups.saveFailed'), err)
+    error(t('settings.groups.saveFailed'))
   } finally {
     draggingGroupId.value = null
     dragOverGroupId.value = null
