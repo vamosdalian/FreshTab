@@ -2,6 +2,27 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createApp, nextTick } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 
+const SYNC_QUOTA_BYTES_PER_ITEM = 8192
+const encoder = new TextEncoder()
+
+function readSavedGroups(storageData) {
+  const chunkCount = storageData.sync.FRESH_TAB_TAG_GROUPS_CHUNKS
+  const data = Array.from({ length: chunkCount }, (_, index) => storageData.sync[`FRESH_TAB_TAG_GROUPS_CHUNK_${index}`]).join('')
+  return JSON.parse(data)
+}
+
+function createManyTags(count) {
+  return Array.from({ length: count }, (_, index) => ({
+    id: `bulk_tag_${index}`,
+    name: `批量网站 ${index}`,
+    url: `https://example-${index}.com/some/long/path?with=query&and="quotes"`,
+    iconType: 'favicon',
+    iconValue: '',
+    backgroundColor: '#336699',
+    validFaviconUrl: `https://example-${index}.com/favicon.ico`
+  }))
+}
+
 function createChromeStorageMock() {
   const storageData = {
     sync: {},
@@ -30,6 +51,14 @@ function createChromeStorageMock() {
       const areaStorage = storageData[area]
       const changes = {}
 
+      if (area === 'sync') {
+        Object.entries(items).forEach(([key, value]) => {
+          if (encoder.encode(key + JSON.stringify(value)).length > SYNC_QUOTA_BYTES_PER_ITEM) {
+            throw new Error('Resource::kQuotaBytesPerItem quota exceeded')
+          }
+        })
+      }
+
       Object.entries(items).forEach(([key, value]) => {
         changes[key] = {
           oldValue: areaStorage[key],
@@ -39,6 +68,21 @@ function createChromeStorageMock() {
       })
 
       listeners.forEach((listener) => listener(changes, area))
+    }),
+    remove: vi.fn(async (keys) => {
+      const areaStorage = storageData[area]
+      const changes = {}
+
+      ;(Array.isArray(keys) ? keys : [keys]).forEach((key) => {
+        if (key in areaStorage) {
+          changes[key] = { oldValue: areaStorage[key] }
+          delete areaStorage[key]
+        }
+      })
+
+      if (Object.keys(changes).length > 0) {
+        listeners.forEach((listener) => listener(changes, area))
+      }
     })
   })
 
@@ -96,7 +140,7 @@ describe('tag groups persistence', () => {
       tags: []
     })
 
-    const savedGroups = JSON.parse(storageData.sync.FRESH_TAB_TAG_GROUPS)
+    const savedGroups = readSavedGroups(storageData)
     expect(savedGroups.groups.some((group) => group.name === '测试分组')).toBe(true)
     expect(storageData.local.FRESH_TAB_TAG_GROUP_ICONS || {}).toEqual({})
 
@@ -145,7 +189,7 @@ describe('tag groups persistence', () => {
       iconData: 'data:image/png;base64,abc123'
     })
 
-    const savedGroups = JSON.parse(storageData.sync.FRESH_TAB_TAG_GROUPS)
+    const savedGroups = readSavedGroups(storageData)
     const qaTag = savedGroups.groups.find((group) => group.id === 'qa_group').tags[0]
     expect(qaTag.iconData).toBeUndefined()
     expect(qaTag.faviconData).toBeUndefined()
@@ -258,7 +302,7 @@ describe('tag groups persistence', () => {
 
     await store.saveGroupsOrder(groups)
 
-    const savedGroups = JSON.parse(storageData.sync.FRESH_TAB_TAG_GROUPS)
+    const savedGroups = readSavedGroups(storageData)
     expect(savedGroups.groups.find((group) => group.id === 'default').tags.map((tag) => tag.id)).toEqual([
       'github',
       'sto',
@@ -298,7 +342,7 @@ describe('tag groups persistence', () => {
 
     await store.saveGroupsOrder(groups)
 
-    const savedGroups = JSON.parse(storageData.sync.FRESH_TAB_TAG_GROUPS)
+    const savedGroups = readSavedGroups(storageData)
     expect(savedGroups.groups.find((group) => group.id === 'default').tags.map((tag) => tag.id)).toEqual([
       'github',
       'sto'
@@ -322,5 +366,72 @@ describe('tag groups persistence', () => {
       'google',
       'npm'
     ])
+  })
+
+  it('persists tag groups larger than the sync per-item quota across chunks', async () => {
+    const { chrome, storageData } = createChromeStorageMock()
+    global.chrome = chrome
+
+    const { useTagGroupsStore } = await loadStores()
+
+    setActivePinia(createPinia())
+    const store = useTagGroupsStore()
+    await store.initialize()
+
+    await store.addGroup({ id: 'bulk', name: '批量分组', tags: createManyTags(120) })
+    await store.addTag('bulk', { id: 'last_tag', name: '最后一个', url: 'https://last.example.com' })
+
+    expect(storageData.sync.FRESH_TAB_TAG_GROUPS_CHUNKS).toBeGreaterThan(1)
+    expect(storageData.sync.FRESH_TAB_TAG_GROUPS).toBeUndefined()
+
+    setActivePinia(createPinia())
+    const reloadedStore = useTagGroupsStore()
+    await reloadedStore.initialize()
+
+    const bulkGroup = reloadedStore.tagGroups.groups.find((group) => group.id === 'bulk')
+    expect(bulkGroup.tags).toHaveLength(121)
+    expect(bulkGroup.tags[120].name).toBe('最后一个')
+
+    await reloadedStore.removeGroup('bulk')
+    expect(storageData.sync.FRESH_TAB_TAG_GROUPS_CHUNKS).toBe(1)
+    expect(storageData.sync.FRESH_TAB_TAG_GROUPS_CHUNK_1).toBeUndefined()
+  })
+
+  it('moves legacy single-key data into chunks on the next save', async () => {
+    const { chrome, storageData } = createChromeStorageMock()
+    global.chrome = chrome
+    storageData.sync.FRESH_TAB_TAG_GROUPS = JSON.stringify({
+      version: '1',
+      lastModified: new Date().toISOString(),
+      groups: [{ id: 'legacy', name: 'Legacy', emoji: '📁', themeColor: '#123456', tags: [] }]
+    })
+
+    const { useTagGroupsStore } = await loadStores()
+    setActivePinia(createPinia())
+    const store = useTagGroupsStore()
+    await store.initialize()
+
+    expect(store.tagGroups.groups.map((group) => group.id)).toEqual(['legacy'])
+
+    await store.addTag('legacy', { id: 'new_tag', name: 'New', url: 'https://new.example.com' })
+
+    expect(storageData.sync.FRESH_TAB_TAG_GROUPS).toBeUndefined()
+    expect(readSavedGroups(storageData).groups[0].tags.map((tag) => tag.id)).toEqual(['new_tag'])
+  })
+
+  it('rolls back in-memory changes when saving fails', async () => {
+    const { chrome } = createChromeStorageMock()
+    global.chrome = chrome
+
+    const { useTagGroupsStore } = await loadStores()
+    setActivePinia(createPinia())
+    const store = useTagGroupsStore()
+    await store.initialize()
+
+    chrome.storage.sync.set.mockRejectedValueOnce(new Error('Resource::kQuotaBytesPerItem quota exceeded'))
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    await expect(store.addTag('default', { id: 'failed_tag', name: 'Failed' })).rejects.toThrow('quota')
+    expect(store.tagGroups.groups[0].tags.some((tag) => tag.id === 'failed_tag')).toBe(false)
   })
 })

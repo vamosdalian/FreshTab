@@ -72,6 +72,32 @@ export async function setToStorage(items, area = 'sync') {
   })
 }
 
+export async function removeFromStorage(keys, area = 'sync') {
+  const keyList = Array.isArray(keys) ? keys : [keys]
+  if (keyList.length === 0) {
+    return
+  }
+
+  const chromeStorageArea = getChromeStorageArea(area)
+  if (chromeStorageArea) {
+    return chromeStorageArea.remove(keyList)
+  }
+
+  const changes = {}
+  keyList.forEach((key) => {
+    const oldValue = readLocalValue(area, key)
+    if (oldValue === undefined) {
+      return
+    }
+    globalThis.localStorage?.removeItem(getLocalStorageKey(area, key))
+    changes[key] = { oldValue }
+  })
+
+  if (Object.keys(changes).length > 0) {
+    localAreaListeners[area]?.forEach((listener) => listener(changes, area))
+  }
+}
+
 export function addStorageChangeListener(listener, area = 'sync') {
   const chromeStorageOnChanged = globalThis.chrome?.storage?.onChanged
   if (chromeStorageOnChanged?.addListener) {
